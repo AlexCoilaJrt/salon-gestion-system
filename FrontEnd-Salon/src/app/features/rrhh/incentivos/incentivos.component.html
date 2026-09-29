@@ -1,0 +1,92 @@
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Campañas e Incentivos</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Configura bonos temporales de fin de semana o festivos para tus empleados.</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nuevo Incentivo" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+  </div>
+
+  <p-table [value]="incentivos" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+           styleClass="p-datatable-sm p-datatable-striped custom-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Campaña</th>
+        <th>Beneficio</th>
+        <th>Fechas de Vigencia</th>
+        <th>Estado</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-incentivo>
+      <tr>
+        <td class="font-bold text-gray-800 dark:text-gray-200">
+          {{incentivo.nombre}}
+        </td>
+        <td class="font-medium text-[#984b5d]">
+          + {{incentivo.tipoIncentivo === 'PORCENTAJE' ? incentivo.valor + '%' : 'S/ ' + incentivo.valor}}
+        </td>
+        <td class="text-sm text-gray-600">
+          {{incentivo.fechaInicio | date:'short'}} - {{incentivo.fechaFin | date:'short'}}
+        </td>
+        <td>
+          <p-tag [severity]="incentivo.estado ? 'success' : 'danger'" [value]="incentivo.estado ? 'Activo' : 'Inactivo'"></p-tag>
+        </td>
+        <td class="text-center">
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#984b5d]" (click)="openEdit(incentivo)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-red-500" (click)="deleteIncentivo(incentivo)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-6 text-gray-500">No se encontraron incentivos registrados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal -->
+<p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Incentivo' : 'Nuevo Incentivo'" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
+  <form [formGroup]="incentivoForm" (ngSubmit)="saveIncentivo()" class="flex flex-col gap-5 py-4">
+    
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Nombre de Campaña <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="nombre" placeholder="Ej: Bono Fin de Semana" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-700">Tipo <span class="text-red-500">*</span></label>
+          <p-dropdown [options]="tiposIncentivo" formControlName="tipoIncentivo" optionLabel="label" optionValue="value" styleClass="w-full border-none bg-[#f4f7fa]"></p-dropdown>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-700">Valor Adicional <span class="text-red-500">*</span></label>
+          <p-inputNumber formControlName="valor" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" class="w-full" styleClass="w-full border-none bg-[#f4f7fa]"></p-inputNumber>
+        </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Fecha y Hora de Inicio <span class="text-red-500">*</span></label>
+      <p-calendar formControlName="fechaInicio" [showTime]="true" hourFormat="12" appendTo="body" styleClass="w-full border-none bg-[#f4f7fa]"></p-calendar>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Fecha y Hora de Fin <span class="text-red-500">*</span></label>
+      <p-calendar formControlName="fechaFin" [showTime]="true" hourFormat="12" appendTo="body" styleClass="w-full border-none bg-[#f4f7fa]"></p-calendar>
+    </div>
+
+    <div class="flex items-center pt-2">
+      <p-checkbox formControlName="estado" [binary]="true" inputId="estadoIncentivo"></p-checkbox>
+      <label for="estadoIncentivo" class="ml-2 text-sm text-gray-700 font-medium">Campaña Activa</label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600" (onClick)="displayDialog = false"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="incentivoForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-toast></p-toast>

@@ -65,6 +65,111 @@ public class AsistenciaService {
         return mapToResponse(actualizado);
     }
 
+    public pe.com.salon.salongestionapi.rrhh.dto.KioskoResponse marcarKiosko(pe.com.salon.salongestionapi.rrhh.dto.KioskoRequest request) {
+        Empleado empleado = empleadoRepository.findByDni(request.getDni())
+                .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con DNI: " + request.getDni()));
+
+        if (!empleado.getEstado()) {
+            throw new RuntimeException("El empleado se encuentra Inactivo en el sistema.");
+        }
+
+        LocalDate hoy = LocalDate.now();
+        java.util.Optional<RegistroAsistencia> registroOpt = asistenciaRepository.findByEmpleadoIdAndFecha(empleado.getId(), hoy);
+
+        String accion = request.getAccion() != null ? request.getAccion().toUpperCase() : "ASISTENCIA";
+
+        if (registroOpt.isPresent()) {
+            RegistroAsistencia registro = registroOpt.get();
+            
+            if ("DESCANSO".equals(accion)) {
+                if (registro.getHoraSalida() != null) {
+                    throw new RuntimeException("Ya has marcado tu salida, no puedes tomar descanso.");
+                }
+                if (registro.getHoraInicioDescanso() == null) {
+                    registro.setHoraInicioDescanso(java.time.LocalTime.now());
+                    empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.EN_DESCANSO);
+                    empleadoRepository.save(empleado);
+                    asistenciaRepository.save(registro);
+                    return pe.com.salon.salongestionapi.rrhh.dto.KioskoResponse.builder()
+                            .mensaje("¡Descanso Iniciado! Buen provecho.")
+                            .empleadoNombre(empleado.getNombres())
+                            .tipoRegistro("INICIO_DESCANSO")
+                            .horaRegistro(registro.getHoraInicioDescanso())
+                            .build();
+                } else if (registro.getHoraFinDescanso() == null) {
+                    registro.setHoraFinDescanso(java.time.LocalTime.now());
+                    empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.DISPONIBLE);
+                    empleadoRepository.save(empleado);
+                    asistenciaRepository.save(registro);
+                    return pe.com.salon.salongestionapi.rrhh.dto.KioskoResponse.builder()
+                            .mensaje("¡Fin de Descanso! Bienvenido de vuelta.")
+                            .empleadoNombre(empleado.getNombres())
+                            .tipoRegistro("FIN_DESCANSO")
+                            .horaRegistro(registro.getHoraFinDescanso())
+                            .build();
+                } else {
+                    throw new RuntimeException("Ya tomaste tu descanso por hoy.");
+                }
+            } else {
+                if (registro.getHoraSalida() != null) {
+                    throw new RuntimeException("Ya has registrado tu entrada y salida por hoy.");
+                }
+                if (registro.getHoraInicioDescanso() != null && registro.getHoraFinDescanso() == null) {
+                    registro.setHoraFinDescanso(java.time.LocalTime.now());
+                }
+                
+                registro.setHoraSalida(java.time.LocalTime.now());
+                empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.AUSENTE);
+                empleadoRepository.save(empleado);
+                asistenciaRepository.save(registro);
+
+                return pe.com.salon.salongestionapi.rrhh.dto.KioskoResponse.builder()
+                        .mensaje("¡Hasta luego! Salida registrada exitosamente.")
+                        .empleadoNombre(empleado.getNombres())
+                        .tipoRegistro("SALIDA")
+                        .horaRegistro(registro.getHoraSalida())
+                        .build();
+            }
+        } else {
+            if ("DESCANSO".equals(accion)) {
+                throw new RuntimeException("Debes marcar tu entrada antes de tomar un descanso.");
+            }
+            // Registrar Entrada
+            java.time.LocalTime horaActual = java.time.LocalTime.now();
+            int tardanzaMinutos = 0;
+            TipoAsistencia tipo = TipoAsistencia.ASISTIO;
+            
+            if (empleado.getTurno() != null) {
+                java.time.LocalTime horaEsperada = empleado.getTurno().getHoraEntrada();
+                int tolerancia = empleado.getTurno().getToleranciaMinutos();
+                
+                long minutosRetraso = java.time.temporal.ChronoUnit.MINUTES.between(horaEsperada, horaActual);
+                if (minutosRetraso > tolerancia) {
+                    tardanzaMinutos = (int) minutosRetraso;
+                    tipo = TipoAsistencia.TARDANZA;
+                }
+            }
+
+            RegistroAsistencia nuevoRegistro = new RegistroAsistencia();
+            nuevoRegistro.setEmpleado(empleado);
+            nuevoRegistro.setFecha(hoy);
+            nuevoRegistro.setHoraEntrada(horaActual);
+            nuevoRegistro.setTipo(tipo);
+            nuevoRegistro.setTardanzaMinutos(tardanzaMinutos);
+            
+            empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.DISPONIBLE);
+            empleadoRepository.save(empleado);
+            asistenciaRepository.save(nuevoRegistro);
+
+            return pe.com.salon.salongestionapi.rrhh.dto.KioskoResponse.builder()
+                    .mensaje("¡Bienvenido! Entrada registrada exitosamente.")
+                    .empleadoNombre(empleado.getNombres())
+                    .tipoRegistro("ENTRADA")
+                    .horaRegistro(nuevoRegistro.getHoraEntrada())
+                    .build();
+        }
+    }
+
     public List<AsistenciaResponse> listarPorEmpleado(Long empleadoId) {
         return asistenciaRepository.findByEmpleadoIdOrderByFechaDesc(empleadoId)
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
@@ -86,6 +191,16 @@ public class AsistenciaService {
         res.setObservaciones(r.getObservaciones());
         res.setEmpleadoId(r.getEmpleado().getId());
         res.setEmpleadoNombreCompleto(r.getEmpleado().getNombres() + " " + r.getEmpleado().getApellidos());
+        
+        if (r.getHoraEntrada() != null && r.getHoraSalida() != null) {
+            long totalMinutes = java.time.temporal.ChronoUnit.MINUTES.between(r.getHoraEntrada(), r.getHoraSalida());
+            long hours = totalMinutes / 60;
+            long minutes = totalMinutes % 60;
+            res.setHorasTrabajadas(String.format("%dh %02dm", hours, minutes));
+        } else {
+            res.setHorasTrabajadas("-");
+        }
+        
         return res;
     }
 }

@@ -23,8 +23,8 @@ public class SesionCajaController {
     }
 
     @PostMapping("/cerrar")
-    public ResponseEntity<SesionCajaResponse> cerrarCaja() {
-        return ResponseEntity.ok(sesionCajaService.cerrarCaja());
+    public ResponseEntity<SesionCajaResponse> cerrarCaja(@Valid @RequestBody pe.com.salon.salongestionapi.operaciones.dto.CierreCajaRequest request) {
+        return ResponseEntity.ok(sesionCajaService.cerrarCaja(request));
     }
 
     @GetMapping("/actual")

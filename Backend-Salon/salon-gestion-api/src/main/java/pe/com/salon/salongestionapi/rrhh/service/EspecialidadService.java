@@ -33,7 +33,7 @@ public class EspecialidadService {
         Especialidad especialidad = new Especialidad();
         especialidad.setNombre(request.getNombre());
         especialidad.setDescripcion(request.getDescripcion());
-        especialidad.setEstado(true);
+        especialidad.setEstado(request.getEstado() != null ? request.getEstado() : true);
 
         Especialidad guardada = especialidadRepository.save(especialidad);
         return mapToResponse(guardada);
@@ -45,6 +45,9 @@ public class EspecialidadService {
 
         especialidad.setNombre(request.getNombre());
         especialidad.setDescripcion(request.getDescripcion());
+        if (request.getEstado() != null) {
+            especialidad.setEstado(request.getEstado());
+        }
 
         Especialidad actualizada = especialidadRepository.save(especialidad);
         return mapToResponse(actualizada);

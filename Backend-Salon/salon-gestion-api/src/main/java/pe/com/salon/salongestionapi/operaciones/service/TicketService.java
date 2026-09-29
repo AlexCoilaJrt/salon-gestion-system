@@ -48,15 +48,27 @@ public class TicketService {
         SesionCaja sesionActiva = sesionCajaRepository.findByEstadoTrue()
                 .orElseThrow(() -> new RuntimeException("No se puede emitir ticket porque no hay una caja abierta"));
 
-        // 2. Buscar al cliente
-        Cliente cliente = clienteRepository.findById(request.getClienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + request.getClienteId()));
+        // 2. Buscar al cliente (Opcional - con Fallback para Base de Datos)
+        Cliente cliente = null;
+        if (request.getClienteId() != null) {
+            cliente = clienteRepository.findById(request.getClienteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + request.getClienteId()));
+        } else {
+            // Creamos o buscamos un cliente genérico porque la BD exige un cliente_id
+            cliente = clienteRepository.findById(1L).orElseGet(() -> {
+                Cliente fallback = new Cliente();
+                fallback.setNombres("Público");
+                fallback.setApellidos("General");
+                return clienteRepository.save(fallback);
+            });
+        }
 
         // 3. Preparar cabecera del Ticket
         Ticket ticket = new Ticket();
         ticket.setFechaEmision(LocalDateTime.now());
         ticket.setMetodoPago(request.getMetodoPago());
         ticket.setCliente(cliente);
+        ticket.setNombreClienteNoRegistrado(request.getNombreClienteNoRegistrado());
         ticket.setSesionCaja(sesionActiva);
 
         BigDecimal totalVenta = BigDecimal.ZERO;
@@ -119,11 +131,13 @@ public class TicketService {
         ticket.setTotal(totalVenta);
         Ticket guardado = ticketRepository.save(ticket);
 
-        // 6. GAP 6: Actualizar puntos de fidelización y fecha de última visita
-        int puntosGanados = totalVenta.intValue() * PUNTOS_POR_SOL;
-        cliente.setPuntosFidelizacion(cliente.getPuntosFidelizacion() + puntosGanados);
-        cliente.setFechaUltimaVisita(LocalDate.now());
-        clienteRepository.save(cliente);
+        // 6. GAP 6: Actualizar puntos de fidelización y fecha de última visita (Sólo si hay cliente)
+        if (cliente != null) {
+            int puntosGanados = totalVenta.intValue() * PUNTOS_POR_SOL;
+            cliente.setPuntosFidelizacion(cliente.getPuntosFidelizacion() + puntosGanados);
+            cliente.setFechaUltimaVisita(LocalDate.now());
+            clienteRepository.save(cliente);
+        }
 
         return mapToResponse(guardado);
     }
@@ -134,8 +148,13 @@ public class TicketService {
         res.setFechaEmision(ticket.getFechaEmision());
         res.setMetodoPago(ticket.getMetodoPago());
         res.setTotal(ticket.getTotal());
-        res.setClienteId(ticket.getCliente().getId());
-        res.setClienteNombreCompleto(ticket.getCliente().getNombres() + " " + ticket.getCliente().getApellidos());
+        
+        if (ticket.getCliente() != null) {
+            res.setClienteId(ticket.getCliente().getId());
+            res.setClienteNombreCompleto(ticket.getCliente().getNombres() + " " + ticket.getCliente().getApellidos());
+        } else {
+            res.setClienteNombreCompleto(ticket.getNombreClienteNoRegistrado() != null && !ticket.getNombreClienteNoRegistrado().isBlank() ? ticket.getNombreClienteNoRegistrado() : "Público General");
+        }
         res.setSesionCajaId(ticket.getSesionCaja().getId());
 
         List<TicketDetalleResponse> detallesRes = ticket.getDetalles().stream().map(d -> {

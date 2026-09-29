@@ -14,8 +14,9 @@ public class TicketRequest {
     @NotNull(message = "El método de pago es obligatorio")
     private MetodoPago metodoPago;
 
-    @NotNull(message = "El ID del cliente es obligatorio")
     private Long clienteId;
+
+    private String nombreClienteNoRegistrado;
 
     @NotEmpty(message = "El ticket debe tener al menos un detalle (servicio o producto)")
     @Valid

@@ -26,6 +26,11 @@ public class AsistenciaController {
         return new ResponseEntity<>(registro, HttpStatus.CREATED);
     }
 
+    @PostMapping("/kiosko")
+    public ResponseEntity<pe.com.salon.salongestionapi.rrhh.dto.KioskoResponse> marcarAsistenciaKiosko(@Valid @RequestBody pe.com.salon.salongestionapi.rrhh.dto.KioskoRequest request) {
+        return ResponseEntity.ok(asistenciaService.marcarKiosko(request));
+    }
+
     @PatchMapping("/{empleadoId}/salida")
     public ResponseEntity<AsistenciaResponse> registrarSalida(
             @PathVariable Long empleadoId,

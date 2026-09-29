@@ -13,5 +13,9 @@ public class EmpleadoResponse {
     private java.time.LocalDate fechaNacimiento;
     private Integer edad;
     private String disponibilidad;
-    private String especialidadNombre;
+    private java.util.List<String> especialidadesNombres;
+    private java.util.List<Long> especialidadIds;
+    private Long turnoId;
+    private String turnoNombre;
+    private Boolean estado;
 }

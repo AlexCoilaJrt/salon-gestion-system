@@ -1,0 +1,125 @@
+<p-toast></p-toast>
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Catálogo de Servicios</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Administra los servicios que ofreces, sus precios y duraciones.</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nuevo Servicio" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="openNew()"></button>
+  </div>
+
+  <p-table [value]="servicios" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Categoría</th>
+        <th>Nombre del Servicio</th>
+        <th>Precio Base</th>
+        <th>Duración</th>
+        <th>Especialista Req.</th>
+        <th class="text-center">Estado</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-serv>
+      <tr>
+        <td>
+          <span class="text-xs font-bold px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-600 dark:text-gray-300">
+            {{serv.categoriaNombre}}
+          </span>
+        </td>
+        <td class="font-bold text-gray-800 dark:text-gray-200">
+          {{serv.nombre}}
+          <div class="text-xs font-normal text-gray-400 mt-1">{{serv.descripcion | slice:0:30}}{{serv.descripcion?.length > 30 ? '...' : ''}}</div>
+        </td>
+        <td class="font-semibold text-green-600 dark:text-green-400">S/ {{serv.precioBase}}</td>
+        <td class="text-gray-600 dark:text-gray-400"><i class="pi pi-clock mr-1 text-xs"></i>{{serv.duracionMinutos}} min</td>
+        <td class="text-gray-600 dark:text-gray-400"><i class="pi pi-user mr-1 text-xs"></i>{{serv.especialidadRequeridaNombre}}</td>
+        <td class="text-center">
+          <p-tag [severity]="serv.estado ? 'success' : 'danger'" [value]="serv.estado ? 'Activo' : 'Inactivo'"></p-tag>
+        </td>
+        <td class="text-right flex justify-end gap-2">
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-info" (click)="editServicio(serv)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="deleteServicio(serv)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center py-8 text-gray-500">No hay servicios registrados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [(visible)]="servicioDialog" [style]="{width: '600px'}" [header]="isEdit ? 'Editar Servicio' : 'Nuevo Servicio'" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="field mb-4 col-span-1 md:col-span-2">
+        <label for="nombre" class="font-semibold block mb-2 dark:text-gray-200">Nombre del Servicio *</label>
+        <input type="text" pInputText id="nombre" [(ngModel)]="servicio.nombre" required autofocus />
+      </div>
+
+      <div class="field mb-4">
+        <label for="categoria" class="font-semibold block mb-2 dark:text-gray-200">Categoría *</label>
+        <p-dropdown id="categoria" [options]="categorias" [(ngModel)]="servicio.categoriaId" optionLabel="nombre" optionValue="id" placeholder="Selecciona una categoría" appendTo="body"></p-dropdown>
+      </div>
+
+      <div class="field mb-4">
+        <label for="especialidad" class="font-semibold block mb-2 dark:text-gray-200">Especialidad Requerida *</label>
+        <p-dropdown id="especialidad" [options]="especialidades" [(ngModel)]="servicio.especialidadRequeridaId" optionLabel="nombre" optionValue="id" placeholder="Selecciona una especialidad" appendTo="body"></p-dropdown>
+      </div>
+
+      <div class="field mb-4">
+        <label for="precio" class="font-semibold block mb-2 dark:text-gray-200">Precio Base (S/) *</label>
+        <p-inputNumber id="precio" [(ngModel)]="servicio.precioBase" mode="currency" currency="PEN" locale="es-PE"></p-inputNumber>
+      </div>
+
+      <div class="field mb-4">
+        <label for="duracion" class="font-semibold block mb-2 dark:text-gray-200">Duración (Minutos) *</label>
+        <p-inputNumber id="duracion" [(ngModel)]="servicio.duracionMinutos" [showButtons]="true" [min]="1" [step]="15"></p-inputNumber>
+      </div>
+      
+      <div class="field mb-4">
+        <label for="comision" class="font-semibold block mb-2 dark:text-gray-200">Comisión Asignada (%)</label>
+        <p-inputNumber id="comision" [(ngModel)]="servicio.comisionPorcentaje" suffix=" %" [min]="0" [max]="100" placeholder="Ej. 40"></p-inputNumber>
+        <small class="text-gray-500 block mt-1">Porcentaje de ganancia para el empleado que realice este servicio.</small>
+      </div>
+
+      <div class="field mb-4">
+        <label for="costoMaterial" class="font-semibold block mb-2 dark:text-gray-200">Costo Material (S/)</label>
+        <p-inputNumber id="costoMaterial" [(ngModel)]="servicio.costoMaterial" mode="currency" currency="PEN" locale="es-PE" placeholder="0.00"></p-inputNumber>
+        <small class="text-gray-500 block mt-1">Se descuenta antes de comisión</small>
+      </div>
+
+      <div class="field mb-4 col-span-1 md:col-span-2">
+        <label for="insumos" class="font-semibold block mb-2 dark:text-gray-200">Insumos Requeridos (Receta / Paquete)</label>
+        <p-multiSelect 
+            id="insumos" 
+            [options]="insumosDisponibles" 
+            [(ngModel)]="servicio.insumosIds" 
+            (onChange)="calcularCostoMaterial()"
+            optionLabel="nombre" 
+            optionValue="id"
+            placeholder="Seleccionar insumos..." 
+            display="chip"
+            styleClass="w-full"
+            appendTo="body">
+        </p-multiSelect>
+        <small class="text-gray-500 block mt-1">Selecciona los productos de uso interno que gasta este servicio.</small>
+      </div>
+      
+      <div class="field mb-4 col-span-1 md:col-span-2">
+        <label for="descripcion" class="font-semibold block mb-2 dark:text-gray-200">Descripción Corta (Opcional)</label>
+        <input type="text" pInputText id="descripcion" [(ngModel)]="servicio.descripcion" />
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="saveServicio()" [disabled]="!servicio.nombre || !servicio.precioBase || !servicio.categoriaId || !servicio.especialidadRequeridaId"></button>
+  </ng-template>
+</p-dialog>

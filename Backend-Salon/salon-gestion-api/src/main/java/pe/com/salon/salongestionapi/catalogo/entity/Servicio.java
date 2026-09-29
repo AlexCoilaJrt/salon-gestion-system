@@ -8,6 +8,8 @@ import lombok.Setter;
 import pe.com.salon.salongestionapi.rrhh.entity.Especialidad;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "servicio")
@@ -50,4 +52,16 @@ public class Servicio {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "especialidad_id", nullable = false)
     private Especialidad especialidadRequerida;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
+
+    @ManyToMany
+    @JoinTable(
+        name = "servicio_insumos",
+        joinColumns = @JoinColumn(name = "servicio_id"),
+        inverseJoinColumns = @JoinColumn(name = "producto_id")
+    )
+    private List<Producto> insumos = new ArrayList<>();
 }

@@ -13,4 +13,6 @@ public class EspecialidadRequest {
 
     @Size(max = 200, message = "La descripción no puede superar los 200 caracteres")
     private String descripcion;
+
+    private Boolean estado;
 }

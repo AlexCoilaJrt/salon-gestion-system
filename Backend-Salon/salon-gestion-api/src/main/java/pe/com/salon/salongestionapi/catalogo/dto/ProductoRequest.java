@@ -14,8 +14,12 @@ public class ProductoRequest {
     @Size(max = 50, message = "La marca no puede superar los 50 caracteres")
     private String marca;
 
+    private String sku;
+    private String proveedor;
+    private String imageUrl;
+
     @NotNull(message = "El precio de venta es obligatorio")
-    @DecimalMin(value = "0.0", inclusive = false, message = "El precio debe ser mayor a 0")
+    @DecimalMin(value = "0.0", inclusive = true, message = "El precio debe ser 0 o mayor")
     private BigDecimal precioVenta;
 
     @NotNull(message = "El stock actual es obligatorio")
@@ -25,4 +29,17 @@ public class ProductoRequest {
     @NotNull(message = "El stock mínimo es obligatorio")
     @Min(value = 0, message = "El stock mínimo no puede ser negativo")
     private Integer stockMinimo;
+
+    @NotNull(message = "El costo es obligatorio")
+    @DecimalMin(value = "0.0", message = "El costo no puede ser negativo")
+    private BigDecimal costo;
+
+    @NotNull(message = "Debe indicar si es para uso interno")
+    private Boolean usoInterno;
+
+    @NotNull(message = "Debe indicar si es para venta directa")
+    private Boolean ventaDirecta;
+
+    @NotNull(message = "Debe asignar una categoría a este producto")
+    private Long categoriaId;
 }

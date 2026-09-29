@@ -31,6 +31,11 @@ public class EmpleadoRequest {
     @Past(message = "La fecha de nacimiento debe ser en el pasado")
     private java.time.LocalDate fechaNacimiento;
 
-    @NotNull(message = "Debe asignar una especialidad al empleado")
-    private Long especialidadId;
+    @NotEmpty(message = "Debe asignar al menos una especialidad al empleado")
+    private java.util.List<Long> especialidadIds;
+
+    @NotNull(message = "Debe asignar un turno al empleado")
+    private Long turnoId;
+
+    private Boolean estado;
 }

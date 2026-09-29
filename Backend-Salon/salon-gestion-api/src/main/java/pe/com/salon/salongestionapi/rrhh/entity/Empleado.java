@@ -49,9 +49,17 @@ public class Empleado {
     @Column(nullable = false)
     private Boolean estado = true;
 
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "empleado_especialidad",
+        joinColumns = @JoinColumn(name = "empleado_id"),
+        inverseJoinColumns = @JoinColumn(name = "especialidad_id")
+    )
+    private java.util.Set<Especialidad> especialidades = new java.util.HashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "especialidad_id")
-    private Especialidad especialidad;
+    @JoinColumn(name = "turno_id")
+    private Turno turno;
 
     // Método utilitario para no guardar la edad en base de datos (ya que cambia cada año)
     @Transient

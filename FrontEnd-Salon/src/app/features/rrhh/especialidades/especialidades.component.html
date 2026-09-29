@@ -1,0 +1,68 @@
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Catálogo de Especialidades</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Gestiona las profesiones y oficios (Ej: Manicurista, Barbera).</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nueva Especialidad" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+  </div>
+
+  <p-table [value]="especialidades" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+           styleClass="p-datatable-sm p-datatable-striped custom-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="w-1/3">Nombre</th>
+        <th class="w-1/3">Descripción</th>
+        <th class="w-1/6">Estado</th>
+        <th class="w-1/6 text-center">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-esp>
+      <tr>
+        <td class="font-bold text-gray-800 dark:text-gray-200 uppercase">{{esp.nombre}}</td>
+        <td class="text-sm text-gray-600 dark:text-gray-400">{{esp.descripcion || 'Sin descripción'}}</td>
+        <td>
+          <p-tag [severity]="esp.estado ? 'success' : 'danger'" [value]="esp.estado ? 'Activa' : 'Inactiva'"></p-tag>
+        </td>
+        <td class="text-center">
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#984b5d]" (click)="openEdit(esp)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-red-500" (click)="deleteEspecialidad(esp)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="4" class="text-center p-6 text-gray-500">No se encontraron especialidades.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal -->
+<p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Especialidad' : 'Nueva Especialidad'" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
+  <form [formGroup]="especialidadForm" (ngSubmit)="saveEspecialidad()" class="flex flex-col gap-6 py-4">
+    
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Nombre de Especialidad <span class="text-red-500">*</span></label>
+      <input type="text" pInputText formControlName="nombre" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d] uppercase" placeholder="Ej: MANICURISTA" />
+      <small class="text-red-500" *ngIf="especialidadForm.get('nombre')?.invalid && especialidadForm.get('nombre')?.touched">Requerido (mín. 3 letras).</small>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Descripción (Opcional)</label>
+      <textarea pInputTextarea formControlName="descripcion" rows="3" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" placeholder="Detalles sobre esta especialidad..."></textarea>
+    </div>
+
+    <div class="flex items-center pt-2">
+      <p-checkbox formControlName="estado" [binary]="true" inputId="estadoEsp"></p-checkbox>
+      <label for="estadoEsp" class="ml-2 text-sm text-gray-700 font-medium">Especialidad Activa</label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600" (onClick)="displayDialog = false"></p-button>
+      <p-button label="Guardar Especialidad" icon="pi pi-check" type="submit" [disabled]="especialidadForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-toast></p-toast>

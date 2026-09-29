@@ -12,8 +12,9 @@ import pe.com.salon.salongestionapi.catalogo.service.ProductoService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/catalogo/productos")
+@RequestMapping("/api/v1/productos")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ProductoController {
 
     private final ProductoService productoService;

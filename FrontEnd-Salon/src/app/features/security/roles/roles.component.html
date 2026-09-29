@@ -1,0 +1,105 @@
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Roles y Permisos</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Gestiona los roles del sistema y sus niveles de acceso.</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nuevo Rol" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+  </div>
+
+  <p-table [value]="roles" [loading]="loading" [paginator]="true" [rows]="10" [totalRecords]="totalRecords"
+           (onPage)="onPageChange($event)" responsiveLayout="scroll"
+           styleClass="p-datatable-sm p-datatable-striped custom-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th class="w-1/4">Nombre</th>
+        <th class="w-1/3">Descripción</th>
+        <th class="w-1/6">Estado</th>
+        <th class="w-1/6 text-center">Permisos</th>
+        <th class="w-[10%] text-center">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-role>
+      <tr>
+        <td class="font-semibold text-gray-800 dark:text-gray-200">
+          {{role.name}}
+          <span *ngIf="role.name === 'ADMIN'" class="ml-2 px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full">SISTEMA</span>
+        </td>
+        <td class="text-sm text-gray-600 dark:text-gray-400">{{role.description || 'Sin descripción'}}</td>
+        <td>
+          <p-tag [severity]="role.active ? 'success' : 'danger'" [value]="role.active ? 'Activo' : 'Inactivo'"></p-tag>
+        </td>
+        <td class="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
+          <span class="bg-[#f4f7fa] dark:bg-[#2d2d2d] px-2 py-1 rounded-md">{{role.permissions?.length || 0}} asignados</span>
+        </td>
+        <td class="text-center">
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-[#984b5d]" (click)="openEdit(role)"></button>
+          <button *ngIf="role.name !== 'ADMIN'" pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-red-500" (click)="deleteRole(role)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-6 text-gray-500">No se encontraron roles en el sistema.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal para Crear/Editar Rol -->
+<p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" [modal]="true" [style]="{width: '600px', 'max-height': '90vh'}" [draggable]="false" [resizable]="false">
+  <form [formGroup]="roleForm" (ngSubmit)="saveRole()" class="flex flex-col gap-6 py-4">
+    
+    <!-- Campos Básicos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del Rol <span class="text-red-500">*</span></label>
+        <input pInputText formControlName="name" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#984b5d] uppercase" placeholder="Ej. RECEPCIONISTA" />
+        <small class="text-red-500" *ngIf="roleForm.get('name')?.invalid && roleForm.get('name')?.touched">El nombre es requerido (mín. 3 letras).</small>
+      </div>
+
+      <div class="flex items-center pt-8">
+        <p-checkbox formControlName="active" [binary]="true" inputId="activeRole"></p-checkbox>
+        <label for="activeRole" class="ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium">Rol Activo</label>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
+      <textarea pInputTextarea formControlName="description" rows="2" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#984b5d]" placeholder="¿Qué hace este rol?"></textarea>
+    </div>
+
+    <hr class="border-gray-200 dark:border-gray-800" />
+
+    <!-- Checklist de Permisos Dinámicos -->
+    <div>
+      <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase tracking-wide">Permisos del Sistema</h3>
+      
+      <div class="h-64 overflow-y-auto pr-2 custom-scrollbar">
+        <div *ngFor="let group of groupedPermissions" class="mb-4">
+          <div class="bg-gray-100 dark:bg-[#252525] px-3 py-2 rounded-lg mb-3">
+            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{group.module}}</span>
+          </div>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
+            <div *ngFor="let perm of group.items" class="flex items-start gap-2">
+              <p-checkbox [value]="perm.id" [(ngModel)]="selectedPermissionIds" [ngModelOptions]="{standalone: true}" [inputId]="'perm_' + perm.id"></p-checkbox>
+              <div class="flex flex-col -mt-0.5">
+                <label [for]="'perm_' + perm.id" class="text-sm font-medium text-gray-800 dark:text-gray-300 cursor-pointer">{{perm.name}}</label>
+                <small class="text-gray-500 dark:text-gray-500 text-xs leading-tight">{{perm.description}}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-2">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600 dark:text-gray-300" (onClick)="displayDialog = false"></p-button>
+      <p-button label="Guardar Rol" icon="pi pi-check" type="submit" [disabled]="roleForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+    </div>
+
+  </form>
+</p-dialog>
+
+<p-toast></p-toast>

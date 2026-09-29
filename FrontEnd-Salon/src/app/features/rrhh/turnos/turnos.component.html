@@ -1,0 +1,74 @@
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <p-toast></p-toast>
+    
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Gestión de Turnos (Horarios)</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Administra los horarios de trabajo para medir las tardanzas.</p>
+        </div>
+        <button pButton icon="pi pi-plus" label="Nuevo Turno" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="showDialogToAdd()"></button>
+    </div>
+
+    <p-table [value]="turnos" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Nombre del Turno</th>
+                <th>Hora Entrada</th>
+                <th>Hora Salida</th>
+                <th>Tolerancia (Min)</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-turno>
+            <tr>
+                <td class="font-bold text-gray-800">{{turno.nombre}}</td>
+                <td class="text-green-600 font-medium">{{ '1970-01-01T' + turno.horaEntrada | date:'shortTime' }}</td>
+                <td class="text-red-600 font-medium">{{ '1970-01-01T' + turno.horaSalida | date:'shortTime' }}</td>
+                <td class="text-gray-600">{{turno.toleranciaMinutos}} min</td>
+                <td>
+                    <p-tag [severity]="turno.estado ? 'success' : 'danger'" [value]="turno.estado ? 'Activo' : 'Inactivo'"></p-tag>
+                </td>
+                <td>
+                    <div class="flex gap-2">
+                        <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-secondary" (click)="showDialogToEdit(turno)"></button>
+                        <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="delete(turno)"></button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+
+    <p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Turno' : 'Nuevo Turno'" [modal]="true" styleClass="w-full max-w-md" [draggable]="false" [resizable]="false">
+        <form [formGroup]="turnoForm" class="flex flex-col gap-4 mt-4">
+            
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold text-gray-700">Nombre del Turno</label>
+                <input pInputText formControlName="nombre" placeholder="Ej. Turno Mañana" class="p-2" />
+            </div>
+
+            <div class="flex gap-4">
+                <div class="flex flex-col gap-2 w-1/2">
+                    <label class="font-semibold text-gray-700">Hora Entrada</label>
+                    <p-calendar formControlName="horaEntrada" [timeOnly]="true" hourFormat="12" inputId="timeonly1" styleClass="w-full" class="w-full"></p-calendar>
+                </div>
+                
+                <div class="flex flex-col gap-2 w-1/2">
+                    <label class="font-semibold text-gray-700">Hora Salida</label>
+                    <p-calendar formControlName="horaSalida" [timeOnly]="true" hourFormat="12" inputId="timeonly2" styleClass="w-full" class="w-full"></p-calendar>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="font-semibold text-gray-700">Minutos de Tolerancia</label>
+                <input type="number" pInputText formControlName="toleranciaMinutos" min="0" placeholder="Ej. 15" class="p-2" />
+                <small class="text-gray-500">Minutos de gracia antes de marcar tardanza en el Kiosko.</small>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-4">
+                <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayDialog = false"></button>
+                <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="save()"></button>
+            </div>
+        </form>
+    </p-dialog>
+</div>

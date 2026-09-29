@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
     Optional<Empleado> findByDni(String dni);
+    java.util.List<Empleado> findByEstadoTrue();
 }

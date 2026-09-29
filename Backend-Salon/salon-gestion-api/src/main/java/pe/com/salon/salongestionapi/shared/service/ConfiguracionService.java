@@ -81,4 +81,12 @@ public class ConfiguracionService {
         config.setValor(nuevoValor);
         return configuracionRepository.save(config);
     }
+
+    /**
+     * Retorna el timeout global de sesión en minutos.
+     * Por defecto 60 minutos si no hay configuración en BD.
+     */
+    public Long getGlobalSessionTimeout() {
+        return 60L;
+    }
 }

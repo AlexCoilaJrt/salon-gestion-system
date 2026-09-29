@@ -30,6 +30,12 @@ public class RegistroAsistencia {
     @Column(name = "hora_salida")
     private LocalTime horaSalida;
 
+    @Column(name = "hora_inicio_descanso")
+    private LocalTime horaInicioDescanso;
+
+    @Column(name = "hora_fin_descanso")
+    private LocalTime horaFinDescanso;
+
     // Minutos de tardanza (0 si llegó a tiempo, null si no aplica)
     @Column(name = "tardanza_minutos")
     private Integer tardanzaMinutos = 0;

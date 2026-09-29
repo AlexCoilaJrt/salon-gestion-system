@@ -1,0 +1,134 @@
+<p-toast></p-toast>
+
+<div class="bg-[#f8f9fa] dark:bg-[#121212] min-h-screen">
+  
+  <!-- Encabezado con Filtros y Buscador -->
+  <div class="mb-6 flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+    
+    <!-- Filtro de Categorías -->
+    <div class="w-full md:w-64">
+      <p-dropdown [options]="categorias()" optionLabel="nombre" optionValue="id" [showClear]="true" placeholder="Todas las Categorías" [ngModel]="selectedCategory()" (ngModelChange)="filterByCategory($event)" styleClass="w-full rounded-lg" panelStyleClass="text-sm">
+      </p-dropdown>
+    </div>
+
+    <!-- Buscador -->
+    <div class="relative w-full md:w-80">
+      <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+      <input type="text" pInputText placeholder="Filtrar por nombre o SKU..." class="w-full !pl-10 pr-4 py-2 bg-white dark:bg-[#1e1e1e] border-gray-200 dark:border-gray-800 rounded-lg" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
+    </div>
+  </div>
+
+  <!-- Tabla de Inventario Principal -->
+  <div class="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+    <p-table [value]="filteredProductos()" [loading]="loading()" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold">Producto</th>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold">SKU</th>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold">Categoría</th>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold text-center">Stock Actual</th>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold text-center">Stock Mínimo</th>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold">Proveedor & Costo</th>
+          <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold text-right">Acciones Rápidas</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-prod>
+        <tr class="group hover:bg-gray-50 dark:hover:bg-[#2a2a2a] transition-colors">
+          
+          <!-- Columna Producto -->
+          <td>
+            <div class="flex items-center gap-3">
+              <img #imgProdInv [src]="prod.imageUrl || 'assets/placeholder.png'" [alt]="prod.nombre" width="80" height="80" class="rounded-lg object-cover border border-gray-200 dark:border-gray-700 bg-gray-50 shadow-sm" (error)="imgProdInv.src='https://ui-avatars.com/api/?name=' + prod.nombre + '&background=random'"/>
+              <div>
+                <div class="font-bold text-gray-800 dark:text-gray-100 text-[15px] flex items-center gap-2">
+                  {{prod.nombre}}
+                  <i *ngIf="prod.stockActual <= prod.stockMinimo" class="pi pi-exclamation-circle text-red-500 text-sm" title="Stock Crítico"></i>
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <span *ngIf="prod.usoInterno">Uso Profesional</span>
+                  <span *ngIf="prod.usoInterno && prod.ventaDirecta"> • </span>
+                  <span *ngIf="prod.ventaDirecta">Venta Directa</span>
+                  <span *ngIf="prod.marca"> • {{prod.marca}}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <!-- Columna SKU -->
+          <td class="text-sm font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">
+            {{prod.sku || 'N/A'}}
+          </td>
+
+          <!-- Columna Categoría -->
+          <td>
+            <span class="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 rounded-md text-xs font-semibold border border-blue-100 dark:border-blue-800/30">
+              {{prod.categoriaNombre}}
+            </span>
+          </td>
+
+          <!-- Columna Stock Actual -->
+          <td class="text-center">
+            <div class="inline-flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full" [ngClass]="prod.stockActual <= prod.stockMinimo ? 'bg-red-500' : 'bg-green-500'"></span>
+              <span class="font-bold text-[15px]" [ngClass]="prod.stockActual <= prod.stockMinimo ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'">
+                {{prod.stockActual}} u.
+              </span>
+            </div>
+          </td>
+
+          <!-- Columna Stock Mínimo -->
+          <td class="text-center text-sm text-gray-500 dark:text-gray-400 font-medium">
+            {{prod.stockMinimo}} u.
+          </td>
+
+          <!-- Columna Proveedor & Costo -->
+          <td>
+            <div class="flex flex-col">
+              <span class="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate max-w-[150px]" [title]="prod.proveedor || 'Sin Proveedor'">
+                {{prod.proveedor || 'Sin Proveedor'}}
+              </span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                S/ {{prod.costo}} / u
+              </span>
+            </div>
+          </td>
+
+          <!-- Columna Acciones Rápidas -->
+          <td class="text-right">
+            <div class="flex justify-end gap-2">
+              <!-- Ajustar Stock Button with OverlayPanel -->
+              <button pButton icon="pi pi-sliders-v" label="Ajustar Stock" class="p-button-outlined p-button-sm p-button-secondary bg-white dark:bg-[#2d2d2d] text-xs py-1.5 px-3" (click)="op.toggle($event)"></button>
+              <p-overlayPanel #op [showCloseIcon]="true" styleClass="w-64">
+                <ng-template pTemplate="content">
+                  <div class="flex flex-col gap-3">
+                    <span class="font-bold text-sm text-gray-800 dark:text-gray-200 border-b pb-2 border-gray-100 dark:border-gray-700">Ajustar Stock Rápido</span>
+                    <div class="flex items-center justify-between">
+                      <button pButton icon="pi pi-minus" class="p-button-rounded p-button-danger p-button-outlined p-button-sm w-8 h-8 p-0" (click)="actualizarStock(prod, prod.stockActual - 1, op)" [disabled]="prod.stockActual <= 0"></button>
+                      <span class="text-lg font-black">{{prod.stockActual}}</span>
+                      <button pButton icon="pi pi-plus" class="p-button-rounded p-button-success p-button-outlined p-button-sm w-8 h-8 p-0" (click)="actualizarStock(prod, prod.stockActual + 1, op)"></button>
+                    </div>
+                  </div>
+                </ng-template>
+              </p-overlayPanel>
+
+              <!-- Pedido Urgente Button -->
+              <button pButton icon="pi pi-shopping-cart" label="Ped. Insumos" class="p-button-sm text-xs py-1.5 px-3" [ngClass]="prod.stockActual <= prod.stockMinimo ? 'bg-red-600 hover:bg-red-700 border-none text-white' : 'p-button-outlined p-button-danger bg-white dark:bg-[#2d2d2d]'" (click)="hacerPedido(prod)"></button>
+            </div>
+          </td>
+
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7">
+            <div class="flex flex-col items-center justify-center py-12 text-gray-500">
+              <i class="pi pi-inbox text-4xl mb-4 text-gray-300"></i>
+              <span class="font-medium">No se encontraron productos.</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>

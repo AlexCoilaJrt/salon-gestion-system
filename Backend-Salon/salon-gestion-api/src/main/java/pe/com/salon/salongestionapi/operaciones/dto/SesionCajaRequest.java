@@ -13,4 +13,7 @@ public class SesionCajaRequest {
     @Min(value = 0, message = "El monto inicial no puede ser negativo")
     private BigDecimal montoInicial;
 
+    @NotNull(message = "El ID del usuario es obligatorio")
+    private Long usuarioId;
+
 }

@@ -19,6 +19,7 @@ public class EmpleadoService {
 
     private final EmpleadoRepository empleadoRepository;
     private final EspecialidadRepository especialidadRepository;
+    private final pe.com.salon.salongestionapi.rrhh.repository.TurnoRepository turnoRepository;
 
     public List<EmpleadoResponse> listarTodos() {
         return empleadoRepository.findAll().stream()
@@ -35,12 +36,20 @@ public class EmpleadoService {
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.AUSENTE);
-        empleado.setEstado(true);
+        empleado.setEstado(request.getEstado() != null ? request.getEstado() : true);
 
-        if (request.getEspecialidadId() != null) {
-            Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada con id: " + request.getEspecialidadId()));
-            empleado.setEspecialidad(especialidad);
+        if (request.getEspecialidadIds() != null && !request.getEspecialidadIds().isEmpty()) {
+            java.util.List<Especialidad> especialidades = especialidadRepository.findAllById(request.getEspecialidadIds());
+            if (especialidades.size() != request.getEspecialidadIds().size()) {
+                throw new ResourceNotFoundException("Una o más especialidades no fueron encontradas");
+            }
+            empleado.setEspecialidades(new java.util.HashSet<>(especialidades));
+        }
+        
+        if (request.getTurnoId() != null) {
+            pe.com.salon.salongestionapi.rrhh.entity.Turno turno = turnoRepository.findById(request.getTurnoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Turno no encontrado"));
+            empleado.setTurno(turno);
         }
 
         Empleado guardado = empleadoRepository.save(empleado);
@@ -63,11 +72,26 @@ public class EmpleadoService {
         empleado.setEmail(request.getEmail());
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
+        if (request.getEstado() != null) {
+            empleado.setEstado(request.getEstado());
+        }
 
-        if (request.getEspecialidadId() != null) {
-            Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada con id: " + request.getEspecialidadId()));
-            empleado.setEspecialidad(especialidad);
+        if (request.getEspecialidadIds() != null) {
+            java.util.List<Especialidad> especialidades = especialidadRepository.findAllById(request.getEspecialidadIds());
+            if (especialidades.size() != request.getEspecialidadIds().size()) {
+                throw new ResourceNotFoundException("Una o más especialidades no fueron encontradas");
+            }
+            empleado.setEspecialidades(new java.util.HashSet<>(especialidades));
+        } else {
+            empleado.getEspecialidades().clear();
+        }
+
+        if (request.getTurnoId() != null) {
+            pe.com.salon.salongestionapi.rrhh.entity.Turno turno = turnoRepository.findById(request.getTurnoId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Turno no encontrado"));
+            empleado.setTurno(turno);
+        } else {
+            empleado.setTurno(null);
         }
 
         Empleado actualizado = empleadoRepository.save(empleado);
@@ -94,8 +118,19 @@ public class EmpleadoService {
         response.setFechaNacimiento(empleado.getFechaNacimiento());
         response.setEdad(empleado.getEdad());
         response.setDisponibilidad(empleado.getDisponibilidad().name());
-        if (empleado.getEspecialidad() != null) {
-            response.setEspecialidadNombre(empleado.getEspecialidad().getNombre());
+        response.setEstado(empleado.getEstado());
+        
+        if (empleado.getTurno() != null) {
+            response.setTurnoId(empleado.getTurno().getId());
+            response.setTurnoNombre(empleado.getTurno().getNombre());
+        }
+        
+        if (empleado.getEspecialidades() != null && !empleado.getEspecialidades().isEmpty()) {
+            response.setEspecialidadesNombres(empleado.getEspecialidades().stream().map(Especialidad::getNombre).collect(Collectors.toList()));
+            response.setEspecialidadIds(empleado.getEspecialidades().stream().map(Especialidad::getId).collect(Collectors.toList()));
+        } else {
+            response.setEspecialidadesNombres(new java.util.ArrayList<>());
+            response.setEspecialidadIds(new java.util.ArrayList<>());
         }
         return response;
     }

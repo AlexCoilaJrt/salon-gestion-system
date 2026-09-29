@@ -34,8 +34,11 @@ public class Ticket {
     private BigDecimal total = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cliente_id", nullable = false)
+    @JoinColumn(name = "cliente_id", nullable = true)
     private Cliente cliente;
+
+    @Column(name = "nombre_cliente_no_registrado", length = 100)
+    private String nombreClienteNoRegistrado;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sesion_caja_id", nullable = false)

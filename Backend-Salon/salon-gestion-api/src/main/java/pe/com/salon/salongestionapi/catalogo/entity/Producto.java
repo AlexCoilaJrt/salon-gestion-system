@@ -26,6 +26,18 @@ public class Producto {
     @Column(length = 50)
     private String marca;
 
+    @Column(length = 50)
+    private String sku;
+
+    @Column(length = 100)
+    private String proveedor;
+
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal costo = BigDecimal.ZERO;
+
     @Column(name = "precio_venta", nullable = false, precision = 10, scale = 2)
     private BigDecimal precioVenta;
 
@@ -35,6 +47,16 @@ public class Producto {
     @Column(name = "stock_minimo", nullable = false)
     private Integer stockMinimo = 0;
 
+    @Column(name = "uso_interno", nullable = false)
+    private Boolean usoInterno = false;
+
+    @Column(name = "venta_directa", nullable = false)
+    private Boolean ventaDirecta = true;
+
     @Column(nullable = false)
     private Boolean estado = true;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
 }

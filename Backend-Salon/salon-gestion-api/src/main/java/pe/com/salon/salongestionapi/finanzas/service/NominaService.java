@@ -42,7 +42,10 @@ public class NominaService {
         BigDecimal totalComisiones = BigDecimal.ZERO;
 
         // 2. Calcular la comisión por cada venta
-        Long especialidadId = (empleado.getEspecialidad() != null) ? empleado.getEspecialidad().getId() : null;
+        Long especialidadId = null;
+        if (empleado.getEspecialidades() != null && !empleado.getEspecialidades().isEmpty()) {
+            especialidadId = empleado.getEspecialidades().iterator().next().getId();
+        }
 
         for (TicketDetalle venta : ventasEmpleado) {
             totalVentas = totalVentas.add(venta.getSubtotal());

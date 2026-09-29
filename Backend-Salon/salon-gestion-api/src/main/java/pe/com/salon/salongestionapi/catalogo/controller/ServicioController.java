@@ -12,8 +12,9 @@ import pe.com.salon.salongestionapi.catalogo.service.ServicioService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/catalogo/servicios")
+@RequestMapping("/api/v1/servicios")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ServicioController {
 
     private final ServicioService servicioService;

@@ -3,6 +3,7 @@ package pe.com.salon.salongestionapi.catalogo.dto;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 public class ServicioRequest {
@@ -22,6 +23,18 @@ public class ServicioRequest {
     @Min(value = 1, message = "La duración debe ser al menos de 1 minuto")
     private Integer duracionMinutos;
 
+    @DecimalMin(value = "0.0", message = "La comisión debe ser al menos 0")
+    @DecimalMax(value = "100.0", message = "La comisión no puede exceder 100")
+    private BigDecimal comisionPorcentaje;
+
+    @DecimalMin(value = "0.0", message = "El costo de material debe ser al menos 0")
+    private BigDecimal costoMaterial;
+
     @NotNull(message = "Debe asignar una especialidad requerida para este servicio")
     private Long especialidadRequeridaId;
+
+    @NotNull(message = "Debe asignar una categoría a este servicio")
+    private Long categoriaId;
+
+    private List<Long> insumosIds;
 }

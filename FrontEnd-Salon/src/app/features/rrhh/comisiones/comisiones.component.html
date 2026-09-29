@@ -1,0 +1,84 @@
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Gestión de Comisiones</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Asigna porcentajes o montos fijos de comisión por empleado.</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nueva Comisión" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+  </div>
+
+  <p-table [value]="comisiones" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+           styleClass="p-datatable-sm p-datatable-striped custom-table">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Empleado</th>
+        <th>Tipo de Comisión</th>
+        <th>Valor</th>
+        <th>Estado</th>
+        <th class="text-center">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-comision>
+      <tr>
+        <td class="font-bold text-gray-800 dark:text-gray-200">
+          {{comision.empleadoNombre}} {{comision.empleadoApellido}}
+        </td>
+        <td>
+          <span class="bg-[#f4f7fa] dark:bg-[#2d2d2d] px-3 py-1 rounded-full text-xs font-bold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
+            {{comision.tipoComision === 'PORCENTAJE' ? 'Porcentaje (%)' : 'Monto Fijo (S/)'}}
+          </span>
+        </td>
+        <td class="font-medium text-[#984b5d]">
+          {{comision.tipoComision === 'PORCENTAJE' ? comision.valor + '%' : 'S/ ' + comision.valor}}
+        </td>
+        <td>
+          <p-tag [severity]="comision.estado ? 'success' : 'danger'" [value]="comision.estado ? 'Activo' : 'Inactivo'"></p-tag>
+        </td>
+        <td class="text-center">
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#984b5d]" (click)="openEdit(comision)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-red-500" (click)="deleteComision(comision)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center p-6 text-gray-500">No se encontraron comisiones registradas.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Modal -->
+<p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Comisión' : 'Nueva Comisión'" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
+  <form [formGroup]="comisionForm" (ngSubmit)="saveComision()" class="flex flex-col gap-6 py-4">
+    
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Empleado <span class="text-red-500">*</span></label>
+      <p-dropdown [options]="empleados" formControlName="empleadoId" optionLabel="nombreCompleto" optionValue="id" placeholder="Seleccione un Empleado" styleClass="w-full border-none bg-[#f4f7fa]"></p-dropdown>
+      <small class="text-red-500" *ngIf="comisionForm.get('empleadoId')?.invalid && comisionForm.get('empleadoId')?.touched">Debe seleccionar un empleado.</small>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Tipo de Comisión <span class="text-red-500">*</span></label>
+      <p-dropdown [options]="tiposComision" formControlName="tipoComision" optionLabel="label" optionValue="value" styleClass="w-full border-none bg-[#f4f7fa]"></p-dropdown>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700">Valor (Monto o Porcentaje) <span class="text-red-500">*</span></label>
+      <p-inputNumber formControlName="valor" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" inputId="minmaxfraction" class="w-full" styleClass="w-full border-none bg-[#f4f7fa]"></p-inputNumber>
+      <small class="text-red-500" *ngIf="comisionForm.get('valor')?.invalid && comisionForm.get('valor')?.touched">Valor debe ser mayor a 0.</small>
+    </div>
+
+    <div class="flex items-center pt-2">
+      <p-checkbox formControlName="estado" [binary]="true" inputId="estadoComision"></p-checkbox>
+      <label for="estadoComision" class="ml-2 text-sm text-gray-700 font-medium">Comisión Activa</label>
+    </div>
+
+    <div class="flex justify-end gap-3 mt-4">
+      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600" (onClick)="displayDialog = false"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="comisionForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+    </div>
+  </form>
+</p-dialog>
+
+<p-toast></p-toast>

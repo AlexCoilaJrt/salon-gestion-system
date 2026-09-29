@@ -15,6 +15,7 @@ public class AsistenciaResponse {
     private Integer tardanzaMinutos;
     private TipoAsistencia tipo;
     private String observaciones;
+    private String horasTrabajadas;
     private Long empleadoId;
     private String empleadoNombreCompleto;
 }

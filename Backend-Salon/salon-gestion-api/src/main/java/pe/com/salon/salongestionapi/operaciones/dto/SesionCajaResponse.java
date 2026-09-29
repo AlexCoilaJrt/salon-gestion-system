@@ -11,6 +11,11 @@ public class SesionCajaResponse {
     private LocalDateTime fechaApertura;
     private LocalDateTime fechaCierre;
     private BigDecimal montoInicial;
-    private BigDecimal montoFinal;
+    private BigDecimal montoEsperado;
+    private BigDecimal montoDeclarado;
+    private BigDecimal descuadre;
+    private String observaciones;
     private Boolean estado;
+    private Long usuarioAperturaId;
+    private String usuarioAperturaNombre;
 }

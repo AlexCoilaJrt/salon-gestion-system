@@ -1,0 +1,150 @@
+<p-toast></p-toast>
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ modoInsumos ? 'Insumos (Uso Interno)' : 'Productos Retail' }}</h2>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ modoInsumos ? 'Administra el inventario de insumos para el salón.' : 'Administra los productos destinados a la venta directa al cliente.' }}</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nuevo {{ modoInsumos ? 'Insumo' : 'Producto' }}" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="openNew()"></button>
+  </div>
+
+  <p-table [value]="productos" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 50px"></th>
+        <th>Categoría / Marca</th>
+        <th>Nombre del Producto</th>
+        <th>Tipo</th>
+        <th>Costo</th>
+        <th>P. Venta</th>
+        <th>Stock</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-prod>
+      <tr>
+        <td>
+          <img #imgProd [src]="prod.imageUrl || 'assets/placeholder.png'" [alt]="prod.nombre" width="80" height="80" class="rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-sm" (error)="imgProd.src='https://ui-avatars.com/api/?name=' + prod.nombre + '&background=random'"/>
+        </td>
+        <td>
+          <div class="flex flex-col gap-1">
+            <span class="text-xs font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-600 dark:text-gray-300 w-fit">
+              {{prod.categoriaNombre}}
+            </span>
+            <span class="text-xs text-gray-400 font-medium" *ngIf="prod.marca">{{prod.marca}}</span>
+          </div>
+        </td>
+        <td class="font-bold text-gray-800 dark:text-gray-200">
+          {{prod.nombre}}
+        </td>
+        <td>
+          <div class="flex gap-1">
+            <p-tag *ngIf="prod.usoInterno" severity="info" value="Interno" [rounded]="true"></p-tag>
+            <p-tag *ngIf="prod.ventaDirecta" severity="success" value="Venta" [rounded]="true"></p-tag>
+          </div>
+        </td>
+        <td class="text-gray-500 dark:text-gray-400">S/ {{prod.costo}}</td>
+        <td class="font-semibold text-green-600 dark:text-green-400">S/ {{prod.precioVenta}}</td>
+        <td>
+          <span [class]="prod.stockActual <= prod.stockMinimo ? 'text-red-500 font-bold' : 'text-gray-700 dark:text-gray-300'">
+            {{prod.stockActual}} u.
+          </span>
+          <span class="text-xs text-gray-400 block" *ngIf="prod.stockActual <= prod.stockMinimo">Stock Crítico</span>
+        </td>
+        <td class="text-right flex justify-end gap-2">
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-info" (click)="editProducto(prod)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="deleteProducto(prod)"></button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="7" class="text-center py-8 text-gray-500">No hay productos registrados.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [(visible)]="productoDialog" [style]="{width: '650px'}" [header]="isEdit ? 'Editar Producto' : 'Nuevo Producto'" [modal]="true" styleClass="p-fluid">
+  <ng-template pTemplate="content">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="field mb-4 col-span-1 md:col-span-2 flex flex-col md:flex-row items-center gap-6 bg-gray-50 dark:bg-[#2d2d2d] p-4 rounded-lg">
+        <img #imgPreview [src]="producto.imageUrl || 'https://ui-avatars.com/api/?name=N+P&background=random'" alt="Preview" width="100" height="100" class="rounded-xl object-cover border-2 border-gray-200 shadow-sm" (error)="imgPreview.src='https://ui-avatars.com/api/?name=N+P&background=random'" />
+        <div class="flex-1 w-full">
+            <label class="font-semibold block mb-2 dark:text-gray-200">Imagen del Producto</label>
+            <p-fileUpload mode="basic" chooseLabel="Seleccionar Imagen" chooseIcon="pi pi-image" accept="image/*" maxFileSize="1000000" (onSelect)="onImageSelect($event)" [auto]="false" styleClass="w-full md:w-auto p-button-outlined"></p-fileUpload>
+            <small class="block text-gray-500 mt-2">Formatos aceptados: JPG, PNG. Tamaño máximo: 1MB.</small>
+        </div>
+      </div>
+
+      <div class="field mb-4 col-span-1 md:col-span-2">
+        <label for="nombre" class="font-semibold block mb-2 dark:text-gray-200">Nombre del Producto *</label>
+        <input type="text" pInputText id="nombre" [(ngModel)]="producto.nombre" required autofocus class="w-full" />
+      </div>
+
+      <div class="field mb-4">
+        <label for="categoria" class="font-semibold block mb-2 dark:text-gray-200">Categoría *</label>
+        <p-dropdown id="categoria" [options]="categorias" [(ngModel)]="producto.categoriaId" optionLabel="nombre" optionValue="id" placeholder="Selecciona una categoría" appendTo="body" styleClass="w-full"></p-dropdown>
+      </div>
+
+      <div class="field mb-4">
+        <label for="marca" class="font-semibold block mb-2 dark:text-gray-200">Marca (Opcional)</label>
+        <input type="text" pInputText id="marca" [(ngModel)]="producto.marca" class="w-full" />
+      </div>
+      
+      <div class="field mb-4">
+        <label for="sku" class="font-semibold block mb-2 dark:text-gray-200">SKU (Opcional)</label>
+        <input type="text" pInputText id="sku" [(ngModel)]="producto.sku" class="w-full" />
+      </div>
+
+      <div class="field mb-4">
+        <label for="proveedor" class="font-semibold block mb-2 dark:text-gray-200">Proveedor (Opcional)</label>
+        <input type="text" pInputText id="proveedor" [(ngModel)]="producto.proveedor" class="w-full" />
+      </div>
+      <div class="field mb-4">
+        <label class="font-semibold block mb-2 dark:text-gray-200">Tipo de Producto *</label>
+        <div class="flex gap-4 mt-2">
+            <div class="flex items-center">
+                <p-checkbox [(ngModel)]="producto.usoInterno" [binary]="true" inputId="usoInterno"></p-checkbox>
+                <label for="usoInterno" class="ml-2 dark:text-gray-300">Uso Interno</label>
+            </div>
+            <div class="flex items-center">
+                <p-checkbox [(ngModel)]="producto.ventaDirecta" [binary]="true" inputId="ventaDirecta"></p-checkbox>
+                <label for="ventaDirecta" class="ml-2 dark:text-gray-300">Venta Directa</label>
+            </div>
+        </div>
+      </div>
+
+      <div class="field mb-4 col-span-1 md:col-span-2"><hr class="border-gray-200 dark:border-gray-700"></div>
+
+      <div class="field mb-4">
+        <label for="costo" class="font-semibold block mb-2 dark:text-gray-200">Costo de Compra (S/) *</label>
+        <p-inputNumber id="costo" [(ngModel)]="producto.costo" mode="currency" currency="PEN" locale="es-PE"></p-inputNumber>
+      </div>
+
+      <div class="field mb-4">
+        <label for="precio" class="font-semibold block mb-2 dark:text-gray-200">Precio de Venta (S/)</label>
+        <p-inputNumber id="precio" [(ngModel)]="producto.precioVenta" mode="currency" currency="PEN" locale="es-PE" [disabled]="!producto.ventaDirecta"></p-inputNumber>
+        <small class="text-gray-400" *ngIf="!producto.ventaDirecta">Solo aplica si es de Venta Directa.</small>
+      </div>
+
+      <div class="field mb-4">
+        <label for="stock" class="font-semibold block mb-2 dark:text-gray-200">Stock Actual (Unidades) *</label>
+        <p-inputNumber id="stock" [(ngModel)]="producto.stockActual" [showButtons]="true" [min]="0"></p-inputNumber>
+      </div>
+
+      <div class="field mb-4">
+        <label for="minimo" class="font-semibold block mb-2 dark:text-gray-200">Stock Mínimo (Alerta) *</label>
+        <p-inputNumber id="minimo" [(ngModel)]="producto.stockMinimo" [showButtons]="true" [min]="0"></p-inputNumber>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="saveProducto()" [disabled]="!producto.nombre || !producto.categoriaId"></button>
+  </ng-template>
+</p-dialog>
