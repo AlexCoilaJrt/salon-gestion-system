@@ -67,7 +67,7 @@ export class AsistenciaComponent {
         title: 'DNI Inválido',
         text: 'Por favor, ingresa un DNI válido de al menos 8 dígitos.',
         icon: 'warning',
-        confirmButtonColor: '#984b5d'
+        confirmButtonColor: '#bca028'
       });
       return;
     }
@@ -93,7 +93,7 @@ export class AsistenciaComponent {
           title: 'Error',
           text: err.error?.message || 'Error al registrar asistencia. Verifica tu DNI.',
           icon: 'error',
-          confirmButtonColor: '#984b5d'
+          confirmButtonColor: '#bca028'
         });
         this.dniInput = '';
         this.loading = false;

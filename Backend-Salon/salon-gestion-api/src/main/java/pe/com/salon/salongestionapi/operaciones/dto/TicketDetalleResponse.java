@@ -18,4 +18,5 @@ public class TicketDetalleResponse {
 
     private Long empleadoId;
     private String empleadoNombreCompleto;
+    private java.util.List<String> empleadoEspecialidades;
 }

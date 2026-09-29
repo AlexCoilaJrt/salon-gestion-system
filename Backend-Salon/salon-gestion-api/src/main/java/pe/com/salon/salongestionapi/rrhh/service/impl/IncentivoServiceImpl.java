@@ -33,6 +33,7 @@ public class IncentivoServiceImpl implements IncentivoService {
     private final EmpleadoRepository empleadoRepository;
     private final AsistenciaRepository asistenciaRepository;
     private final ComisionRepository comisionRepository;
+    private final pe.com.salon.salongestionapi.operaciones.repository.TicketDetalleRepository ticketDetalleRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -167,6 +168,17 @@ public class IncentivoServiceImpl implements IncentivoService {
             response.setIncentivosAplicados(aplicados);
             response.setTotalComisionPorcentaje(totalPorc);
             response.setTotalComisionMontoFijo(totalMonto);
+            
+            // Calcular ventas del dia
+            LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
+            LocalDateTime finDia = LocalDate.now().atTime(23, 59, 59);
+            
+            BigDecimal ventasHoy = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioDia, finDia);
+            response.setVentasHoy(ventasHoy != null ? ventasHoy : BigDecimal.ZERO);
+            
+            BigDecimal comisionPorcentualGanada = response.getVentasHoy().multiply(totalPorc).divide(new BigDecimal("100"));
+            BigDecimal comisionGanadaTotal = comisionPorcentualGanada.add(totalMonto);
+            response.setComisionesGanadasHoy(comisionGanadaTotal);
             
             monitorList.add(response);
         }

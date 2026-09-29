@@ -13,17 +13,17 @@ import { definePreset } from '@primeng/themes';
 const MyPreset = definePreset(Aura, {
     semantic: {
         primary: {
-            50: '#fcf8f9',
-            100: '#f7edef',
-            200: '#edd8dd',
-            300: '#dfbcc5',
-            400: '#cc97a6',
-            500: '#984b5d',
-            600: '#7a3c4a',
-            700: '#632e3a',
-            800: '#522831',
-            900: '#46242b',
-            950: '#251015'
+            50: '#fdfbf6',
+            100: '#f9f6ea',
+            200: '#f0e6c7',
+            300: '#e6d3a0',
+            400: '#d9bd72',
+            500: '#bca028',
+            600: '#9d841f',
+            700: '#7c6717',
+            800: '#5c4c11',
+            900: '#3c320a',
+            950: '#2b2306'
         }
     }
 });

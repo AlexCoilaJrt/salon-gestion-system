@@ -142,6 +142,52 @@ public class TicketService {
         return mapToResponse(guardado);
     }
 
+    public List<TicketResponse> obtenerTicketsCajaActual() {
+        SesionCaja sesionActiva = sesionCajaRepository.findByEstadoTrue()
+                .orElseThrow(() -> new ResourceNotFoundException("No hay ninguna caja abierta actualmente"));
+        
+        List<Ticket> tickets = ticketRepository.findBySesionCajaId(sesionActiva.getId());
+        return tickets.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    public List<TicketResponse> obtenerTodosTickets() {
+        return ticketRepository.findAllByOrderByFechaEmisionDesc().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public TicketResponse anularTicket(Long ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket no encontrado con id: " + ticketId));
+
+        if (!Boolean.TRUE.equals(ticket.getActivo())) {
+            throw new RuntimeException("El ticket ya se encuentra anulado");
+        }
+
+        ticket.setActivo(false);
+
+        // Si hay productos, devolver el stock
+        for (TicketDetalle detalle : ticket.getDetalles()) {
+            if (detalle.getProducto() != null) {
+                Producto p = detalle.getProducto();
+                p.setStockActual(p.getStockActual() + detalle.getCantidad());
+                productoRepository.save(p);
+            }
+        }
+
+        // Restar puntos de fidelización si aplica
+        if (ticket.getCliente() != null) {
+            int puntosPerdidos = ticket.getTotal().intValue() * PUNTOS_POR_SOL;
+            int puntosNuevos = ticket.getCliente().getPuntosFidelizacion() - puntosPerdidos;
+            ticket.getCliente().setPuntosFidelizacion(Math.max(0, puntosNuevos));
+            clienteRepository.save(ticket.getCliente());
+        }
+
+        ticketRepository.save(ticket);
+        return mapToResponse(ticket);
+    }
+
     private TicketResponse mapToResponse(Ticket ticket) {
         TicketResponse res = new TicketResponse();
         res.setId(ticket.getId());
@@ -156,6 +202,7 @@ public class TicketService {
             res.setClienteNombreCompleto(ticket.getNombreClienteNoRegistrado() != null && !ticket.getNombreClienteNoRegistrado().isBlank() ? ticket.getNombreClienteNoRegistrado() : "Público General");
         }
         res.setSesionCajaId(ticket.getSesionCaja().getId());
+        res.setActivo(ticket.getActivo());
 
         List<TicketDetalleResponse> detallesRes = ticket.getDetalles().stream().map(d -> {
             TicketDetalleResponse dRes = new TicketDetalleResponse();
@@ -175,6 +222,11 @@ public class TicketService {
             if (d.getEmpleado() != null) {
                 dRes.setEmpleadoId(d.getEmpleado().getId());
                 dRes.setEmpleadoNombreCompleto(d.getEmpleado().getNombres() + " " + d.getEmpleado().getApellidos());
+                if (d.getEmpleado().getEspecialidades() != null) {
+                    dRes.setEmpleadoEspecialidades(d.getEmpleado().getEspecialidades().stream()
+                            .map(pe.com.salon.salongestionapi.rrhh.entity.Especialidad::getNombre)
+                            .collect(Collectors.toList()));
+                }
             }
             return dRes;
         }).collect(Collectors.toList());

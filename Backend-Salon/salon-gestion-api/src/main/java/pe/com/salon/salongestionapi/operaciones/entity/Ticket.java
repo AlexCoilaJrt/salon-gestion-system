@@ -44,6 +44,9 @@ public class Ticket {
     @JoinColumn(name = "sesion_caja_id", nullable = false)
     private SesionCaja sesionCaja;
 
+    @Column(name = "activo", columnDefinition = "boolean default true")
+    private Boolean activo = true;
+
     // Relación Bidireccional para gestionar los detalles desde el Ticket
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketDetalle> detalles = new ArrayList<>();

@@ -12,6 +12,7 @@ import { DialogModule } from 'primeng/dialog';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
+import { TableModule } from 'primeng/table';
 import { RrhhService, Empleado } from '../../rrhh/services/rrhh.service';
 
 export interface VentaItem {
@@ -31,7 +32,7 @@ export interface TicketItem extends VentaItem {
 @Component({
   selector: 'app-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule, ButtonModule, InputNumberModule, AutoCompleteModule, DialogModule, SelectButtonModule, InputTextModule, DropdownModule],
+  imports: [CommonModule, FormsModule, ToastModule, ButtonModule, InputNumberModule, AutoCompleteModule, DialogModule, SelectButtonModule, InputTextModule, DropdownModule, TableModule],
   providers: [MessageService],
   templateUrl: './caja.component.html'
 })
@@ -58,6 +59,32 @@ export class CajaComponent implements OnInit {
 
   // Dialogo de Cobro
   cobroDialog: boolean = false;
+  
+  // Dashboard de Caja
+  vistaActual: 'pos' | 'dashboard' = 'pos';
+  ticketsDashboard: any[] = [];
+  resumenDashboard: any = null;
+
+  cambiarVista(vista: 'pos' | 'dashboard') {
+    this.vistaActual = vista;
+    if (vista === 'dashboard') {
+      this.cargarDatosDashboard();
+    }
+  }
+
+  cargarDatosDashboard() {
+    this.cajaService.obtenerTicketsCajaActual().subscribe({
+      next: (tickets) => this.ticketsDashboard = tickets
+    });
+    this.cajaService.obtenerResumenActual().subscribe({
+      next: (res) => {
+        this.resumenDashboard = res;
+        this.montoDeclarado = res.totalEsperadoEfectivo; // Sync for close
+      }
+    });
+  }
+
+  fechaActual: Date = new Date();
   metodoPago: string = 'Efectivo';
   metodosPago = [
     { label: 'Efectivo', value: 'Efectivo', icon: 'pi-money-bill' },
@@ -213,6 +240,13 @@ export class CajaComponent implements OnInit {
     }
   }
 
+  ticketGenerado: any = null;
+
+  get ticketNumero(): string {
+    if (!this.ticketGenerado?.id) return '000001';
+    return this.ticketGenerado.id.toString().padStart(6, '0');
+  }
+
   confirmarCobro() {
     if (this.metodoPago === 'Efectivo' && this.montoRecibido < this.totalTicket) {
       this.messageService.add({ severity: 'error', summary: 'Error', detail: 'El monto recibido es menor al total' });
@@ -246,6 +280,7 @@ export class CajaComponent implements OnInit {
 
     this.cajaService.emitirTicket(request).subscribe({
       next: (res) => {
+        this.ticketGenerado = res;
         this.messageService.add({ severity: 'success', summary: 'Venta Completada', detail: 'El pago se procesó correctamente.' });
         this.cobroDialog = false;
         this.ticketGeneradoDialog = true;
@@ -256,9 +291,48 @@ export class CajaComponent implements OnInit {
     });
   }
 
+  // Cierre de Caja
+  cierreDialog: boolean = false;
+  resumenCaja: any = null;
+  montoDeclarado: number = 0;
+  observacionesCierre: string = '';
+
+  abrirDialogoCierre() {
+    this.cajaService.obtenerResumenActual().subscribe({
+      next: (res) => {
+        this.resumenCaja = res;
+        this.montoDeclarado = res.totalEsperadoEfectivo; // Sugerir el monto exacto por defecto
+        this.observacionesCierre = '';
+        this.cierreDialog = true;
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo obtener el resumen de caja.' });
+      }
+    });
+  }
+
+  confirmarCierre() {
+    this.cajaService.cerrarCaja({
+      montoDeclarado: this.montoDeclarado,
+      observaciones: this.observacionesCierre
+    }).subscribe({
+      next: (res) => {
+        this.messageService.add({ severity: 'success', summary: 'Caja Cerrada', detail: 'Tu turno ha sido cerrado correctamente.' });
+        this.cierreDialog = false;
+        this.sesionActiva = null; // Volver a la pantalla de Apertura
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al cerrar caja.' });
+      }
+    });
+  }
+
   imprimirTicket() {
-    // Simulación de impresión (más adelante crearemos el diseño del voucher térmico)
-    window.print();
+    this.fechaActual = new Date();
+    // Simulación de impresión
+    setTimeout(() => {
+      window.print();
+    }, 100);
   }
 
   cerrarVenta() {

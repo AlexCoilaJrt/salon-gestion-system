@@ -7,7 +7,7 @@
       <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Categorías</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">Administra las agrupaciones de tus servicios y productos.</p>
     </div>
-    <button pButton icon="pi pi-plus" label="Nueva Categoría" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="openNew()"></button>
+    <button pButton icon="pi pi-plus" label="Nueva Categoría" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="openNew()"></button>
   </div>
 
   <p-table [value]="categorias" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
@@ -57,6 +57,6 @@
 
   <ng-template pTemplate="footer">
     <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="saveCategoria()"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="saveCategoria()"></button>
   </ng-template>
 </p-dialog>

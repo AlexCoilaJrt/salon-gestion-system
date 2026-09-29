@@ -16,5 +16,6 @@ public class TicketResponse {
     private Long clienteId;
     private String clienteNombreCompleto;
     private Long sesionCajaId;
+    private Boolean activo;
     private List<TicketDetalleResponse> detalles;
 }

@@ -1,0 +1,190 @@
+<p-toast></p-toast>
+<p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
+
+<div class="h-full flex flex-col p-6 print:hidden">
+  <div class="mb-6 flex justify-between items-center">
+    <div>
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Historial de Facturación</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Busca, imprime o anula tickets y comprobantes emitidos.</p>
+    </div>
+  </div>
+
+  <div class="flex-1 bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col">
+    <!-- Toolbar de filtros -->
+    <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
+      <div class="flex gap-4">
+        <span class="p-input-icon-left w-full md:w-96">
+          <i class="pi pi-search"></i>
+          <input pInputText type="text" [(ngModel)]="searchTerm" placeholder="Buscar por cliente o N° Ticket..." (input)="dt.filterGlobal(searchTerm, 'contains')" class="w-full" />
+        </span>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="flex-1 p-0">
+      <p-table #dt [value]="tickets" [loading]="loading" styleClass="p-datatable-lg" 
+               [paginator]="true" [rows]="10" [globalFilterFields]="['id','clienteNombreCompleto']"
+               responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>N° Ticket</th>
+            <th>Fecha y Hora</th>
+            <th>Cliente</th>
+            <th>Especialista(s)</th>
+            <th>Método de Pago</th>
+            <th>Estado</th>
+            <th class="text-right">Total</th>
+            <th class="text-center">Acciones</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-ticket>
+          <tr [ngClass]="{'bg-red-50 dark:bg-red-900/10': ticket.activo === false}">
+            <td class="font-bold">#{{ticket.id | number:'3.0-0'}}</td>
+            <td class="text-gray-600 dark:text-gray-400">{{ticket.fechaEmision | date:'dd/MM/yyyy HH:mm'}}</td>
+            <td>
+              <div class="font-medium text-gray-800 dark:text-gray-200">{{ticket.clienteNombreCompleto}}</div>
+            </td>
+            <td>
+              <div class="text-sm text-gray-600 dark:text-gray-400 flex flex-col gap-1">
+                <ng-container *ngIf="getEspecialistas(ticket).length > 0; else noEspecialista">
+                  <div *ngFor="let esp of getEspecialistas(ticket)" class="flex items-center">
+                    <i class="pi pi-user mr-1 text-xs"></i> {{esp}}
+                  </div>
+                </ng-container>
+                <ng-template #noEspecialista>
+                  <span class="text-gray-400">N/A</span>
+                </ng-template>
+              </div>
+            </td>
+            <td>
+              <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                <i class="pi" [ngClass]="{'pi-money-bill': ticket.metodoPago === 'EFECTIVO', 'pi-mobile': ticket.metodoPago === 'TRANSFERENCIA', 'pi-credit-card': ticket.metodoPago === 'TARJETA'}"></i>
+                {{ticket.metodoPago}}
+              </span>
+            </td>
+            <td>
+              <p-tag [severity]="ticket.activo ? 'success' : 'danger'" [value]="ticket.activo ? 'EMITIDO' : 'ANULADO'"></p-tag>
+            </td>
+            <td class="text-right font-bold text-lg" [ngClass]="ticket.activo ? 'text-gray-800 dark:text-white' : 'text-red-500 line-through'">
+              S/ {{ticket.total | number:'1.2-2'}}
+            </td>
+            <td class="text-center">
+              <div class="flex justify-center gap-2">
+                <button pButton icon="pi pi-eye" class="p-button-rounded p-button-text p-button-info" pTooltip="Ver Detalle" (click)="verDetalle(ticket)"></button>
+                <button pButton icon="pi pi-times" class="p-button-rounded p-button-text p-button-danger" pTooltip="Anular Venta" [disabled]="!ticket.activo" (click)="confirmarAnulacion(ticket)"></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="8" class="text-center p-8 text-gray-500">
+              <i class="pi pi-receipt text-4xl mb-4 block"></i>
+              No se encontraron comprobantes de venta.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Detalle (No se imprime directamente desde el modal, sino que se muestra el ticket abajo para print) -->
+<p-dialog [header]="'Detalle de Venta #' + (ticketSeleccionado?.id | number:'3.0-0')" 
+          [(visible)]="displayDetalle" [modal]="true" [style]="{width: '500px'}" 
+          [draggable]="false" [resizable]="false">
+  
+  <div *ngIf="ticketSeleccionado" class="flex flex-col gap-4">
+    <!-- Resumen -->
+    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl flex justify-between items-center border border-gray-100 dark:border-gray-700">
+      <div>
+        <div class="text-sm text-gray-500">Cliente</div>
+        <div class="font-bold text-lg">{{ticketSeleccionado.clienteNombreCompleto}}</div>
+      </div>
+      <div class="text-right">
+        <div class="text-sm text-gray-500">Total Pagado</div>
+        <div class="font-bold text-2xl text-[#bca028]">S/ {{ticketSeleccionado.total | number:'1.2-2'}}</div>
+      </div>
+    </div>
+
+    <!-- Lista de Detalles -->
+    <div>
+      <h3 class="font-bold text-gray-700 dark:text-gray-300 mb-3 border-b pb-2">Servicios y Productos</h3>
+      <div class="flex flex-col gap-3">
+        <div *ngFor="let det of ticketSeleccionado.detalles" class="flex justify-between items-center">
+          <div>
+            <div class="font-bold">{{det.servicioNombre || det.productoNombre}}</div>
+            <div class="text-sm text-gray-500">
+              Atendido por: {{det.empleadoNombreCompleto || 'N/A'}}
+            </div>
+          </div>
+          <div class="text-right">
+            <div class="font-medium text-gray-800 dark:text-gray-200">S/ {{det.subtotal | number:'1.2-2'}}</div>
+            <div class="text-xs text-gray-400">{{det.cantidad}} x S/ {{det.precioUnitario | number:'1.2-2'}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!ticketSeleccionado.activo" class="mt-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded-lg flex gap-3 items-center">
+      <i class="pi pi-info-circle text-xl"></i>
+      <div>
+        <div class="font-bold">Esta venta ha sido ANULADA</div>
+        <div class="text-sm">El monto fue restado de la caja y el inventario devuelto.</div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="displayDetalle = false"></button>
+    <button pButton label="Re-Imprimir Ticket" icon="pi pi-print" class="bg-[#bca028] hover:bg-[#9d841f] text-white border-none" (click)="imprimirTicket()" [disabled]="!ticketSeleccionado?.activo"></button>
+  </ng-template>
+</p-dialog>
+
+<!-- SECCIÓN PARA IMPRESIÓN (Igual que en Caja) -->
+<div class="hidden print:block font-mono text-black w-[80mm] p-4 bg-white" *ngIf="ticketSeleccionado">
+    <div class="text-center mb-4">
+        <!-- Reutilizamos el logo de la empresa -->
+        <h1 class="text-2xl font-bold mb-1">SPA DIANA</h1>
+        <div class="text-sm">Mi Salón S.A.C.</div>
+        <div class="text-sm">RUC: 20123456789</div>
+        <div class="text-sm">Av. Principal 123 - Ciudad</div>
+        <div class="text-sm mt-2 font-bold border-y border-dashed border-black py-1">
+            COPIA DE NOTA DE VENTA
+        </div>
+        <div class="text-sm mt-1">Ticket #{{ticketSeleccionado.id | number:'3.0-0'}}</div>
+        <div class="text-sm">{{ticketSeleccionado.fechaEmision | date:'dd/MM/yyyy HH:mm'}}</div>
+    </div>
+
+    <div class="mb-4 text-sm">
+        <div><span class="font-bold">Cliente:</span> {{ticketSeleccionado.clienteNombreCompleto}}</div>
+        <div><span class="font-bold">Pago:</span> {{ticketSeleccionado.metodoPago}}</div>
+    </div>
+
+    <div class="w-full mb-4 text-sm">
+        <div class="flex font-bold border-b border-dashed border-black pb-1 mb-1">
+            <div class="w-10">Cant</div>
+            <div class="flex-1">Desc</div>
+            <div class="w-16 text-right">Monto</div>
+        </div>
+        
+        <div class="flex py-1" *ngFor="let det of ticketSeleccionado.detalles">
+            <div class="w-10">{{det.cantidad}}</div>
+            <div class="flex-1">
+                <div>{{det.servicioNombre || det.productoNombre}}</div>
+                <div class="text-xs text-gray-500">x S/ {{det.precioUnitario | number:'1.2-2'}}</div>
+            </div>
+            <div class="w-16 text-right">S/ {{det.subtotal | number:'1.2-2'}}</div>
+        </div>
+    </div>
+
+    <div class="flex justify-between font-bold text-lg border-t border-dashed border-black pt-2 mb-6">
+        <div>TOTAL</div>
+        <div>S/ {{ticketSeleccionado.total | number:'1.2-2'}}</div>
+    </div>
+
+    <div class="text-center text-sm">
+        <div>¡Gracias por su visita!</div>
+        <div class="mt-2 text-xs">Desarrollado por System Salon</div>
+    </div>
+</div>

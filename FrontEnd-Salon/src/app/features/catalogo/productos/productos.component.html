@@ -7,64 +7,71 @@
       <h2 class="text-2xl font-bold text-gray-800 dark:text-gray-100">{{ modoInsumos ? 'Insumos (Uso Interno)' : 'Productos Retail' }}</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">{{ modoInsumos ? 'Administra el inventario de insumos para el salón.' : 'Administra los productos destinados a la venta directa al cliente.' }}</p>
     </div>
-    <button pButton icon="pi pi-plus" label="Nuevo {{ modoInsumos ? 'Insumo' : 'Producto' }}" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="openNew()"></button>
+    <button pButton icon="pi pi-plus" label="Nuevo {{ modoInsumos ? 'Insumo' : 'Producto' }}" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="openNew()"></button>
   </div>
 
-  <p-table [value]="productos" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
-    <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 50px"></th>
-        <th>Categoría / Marca</th>
-        <th>Nombre del Producto</th>
-        <th>Tipo</th>
-        <th>Costo</th>
-        <th>P. Venta</th>
-        <th>Stock</th>
-        <th class="text-right">Acciones</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-prod>
-      <tr>
-        <td>
-          <img #imgProd [src]="prod.imageUrl || 'assets/placeholder.png'" [alt]="prod.nombre" width="80" height="80" class="rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-sm" (error)="imgProd.src='https://ui-avatars.com/api/?name=' + prod.nombre + '&background=random'"/>
-        </td>
-        <td>
-          <div class="flex flex-col gap-1">
-            <span class="text-xs font-bold px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-600 dark:text-gray-300 w-fit">
-              {{prod.categoriaNombre}}
-            </span>
-            <span class="text-xs text-gray-400 font-medium" *ngIf="prod.marca">{{prod.marca}}</span>
+  <p-dataView #dv [value]="productos" [paginator]="true" [rows]="12" [loading]="loading">
+    <!-- Vista Grid (Tarjetas de Tienda) -->
+    <ng-template #list let-items>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 w-full">
+        <div *ngFor="let prod of items" class="col-span-1">
+          <div class="bg-white dark:bg-[#2d2d2d] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col h-full relative group">
+            
+            <!-- Imagen y Badges Flotantes -->
+            <div class="relative h-48 w-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+              <img *ngIf="prod.imageUrl; else noImg" [src]="prod.imageUrl" [alt]="prod.nombre" class="w-full h-full object-cover"/>
+              <ng-template #noImg>
+                <i class="pi pi-box text-5xl text-gray-300 dark:text-gray-600"></i>
+              </ng-template>
+              
+              <!-- Badge Stock -->
+              <div class="absolute top-3 left-3 bg-white/90 dark:bg-[#1e1e1e]/90 backdrop-blur-sm px-2.5 py-1 rounded-md shadow-sm border border-white/20 dark:border-gray-700/50">
+                <span class="text-xs font-bold" [ngClass]="prod.stockActual <= prod.stockMinimo ? 'text-red-500' : 'text-gray-700 dark:text-gray-200'">
+                  Stock: {{prod.stockActual}} uds
+                </span>
+              </div>
+
+              <!-- Badge Tipo (Interno/Retail) -->
+              <div class="absolute top-3 right-3 bg-[#bca028] text-white px-2.5 py-1 rounded-md shadow-sm text-xs font-bold uppercase tracking-wider">
+                {{ prod.ventaDirecta ? 'RETAIL' : 'INTERNO' }}
+              </div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="p-5 flex-1 flex flex-col">
+              <div class="mb-2">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight mb-1">{{prod.nombre}}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  {{prod.categoriaNombre}} <span *ngIf="prod.marca">• {{prod.marca}}</span>
+                </p>
+              </div>
+
+              <!-- Precio y Acciones (Bottom) -->
+              <div class="mt-auto pt-4 flex items-end justify-between border-t border-gray-100 dark:border-gray-700/50">
+                <div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-0.5">PRECIO</span>
+                  <span class="text-xl font-bold text-gray-800 dark:text-gray-100">S/ {{prod.precioVenta | number:'1.2-2'}}</span>
+                </div>
+                
+                <!-- Botones Edit/Delete (visibles al hover o siempre en mobile) -->
+                <div class="flex gap-2">
+                  <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-400 hover:text-[#bca028] hover:bg-[#bca028]/10" (click)="editProducto(prod)"></button>
+                  <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-400 hover:text-red-500 hover:bg-red-500/10" (click)="deleteProducto(prod)"></button>
+                </div>
+              </div>
+            </div>
           </div>
-        </td>
-        <td class="font-bold text-gray-800 dark:text-gray-200">
-          {{prod.nombre}}
-        </td>
-        <td>
-          <div class="flex gap-1">
-            <p-tag *ngIf="prod.usoInterno" severity="info" value="Interno" [rounded]="true"></p-tag>
-            <p-tag *ngIf="prod.ventaDirecta" severity="success" value="Venta" [rounded]="true"></p-tag>
-          </div>
-        </td>
-        <td class="text-gray-500 dark:text-gray-400">S/ {{prod.costo}}</td>
-        <td class="font-semibold text-green-600 dark:text-green-400">S/ {{prod.precioVenta}}</td>
-        <td>
-          <span [class]="prod.stockActual <= prod.stockMinimo ? 'text-red-500 font-bold' : 'text-gray-700 dark:text-gray-300'">
-            {{prod.stockActual}} u.
-          </span>
-          <span class="text-xs text-gray-400 block" *ngIf="prod.stockActual <= prod.stockMinimo">Stock Crítico</span>
-        </td>
-        <td class="text-right flex justify-end gap-2">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-info" (click)="editProducto(prod)"></button>
-          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="deleteProducto(prod)"></button>
-        </td>
-      </tr>
+        </div>
+      </div>
     </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="7" class="text-center py-8 text-gray-500">No hay productos registrados.</td>
-      </tr>
+
+    <ng-template #empty>
+      <div class="text-center py-12 text-gray-500 w-full flex flex-col items-center gap-3">
+        <i class="pi pi-box text-4xl text-gray-300"></i>
+        <p>No hay productos registrados aún.</p>
+      </div>
     </ng-template>
-  </p-table>
+  </p-dataView>
 </div>
 
 <p-dialog [(visible)]="productoDialog" [style]="{width: '650px'}" [header]="isEdit ? 'Editar Producto' : 'Nuevo Producto'" [modal]="true" styleClass="p-fluid">
@@ -145,6 +152,6 @@
 
   <ng-template pTemplate="footer">
     <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#984b5d] hover:bg-[#7a3c4a] border-none" (click)="saveProducto()" [disabled]="!producto.nombre || !producto.categoriaId"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="saveProducto()" [disabled]="!producto.nombre || !producto.categoriaId"></button>
   </ng-template>
 </p-dialog>

@@ -4,14 +4,14 @@
       <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Gestión de Usuarios</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">Administra los accesos y cuentas del personal del salón.</p>
     </div>
-    <button pButton icon="pi pi-user-plus" label="Nuevo Usuario" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+    <button pButton icon="pi pi-user-plus" label="Nuevo Usuario" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="openNew()"></button>
   </div>
 
   <!-- Buscador -->
   <div class="mb-6 flex gap-3 items-center">
     <div class="relative w-full md:w-96 flex items-center">
         <i class="pi pi-search text-gray-400 absolute left-3 z-10"></i>
-        <input type="text" pInputText placeholder="Buscar por nombre, usuario o email..." class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none rounded-lg focus:ring-2 focus:ring-[#984b5d] py-2.5 text-sm" style="padding-left: 2.5rem !important;" />
+        <input type="text" pInputText placeholder="Buscar por nombre, usuario o email..." class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none rounded-lg focus:ring-2 focus:ring-[#bca028] py-2.5 text-sm" style="padding-left: 2.5rem !important;" />
     </div>
   </div>
 
@@ -32,7 +32,7 @@
       <tr>
         <td class="font-bold text-gray-800 dark:text-gray-200">
           <div class="flex items-center gap-3">
-             <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-[#984b5d] dark:text-pink-300 font-bold text-sm">
+             <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-[#bca028] dark:text-pink-300 font-bold text-sm">
                {{usuario.username.charAt(0).toUpperCase()}}
              </div>
              <div class="flex flex-col">
@@ -54,7 +54,7 @@
           {{usuario.ultimoAcceso}}
         </td>
         <td class="text-center">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-[#984b5d]" title="Editar" (click)="openEdit(usuario)"></button>
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-[#bca028]" title="Editar" (click)="openEdit(usuario)"></button>
           <button pButton [icon]="usuario.estado ? 'pi pi-ban' : 'pi pi-check-circle'" 
                   class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-red-500" 
                   [title]="usuario.estado ? 'Bloquear' : 'Desbloquear'"
@@ -77,14 +77,14 @@
     
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre de Usuario o Email Principal <span class="text-red-500">*</span></label>
-      <input type="text" pInputText formControlName="username" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#984b5d]" placeholder="Ej. jperez@salon.com" />
+      <input type="text" pInputText formControlName="username" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Ej. jperez@salon.com" />
       <small class="text-red-500" *ngIf="usuarioForm.get('username')?.invalid && usuarioForm.get('username')?.touched">El username es requerido (mínimo 4 caracteres).</small>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email de Contacto <span class="text-red-500">*</span></label>
-        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#984b5d]" placeholder="Ej. juan@gmail.com" />
+        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Ej. juan@gmail.com" />
         <small class="text-red-500" *ngIf="usuarioForm.get('email')?.invalid && usuarioForm.get('email')?.touched">Ingrese un email válido.</small>
       </div>
 
@@ -97,7 +97,7 @@
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Contraseña <span *ngIf="isEditMode" class="font-normal text-gray-500">(Opcional)</span> <span *ngIf="!isEditMode" class="text-red-500">*</span></label>
-      <input type="password" pInputText formControlName="password" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#984b5d]" placeholder="******" />
+      <input type="password" pInputText formControlName="password" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028]" placeholder="******" />
       <small class="text-red-500" *ngIf="usuarioForm.get('password')?.invalid && usuarioForm.get('password')?.touched">La contraseña es obligatoria en usuarios nuevos (mínimo 6 caracteres).</small>
     </div>
 
@@ -108,7 +108,7 @@
 
     <div class="flex justify-end gap-3 mt-4">
       <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600 dark:text-gray-300" (onClick)="displayDialog = false"></p-button>
-      <p-button label="Guardar Usuario" icon="pi pi-check" type="submit" [disabled]="usuarioForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+      <p-button label="Guardar Usuario" icon="pi pi-check" type="submit" [disabled]="usuarioForm.invalid" styleClass="bg-[#bca028] hover:bg-[#d9bd72] border-none text-white"></p-button>
     </div>
   </form>
 </p-dialog>

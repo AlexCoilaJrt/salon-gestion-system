@@ -4,7 +4,7 @@
       <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Gestión de Personal</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">Administra a tus empleados, especialidades y datos de contacto.</p>
     </div>
-    <button pButton icon="pi pi-user-plus" label="Nuevo Empleado" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+    <button pButton icon="pi pi-user-plus" label="Nuevo Empleado" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="openNew()"></button>
   </div>
 
   <p-table [value]="empleados" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
@@ -24,7 +24,7 @@
       <tr>
         <td class="font-bold text-gray-800 dark:text-gray-200">
           <div class="flex items-center gap-3">
-             <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-[#984b5d] font-bold text-sm">
+             <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-[#bca028] font-bold text-sm">
                {{empleado.nombres.charAt(0).toUpperCase()}}
              </div>
              <div class="flex flex-col">
@@ -34,7 +34,7 @@
           </div>
         </td>
         <td class="text-sm">{{empleado.dni}}</td>
-        <td class="font-medium text-[#984b5d]">{{empleado.turnoNombre || 'Sin Turno'}}</td>
+        <td class="font-medium text-[#bca028]">{{empleado.turnoNombre || 'Sin Turno'}}</td>
         <td>
           <div class="flex gap-1 flex-wrap">
             <span *ngFor="let esp of empleado.especialidadesNombres" class="bg-[#f4f7fa] dark:bg-[#2d2d2d] px-3 py-1 rounded-full text-xs font-bold text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700">
@@ -54,7 +54,7 @@
           <p-tag [severity]="empleado.estado ? 'success' : 'danger'" [value]="empleado.estado ? 'Activo' : 'Inactivo'"></p-tag>
         </td>
         <td class="text-center">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#984b5d]" (click)="openEdit(empleado)"></button>
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#bca028]" (click)="openEdit(empleado)"></button>
           <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-red-500" (click)="deleteEmpleado(empleado)"></button>
         </td>
       </tr>
@@ -74,31 +74,31 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700">Nombres <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="nombres" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+        <input type="text" pInputText formControlName="nombres" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('nombres')?.invalid && empleadoForm.get('nombres')?.touched">Requerido (solo letras).</small>
       </div>
 
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700">Apellidos <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="apellidos" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+        <input type="text" pInputText formControlName="apellidos" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('apellidos')?.invalid && empleadoForm.get('apellidos')?.touched">Requerido (solo letras).</small>
       </div>
 
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700">DNI <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="dni" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+        <input type="text" pInputText formControlName="dni" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('dni')?.invalid && empleadoForm.get('dni')?.touched">Requerido (solo números, mín 8).</small>
       </div>
 
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700">Teléfono</label>
-        <input type="text" pInputText formControlName="telefono" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+        <input type="text" pInputText formControlName="telefono" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('telefono')?.invalid && empleadoForm.get('telefono')?.touched">Solo números (mín 9).</small>
       </div>
 
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700">Email de Contacto <span class="text-red-500">*</span></label>
-        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('email')?.invalid && empleadoForm.get('email')?.touched">Email inválido.</small>
       </div>
 
@@ -116,7 +116,7 @@
       
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700">Fecha de Nacimiento <span class="text-red-500">*</span></label>
-        <input type="date" pInputText formControlName="fechaNacimiento" [max]="today" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+        <input type="date" pInputText formControlName="fechaNacimiento" [max]="today" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('fechaNacimiento')?.invalid && empleadoForm.get('fechaNacimiento')?.touched">Fecha inválida (debe ser pasada).</small>
       </div>
     </div>
@@ -128,7 +128,7 @@
 
     <div class="flex justify-end gap-3 mt-4">
       <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600" (onClick)="displayDialog = false"></p-button>
-      <p-button label="Guardar Empleado" icon="pi pi-check" type="submit" [disabled]="empleadoForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+      <p-button label="Guardar Empleado" icon="pi pi-check" type="submit" [disabled]="empleadoForm.invalid" styleClass="bg-[#bca028] hover:bg-[#d9bd72] border-none text-white"></p-button>
     </div>
   </form>
 </p-dialog>

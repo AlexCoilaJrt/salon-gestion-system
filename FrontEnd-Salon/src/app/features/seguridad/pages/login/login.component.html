@@ -1,6 +1,6 @@
 <div class="h-screen w-full bg-cover bg-center relative bg-no-repeat flex items-center justify-center lg:justify-start lg:pl-24 overflow-hidden" style="background-color: #000000; background-image: url('assets/images/spa_diana_bg.jpg');">
   
-  <div class="w-full sm:w-[420px] bg-black/60 backdrop-blur-lg border-t-4 border-[#d4af37] sm:rounded-2xl shadow-2xl flex flex-col px-8 py-5 m-4 max-h-screen overflow-hidden">
+  <div class="w-full sm:w-[420px] bg-black/60 backdrop-blur-lg border-t-4 border-[#bca028] sm:rounded-2xl shadow-2xl flex flex-col px-8 py-5 m-4 max-h-screen overflow-hidden">
     <!-- Header / Logo -->
     <div class="mb-2 flex justify-center">
       <img src="assets/images/logo-spa-diana.png" alt="Spa Diana Logo" class="h-20 md:h-24 object-contain drop-shadow-2xl">
@@ -18,15 +18,15 @@
 
         <div>
           <label for="emailaddress" class="block text-sm font-semibold text-gray-200 mb-1.5">Correo electrónico</label>
-          <input formControlName="email" class="block w-full rounded py-2 px-3 bg-white/5 border border-white/10 text-white focus:border-[#d4af37] focus:outline-none focus:ring-1 focus:ring-[#d4af37]" type="email" id="emailaddress" placeholder="Ingresa tu correo">
+          <input formControlName="email" class="block w-full rounded py-2 px-3 bg-white/5 border border-white/10 text-white focus:border-[#bca028] focus:outline-none focus:ring-1 focus:ring-[#bca028]" type="email" id="emailaddress" placeholder="Ingresa tu correo">
           <small *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="text-red-400 mt-1 block">Correo inválido</small>
         </div>
 
         <div>
           <label for="password" class="block text-sm font-semibold text-gray-200 mb-1.5">Contraseña</label>
           <div class="relative">
-            <input formControlName="contrasena" class="block w-full rounded py-2 pl-3 pr-10 bg-white/5 border border-white/10 text-white focus:border-[#d4af37] focus:outline-none focus:ring-1 focus:ring-[#d4af37]" [type]="showPassword ? 'text' : 'password'" id="password" placeholder="Ingresa tu contraseña">
-            <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#d4af37] focus:outline-none transition-colors">
+            <input formControlName="contrasena" class="block w-full rounded py-2 pl-3 pr-10 bg-white/5 border border-white/10 text-white focus:border-[#bca028] focus:outline-none focus:ring-1 focus:ring-[#bca028]" [type]="showPassword ? 'text' : 'password'" id="password" placeholder="Ingresa tu contraseña">
+            <button type="button" (click)="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-[#bca028] focus:outline-none transition-colors">
               <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -41,13 +41,13 @@
 
         <div class="flex justify-between items-center mt-2">
           <div class="inline-flex items-center">
-            <input formControlName="rememberMe" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10 text-[#d4af37] focus:ring-[#d4af37]" id="checkbox-signin">
+            <input formControlName="rememberMe" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10 text-[#bca028] focus:ring-[#bca028]" id="checkbox-signin">
             <label class="text-sm ms-2 text-gray-300 select-none cursor-pointer" for="checkbox-signin">Recordarme</label>
           </div>
-          <a href="#" class="text-[#d4af37] hover:text-white transition-colors"><small>¿Olvidaste tu contraseña?</small></a>
+          <a href="#" class="text-[#bca028] hover:text-white transition-colors"><small>¿Olvidaste tu contraseña?</small></a>
         </div>
 
-        <button [disabled]="loading" class="w-full mt-3 flex items-center justify-center px-6 py-2 bg-[#d4af37] text-black font-bold rounded transition-all hover:bg-[#bca028] disabled:opacity-50 shadow-lg" type="submit">
+        <button [disabled]="loading" class="w-full mt-3 flex items-center justify-center px-6 py-2 bg-[#bca028] text-black font-bold rounded transition-all hover:bg-[#9d841f] disabled:opacity-50 shadow-lg" type="submit">
           {{ loading ? 'Ingresando...' : 'Ingresar' }}
         </button>
 
@@ -76,7 +76,7 @@
 
     <!-- Footer -->
     <div class="mt-2 text-center">
-      <p class="text-xs text-gray-300">¿No tienes una cuenta? <a href="#" class="text-[#d4af37] font-semibold hover:underline">Regístrate</a></p>
+      <p class="text-xs text-gray-300">¿No tienes una cuenta? <a href="#" class="text-[#bca028] font-semibold hover:underline">Regístrate</a></p>
     </div>
   </div>
 </div>

@@ -62,4 +62,12 @@ export class CajaService {
   emitirTicket(request: TicketRequest): Observable<any> {
     return this.http.post<any>('http://localhost:8080/api/operaciones/tickets', request);
   }
+
+  obtenerResumenActual(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/resumen`);
+  }
+
+  obtenerTicketsCajaActual(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:8080/api/operaciones/tickets/caja-actual');
+  }
 }

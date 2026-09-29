@@ -7,6 +7,7 @@ import { AuthService } from '../../auth/services/auth.service';
 interface MenuCategory {
   title: string;
   items: MenuItem[];
+  expanded?: boolean;
 }
 
 interface MenuItem {
@@ -107,19 +108,30 @@ export class SidebarComponent implements OnInit {
     const isAdmin = userRoles.includes('ADMIN');
 
     const filtered = this.menuCategories.map(category => {
+      // Filtrar items permitidos
+      const allowedItems = category.items.filter(item => {
+        if (!item.requiredPermissions || item.requiredPermissions.length === 0) return true;
+        if (isAdmin) return true;
+        return item.requiredPermissions.some(perm => userPermissions.includes(perm));
+      });
+
+      // Validar si algún item está activo en la ruta actual
+      const isAnyItemActive = allowedItems.some(item => window.location.pathname.includes(item.route));
+
       return {
         ...category,
-        items: category.items.filter(item => {
-          // Si no requiere permisos, es público
-          if (!item.requiredPermissions || item.requiredPermissions.length === 0) return true;
-          // Si es ADMIN, ve todo
-          if (isAdmin) return true;
-          // Sino, debe tener al menos UNO de los permisos requeridos
-          return item.requiredPermissions.some(perm => userPermissions.includes(perm));
-        })
+        expanded: isAnyItemActive, // Abierto SOLO si estoy en esa sección
+        items: allowedItems
       };
-    }).filter(category => category.items.length > 0); // Ocultar categorías vacías
+    }).filter(category => category.items.length > 0);
 
     this.filteredMenuCategories.set(filtered);
+  }
+
+  toggleCategory(index: number) {
+    this.filteredMenuCategories.update(categories => {
+      categories[index].expanded = !categories[index].expanded;
+      return [...categories];
+    });
   }
 }

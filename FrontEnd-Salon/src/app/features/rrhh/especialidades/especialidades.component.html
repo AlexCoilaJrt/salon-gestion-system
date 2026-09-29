@@ -4,7 +4,7 @@
       <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Catálogo de Especialidades</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">Gestiona las profesiones y oficios (Ej: Manicurista, Barbera).</p>
     </div>
-    <button pButton icon="pi pi-plus" label="Nueva Especialidad" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+    <button pButton icon="pi pi-plus" label="Nueva Especialidad" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="openNew()"></button>
   </div>
 
   <p-table [value]="especialidades" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
@@ -25,7 +25,7 @@
           <p-tag [severity]="esp.estado ? 'success' : 'danger'" [value]="esp.estado ? 'Activa' : 'Inactiva'"></p-tag>
         </td>
         <td class="text-center">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#984b5d]" (click)="openEdit(esp)"></button>
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#bca028]" (click)="openEdit(esp)"></button>
           <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-red-500" (click)="deleteEspecialidad(esp)"></button>
         </td>
       </tr>
@@ -44,13 +44,13 @@
     
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-gray-700">Nombre de Especialidad <span class="text-red-500">*</span></label>
-      <input type="text" pInputText formControlName="nombre" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d] uppercase" placeholder="Ej: MANICURISTA" />
+      <input type="text" pInputText formControlName="nombre" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028] uppercase" placeholder="Ej: MANICURISTA" />
       <small class="text-red-500" *ngIf="especialidadForm.get('nombre')?.invalid && especialidadForm.get('nombre')?.touched">Requerido (mín. 3 letras).</small>
     </div>
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-gray-700">Descripción (Opcional)</label>
-      <textarea pInputTextarea formControlName="descripcion" rows="3" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" placeholder="Detalles sobre esta especialidad..."></textarea>
+      <textarea pInputTextarea formControlName="descripcion" rows="3" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Detalles sobre esta especialidad..."></textarea>
     </div>
 
     <div class="flex items-center pt-2">
@@ -60,7 +60,7 @@
 
     <div class="flex justify-end gap-3 mt-4">
       <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600" (onClick)="displayDialog = false"></p-button>
-      <p-button label="Guardar Especialidad" icon="pi pi-check" type="submit" [disabled]="especialidadForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+      <p-button label="Guardar Especialidad" icon="pi pi-check" type="submit" [disabled]="especialidadForm.invalid" styleClass="bg-[#bca028] hover:bg-[#d9bd72] border-none text-white"></p-button>
     </div>
   </form>
 </p-dialog>

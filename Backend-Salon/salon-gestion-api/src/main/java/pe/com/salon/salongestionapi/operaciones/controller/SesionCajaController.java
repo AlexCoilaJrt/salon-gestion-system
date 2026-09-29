@@ -31,4 +31,9 @@ public class SesionCajaController {
     public ResponseEntity<SesionCajaResponse> obtenerCajaActual() {
         return ResponseEntity.ok(sesionCajaService.obtenerCajaActual());
     }
+
+    @GetMapping("/resumen")
+    public ResponseEntity<pe.com.salon.salongestionapi.operaciones.dto.ResumenCajaResponse> obtenerResumenActual() {
+        return ResponseEntity.ok(sesionCajaService.obtenerResumenActual());
+    }
 }

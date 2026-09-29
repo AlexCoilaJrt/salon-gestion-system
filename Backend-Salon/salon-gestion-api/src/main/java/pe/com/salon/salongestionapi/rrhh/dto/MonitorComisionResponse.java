@@ -15,6 +15,9 @@ public class MonitorComisionResponse {
     private List<IncentivoAplicado> incentivosAplicados;
     private BigDecimal totalComisionPorcentaje;
     private BigDecimal totalComisionMontoFijo;
+    
+    private BigDecimal ventasHoy;
+    private BigDecimal comisionesGanadasHoy;
 
     @Data
     public static class IncentivoAplicado {

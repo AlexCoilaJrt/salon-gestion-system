@@ -1,0 +1,82 @@
+<p-toast></p-toast>
+
+<div class="h-full flex flex-col p-6">
+  <div class="mb-6 flex justify-between items-center">
+    <div>
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Control de Egresos</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Registra las salidas de dinero (Caja chica, Insumos, etc.) de tu turno actual.</p>
+    </div>
+    <button pButton icon="pi pi-plus" label="Nuevo Egreso" class="bg-[#bca028] hover:bg-[#9d841f] text-white border-none shadow-lg shadow-[#bca028]/20" (click)="abrirDialogo()"></button>
+  </div>
+
+  <div class="flex-1 bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+    <p-table [value]="egresos" [loading]="loading" styleClass="p-datatable-lg" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Fecha y Hora</th>
+          <th>Monto</th>
+          <th>Categoría</th>
+          <th>Motivo</th>
+          <th>Registrado Por</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-egreso>
+        <tr>
+          <td class="font-medium text-gray-700 dark:text-gray-300">{{egreso.fechaHora | date:'short'}}</td>
+          <td class="font-bold text-red-500">- S/ {{egreso.monto | number:'1.2-2'}}</td>
+          <td>
+            <span class="px-3 py-1 rounded-full text-xs font-bold"
+                  [ngClass]="{
+                    'bg-blue-100 text-blue-700': egreso.categoria === 'Insumos',
+                    'bg-purple-100 text-purple-700': egreso.categoria === 'Servicios Básicos',
+                    'bg-green-100 text-green-700': egreso.categoria === 'Caja Chica',
+                    'bg-orange-100 text-orange-700': egreso.categoria === 'Adelantos a Personal',
+                    'bg-gray-100 text-gray-700': egreso.categoria === 'Otros'
+                  }">
+              {{egreso.categoria}}
+            </span>
+          </td>
+          <td class="text-gray-600 dark:text-gray-400">{{egreso.motivo}}</td>
+          <td>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-user text-gray-400"></i>
+              <span>{{egreso.usuarioNombre}}</span>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center p-8 text-gray-500">
+            <i class="pi pi-inbox text-4xl mb-4 block"></i>
+            No se han registrado egresos en el turno actual.
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog header="Registrar Salida de Dinero" [(visible)]="displayDialog" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
+  <div class="flex flex-col gap-4 pt-4">
+    <div class="field">
+      <label class="block font-bold mb-2">Monto a retirar (S/)</label>
+      <p-inputNumber [(ngModel)]="nuevoEgreso.monto" mode="currency" currency="PEN" locale="es-PE" class="w-full" styleClass="w-full" inputStyleClass="w-full text-lg"></p-inputNumber>
+    </div>
+
+    <div class="field">
+      <label class="block font-bold mb-2">Categoría del Gasto</label>
+      <p-dropdown [options]="categorias" [(ngModel)]="nuevoEgreso.categoria" placeholder="Selecciona una categoría" styleClass="w-full"></p-dropdown>
+    </div>
+
+    <div class="field">
+      <label class="block font-bold mb-2">Motivo / Descripción</label>
+      <textarea [(ngModel)]="nuevoEgreso.motivo" rows="3" class="w-full bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border border-gray-300" placeholder="Ej: Compra de 2 tintes L'Oreal"></textarea>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="displayDialog = false"></button>
+    <button pButton label="Guardar Gasto" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] text-white border-none font-bold px-4" (click)="guardarEgreso()"></button>
+  </ng-template>
+</p-dialog>

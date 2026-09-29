@@ -74,6 +74,7 @@ public interface TicketDetalleRepository extends JpaRepository<TicketDetalle, Lo
     @Query("SELECT COALESCE(SUM(td.subtotal), 0) FROM TicketDetalle td " +
            "JOIN td.ticket t " +
            "WHERE td.empleado.id = :empleadoId " +
+           "AND t.activo = true " +
            "AND t.fechaEmision >= :fechaInicio AND t.fechaEmision <= :fechaFin")
     BigDecimal sumVentasEmpleadoEnPeriodo(
             @Param("empleadoId") Long empleadoId,

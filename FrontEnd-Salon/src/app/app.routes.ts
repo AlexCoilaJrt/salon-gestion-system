@@ -27,7 +27,9 @@ export const routes: Routes = [
       { path: 'productos', loadComponent: () => import('./features/catalogo/productos/productos.component').then(m => m.ProductosComponent) },
       { path: 'insumos', loadComponent: () => import('./features/catalogo/productos/productos.component').then(m => m.ProductosComponent) },
       { path: 'inventario', loadComponent: () => import('./features/catalogo/inventario/inventario.component').then(m => m.InventarioComponent) },
-      { path: 'caja', loadComponent: () => import('./features/finanzas/caja/caja.component').then(m => m.CajaComponent) }
+      { path: 'caja', loadComponent: () => import('./features/finanzas/caja/caja.component').then(m => m.CajaComponent) },
+      { path: 'egresos', loadComponent: () => import('./features/finanzas/egresos/egresos.component').then(m => m.EgresosComponent) },
+      { path: 'facturacion', loadComponent: () => import('./features/finanzas/facturacion/facturacion.component').then(m => m.FacturacionComponent) }
     ]
   },
   { path: 'kiosko', loadComponent: () => import('./features/rrhh/asistencia/asistencia.component').then(m => m.AsistenciaComponent) },

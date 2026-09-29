@@ -4,7 +4,7 @@
       <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Campañas e Incentivos</h2>
       <p class="text-sm text-gray-500 dark:text-gray-400">Configura bonos temporales de fin de semana o festivos para tus empleados.</p>
     </div>
-    <button pButton icon="pi pi-plus" label="Nuevo Incentivo" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="openNew()"></button>
+    <button pButton icon="pi pi-plus" label="Nuevo Incentivo" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="openNew()"></button>
   </div>
 
   <p-table [value]="incentivos" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
@@ -23,7 +23,7 @@
         <td class="font-bold text-gray-800 dark:text-gray-200">
           {{incentivo.nombre}}
         </td>
-        <td class="font-medium text-[#984b5d]">
+        <td class="font-medium text-[#bca028]">
           + {{incentivo.tipoIncentivo === 'PORCENTAJE' ? incentivo.valor + '%' : 'S/ ' + incentivo.valor}}
         </td>
         <td class="text-sm text-gray-600">
@@ -33,7 +33,7 @@
           <p-tag [severity]="incentivo.estado ? 'success' : 'danger'" [value]="incentivo.estado ? 'Activo' : 'Inactivo'"></p-tag>
         </td>
         <td class="text-center">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#984b5d]" (click)="openEdit(incentivo)"></button>
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#bca028]" (click)="openEdit(incentivo)"></button>
           <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-red-500" (click)="deleteIncentivo(incentivo)"></button>
         </td>
       </tr>
@@ -52,7 +52,7 @@
     
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-gray-700">Nombre de Campaña <span class="text-red-500">*</span></label>
-      <input pInputText formControlName="nombre" placeholder="Ej: Bono Fin de Semana" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#984b5d]" />
+      <input pInputText formControlName="nombre" placeholder="Ej: Bono Fin de Semana" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
     </div>
 
     <div class="grid grid-cols-2 gap-4">
@@ -84,7 +84,7 @@
 
     <div class="flex justify-end gap-3 mt-4">
       <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600" (onClick)="displayDialog = false"></p-button>
-      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="incentivoForm.invalid" styleClass="bg-[#984b5d] hover:bg-[#b45d73] border-none text-white"></p-button>
+      <p-button label="Guardar" icon="pi pi-check" type="submit" [disabled]="incentivoForm.invalid" styleClass="bg-[#bca028] hover:bg-[#d9bd72] border-none text-white"></p-button>
     </div>
   </form>
 </p-dialog>

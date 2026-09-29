@@ -21,4 +21,19 @@ public class TicketController {
         TicketResponse nuevoTicket = ticketService.emitirTicket(request);
         return new ResponseEntity<>(nuevoTicket, HttpStatus.CREATED);
     }
+
+    @GetMapping("/caja-actual")
+    public ResponseEntity<java.util.List<TicketResponse>> obtenerTicketsCajaActual() {
+        return ResponseEntity.ok(ticketService.obtenerTicketsCajaActual());
+    }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<TicketResponse>> obtenerTodosTickets() {
+        return ResponseEntity.ok(ticketService.obtenerTodosTickets());
+    }
+
+    @PutMapping("/{id}/anular")
+    public ResponseEntity<TicketResponse> anularTicket(@PathVariable Long id) {
+        return ResponseEntity.ok(ticketService.anularTicket(id));
+    }
 }

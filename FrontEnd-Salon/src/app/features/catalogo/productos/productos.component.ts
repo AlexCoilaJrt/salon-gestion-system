@@ -16,13 +16,15 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { CatalogoService, Producto, Categoria } from '../services/catalogo.service';
 import { ActivatedRoute } from '@angular/router';
 
+import { DataViewModule } from 'primeng/dataview';
+
 @Component({
   selector: 'app-productos',
   standalone: true,
   imports: [
     CommonModule, FormsModule, TableModule, ButtonModule, DialogModule, 
     InputTextModule, InputNumberModule, DropdownModule, CheckboxModule,
-    TagModule, ToastModule, ConfirmDialogModule, FileUploadModule
+    TagModule, ToastModule, ConfirmDialogModule, FileUploadModule, DataViewModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './productos.component.html'
@@ -78,8 +80,8 @@ export class ProductosComponent implements OnInit {
       precioVenta: 0,
       stockActual: 0,
       stockMinimo: 5,
-      usoInterno: false,
-      ventaDirecta: true,
+      usoInterno: this.modoInsumos ? true : false,
+      ventaDirecta: this.modoInsumos ? false : true,
       categoriaId: 0
     };
   }

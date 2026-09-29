@@ -82,8 +82,9 @@ export class AuthService {
 
   logout(): Observable<any> {
     return this.http.post<any>(`${this.API_URL}/logout`, {}).pipe(
-      tap(() => {
-        this.clearLocalSession();
+      tap({
+        next: () => this.clearLocalSession(),
+        error: () => this.clearLocalSession()
       })
     );
   }

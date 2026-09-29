@@ -22,6 +22,8 @@ export interface MonitorComision {
   incentivosAplicados: any[];
   totalComisionPorcentaje: number;
   totalComisionMontoFijo: number;
+  ventasHoy?: number;
+  comisionesGanadasHoy?: number;
 }
 
 @Injectable({

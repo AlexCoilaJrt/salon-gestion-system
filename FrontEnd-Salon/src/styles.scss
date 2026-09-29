@@ -18,3 +18,32 @@ body.p-overflow-hidden {
     padding-right: 0 !important;
 }
 
+@media print {
+  /* Ocultar TODO el layout y componentes en la impresión */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Mostrar SOLO el ticket de impresión y sus hijos */
+  #ticket-impresion, #ticket-impresion * {
+    visibility: visible;
+  }
+  
+  /* Mover el ticket a la parte superior y centrarlo horizontalmente */
+  #ticket-impresion {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Eliminar los márgenes por defecto del navegador para impresoras térmicas */
+  @page {
+    margin: 0;
+  }
+}
+
+

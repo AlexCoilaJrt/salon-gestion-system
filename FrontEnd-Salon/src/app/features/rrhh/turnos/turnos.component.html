@@ -6,7 +6,7 @@
             <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Gestión de Turnos (Horarios)</h2>
             <p class="text-sm text-gray-500 dark:text-gray-400">Administra los horarios de trabajo para medir las tardanzas.</p>
         </div>
-        <button pButton icon="pi pi-plus" label="Nuevo Turno" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="showDialogToAdd()"></button>
+        <button pButton icon="pi pi-plus" label="Nuevo Turno" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="showDialogToAdd()"></button>
     </div>
 
     <p-table [value]="turnos" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm">
@@ -67,7 +67,7 @@
 
             <div class="flex justify-end gap-2 mt-4">
                 <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary" (click)="displayDialog = false"></button>
-                <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary bg-[#984b5d] hover:bg-[#b45d73] border-none" (click)="save()"></button>
+                <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="save()"></button>
             </div>
         </form>
     </p-dialog>
