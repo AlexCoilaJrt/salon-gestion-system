@@ -22,10 +22,10 @@
         </ng-template>
         <ng-template pTemplate="body" let-turno>
             <tr>
-                <td class="font-bold text-gray-800">{{turno.nombre}}</td>
-                <td class="text-green-600 font-medium">{{ '1970-01-01T' + turno.horaEntrada | date:'shortTime' }}</td>
-                <td class="text-red-600 font-medium">{{ '1970-01-01T' + turno.horaSalida | date:'shortTime' }}</td>
-                <td class="text-gray-600">{{turno.toleranciaMinutos}} min</td>
+                <td class="font-bold text-gray-800 dark:text-gray-200">{{turno.nombre}}</td>
+                <td class="text-green-600 dark:text-green-400 font-medium">{{ '1970-01-01T' + turno.horaEntrada | date:'shortTime' }}</td>
+                <td class="text-red-600 dark:text-red-400 font-medium">{{ '1970-01-01T' + turno.horaSalida | date:'shortTime' }}</td>
+                <td class="text-gray-600 dark:text-gray-400">{{turno.toleranciaMinutos}} min</td>
                 <td>
                     <p-tag [severity]="turno.estado ? 'success' : 'danger'" [value]="turno.estado ? 'Activo' : 'Inactivo'"></p-tag>
                 </td>
@@ -43,26 +43,26 @@
         <form [formGroup]="turnoForm" class="flex flex-col gap-4 mt-4">
             
             <div class="flex flex-col gap-2">
-                <label class="font-semibold text-gray-700">Nombre del Turno</label>
-                <input pInputText formControlName="nombre" placeholder="Ej. Turno Mañana" class="p-2" />
+                <label class="font-semibold text-gray-700 dark:text-gray-300">Nombre del Turno</label>
+                <input pInputText formControlName="nombre" placeholder="Ej. Turno Mañana" class="p-2 bg-gray-50 dark:bg-[#2d2d2d] dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg" />
             </div>
 
             <div class="flex gap-4">
                 <div class="flex flex-col gap-2 w-1/2">
-                    <label class="font-semibold text-gray-700">Hora Entrada</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-300">Hora Entrada</label>
                     <p-calendar formControlName="horaEntrada" [timeOnly]="true" hourFormat="12" inputId="timeonly1" styleClass="w-full" class="w-full"></p-calendar>
                 </div>
                 
                 <div class="flex flex-col gap-2 w-1/2">
-                    <label class="font-semibold text-gray-700">Hora Salida</label>
+                    <label class="font-semibold text-gray-700 dark:text-gray-300">Hora Salida</label>
                     <p-calendar formControlName="horaSalida" [timeOnly]="true" hourFormat="12" inputId="timeonly2" styleClass="w-full" class="w-full"></p-calendar>
                 </div>
             </div>
 
             <div class="flex flex-col gap-2">
-                <label class="font-semibold text-gray-700">Minutos de Tolerancia</label>
-                <input type="number" pInputText formControlName="toleranciaMinutos" min="0" placeholder="Ej. 15" class="p-2" />
-                <small class="text-gray-500">Minutos de gracia antes de marcar tardanza en el Kiosko.</small>
+                <label class="font-semibold text-gray-700 dark:text-gray-300">Minutos de Tolerancia</label>
+                <input type="number" pInputText formControlName="toleranciaMinutos" min="0" placeholder="Ej. 15" class="p-2 bg-gray-50 dark:bg-[#2d2d2d] dark:text-white border border-gray-300 dark:border-gray-600 rounded-lg" />
+                <small class="text-gray-500 dark:text-gray-400">Minutos de gracia antes de marcar tardanza en el Kiosko.</small>
             </div>
 
             <div class="flex justify-end gap-2 mt-4">

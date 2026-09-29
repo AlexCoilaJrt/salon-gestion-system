@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CajaService, SesionCaja } from '../services/caja.service';
 import { CatalogoService, Producto, Servicio } from '../../catalogo/services/catalogo.service';
@@ -48,6 +49,7 @@ export class CajaComponent implements OnInit {
 
   catalogoCompleto: VentaItem[] = [];
   resultadosBusqueda: VentaItem[] = [];
+  serviciosFrecuentes: VentaItem[] = [];
   itemSeleccionado: any;
   empleados: Empleado[] = [];
 
@@ -149,8 +151,12 @@ export class CajaComponent implements OnInit {
   cargarCatalogoParaVenta() {
     this.catalogoCompleto = [];
     
-    // Cargar Servicios
-    this.catalogoService.getServicios().subscribe(servicios => {
+    forkJoin({
+      servicios: this.catalogoService.getServicios(),
+      productos: this.catalogoService.getProductos(),
+      frecuentes: this.cajaService.obtenerServiciosFrecuentes()
+    }).subscribe(({ servicios, productos, frecuentes }) => {
+      // Cargar Servicios
       servicios.filter(s => s.estado === true).forEach(s => {
         this.catalogoCompleto.push({
           id: s.id!,
@@ -160,10 +166,8 @@ export class CajaComponent implements OnInit {
           imagen: 'pi-briefcase'
         });
       });
-    });
 
-    // Cargar Productos (Solo VENTA DIRECTA)
-    this.catalogoService.getProductos().subscribe(productos => {
+      // Cargar Productos (Solo VENTA DIRECTA)
       productos.filter(p => p.estado === true && p.ventaDirecta === true).forEach(p => {
         this.catalogoCompleto.push({
           id: p.id!,
@@ -173,6 +177,22 @@ export class CajaComponent implements OnInit {
           imagen: 'pi-box'
         });
       });
+
+      // Extraer los top frecuentes basados en el backend (que trae el ID en servicioId)
+      this.serviciosFrecuentes = [];
+      if (frecuentes && frecuentes.length > 0) {
+        frecuentes.forEach(f => {
+          const item = this.catalogoCompleto.find(c => c.tipo === 'servicio' && c.id === f.servicioId);
+          if (item && this.serviciosFrecuentes.length < 4) {
+            this.serviciosFrecuentes.push(item);
+          }
+        });
+      }
+
+      // Fallback para instalaciones nuevas sin ventas: tomar los primeros 4 servicios del catálogo
+      if (this.serviciosFrecuentes.length === 0) {
+        this.serviciosFrecuentes = this.catalogoCompleto.filter(c => c.tipo === 'servicio').slice(0, 4);
+      }
     });
   }
 

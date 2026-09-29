@@ -1,105 +1,184 @@
-<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-  <div class="flex justify-between items-center mb-6">
+<div class="h-[calc(100vh-80px)] flex flex-col bg-[#f8f9fa] dark:bg-[#121212]">
+  <!-- Header -->
+  <div class="px-8 py-6 bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex justify-between items-center shadow-sm z-10">
     <div>
-      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Roles y Permisos</h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Gestiona los roles del sistema y sus niveles de acceso.</p>
+      <h2 class="text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
+        MÓDULO DE SEGURIDAD // ACL MATRIX
+        <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+          <i class="pi pi-check-circle"></i> Sincronizado
+        </span>
+      </h2>
+      <p class="text-xl font-bold text-gray-800 dark:text-gray-200 mt-2">Seguridad, Roles y Matriz de Permisos</p>
+      <p class="text-sm text-gray-500 mt-1">Administre privilegios de ejecución, accesos por sucursal y límites operacionales para cada cargo del personal técnico y administrativo.</p>
     </div>
-    <button pButton icon="pi pi-plus" label="Nuevo Rol" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="openNew()"></button>
+    <div class="flex gap-3">
+       <button pButton icon="pi pi-history" label="Auditoría de Cambios" class="p-button-outlined p-button-secondary font-bold"></button>
+       <button pButton icon="pi pi-plus" label="Crear Nuevo Rol" class="p-button-danger bg-[#8B2346] hover:bg-[#a62b53] border-none font-semibold rounded-lg shadow-md" (click)="openNew()"></button>
+    </div>
   </div>
 
-  <p-table [value]="roles" [loading]="loading" [paginator]="true" [rows]="10" [totalRecords]="totalRecords"
-           (onPage)="onPageChange($event)" responsiveLayout="scroll"
-           styleClass="p-datatable-sm p-datatable-striped custom-table">
-    <ng-template pTemplate="header">
-      <tr>
-        <th class="w-1/4">Nombre</th>
-        <th class="w-1/3">Descripción</th>
-        <th class="w-1/6">Estado</th>
-        <th class="w-1/6 text-center">Permisos</th>
-        <th class="w-[10%] text-center">Acciones</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-role>
-      <tr>
-        <td class="font-semibold text-gray-800 dark:text-gray-200">
-          {{role.name}}
-          <span *ngIf="role.name === 'ADMIN'" class="ml-2 px-2 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-700 rounded-full">SISTEMA</span>
-        </td>
-        <td class="text-sm text-gray-600 dark:text-gray-400">{{role.description || 'Sin descripción'}}</td>
-        <td>
-          <p-tag [severity]="role.active ? 'success' : 'danger'" [value]="role.active ? 'Activo' : 'Inactivo'"></p-tag>
-        </td>
-        <td class="text-center text-sm font-medium text-gray-600 dark:text-gray-400">
-          <span class="bg-[#f4f7fa] dark:bg-[#2d2d2d] px-2 py-1 rounded-md">{{role.permissions?.length || 0}} asignados</span>
-        </td>
-        <td class="text-center">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-[#bca028]" (click)="openEdit(role)"></button>
-          <button *ngIf="role.name !== 'ADMIN'" pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-sm text-gray-600 dark:text-gray-400 hover:text-red-500" (click)="deleteRole(role)"></button>
-        </td>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="5" class="text-center p-6 text-gray-500">No se encontraron roles en el sistema.</td>
-      </tr>
-    </ng-template>
-  </p-table>
+  <!-- Content split -->
+  <div class="flex-1 flex overflow-hidden p-8 gap-8">
+     <!-- Left Panel: Roles Cards -->
+     <div class="w-[35%] flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+       <!-- Total info -->
+       <div class="bg-white dark:bg-[#1e1e1e] rounded-xl p-4 flex justify-between items-center border border-gray-100 dark:border-gray-800 shadow-sm">
+         <div class="flex items-center gap-3">
+           <div class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-xl text-blue-600 dark:text-blue-400">
+             <i class="pi pi-users text-2xl"></i>
+           </div>
+           <div>
+             <div class="text-xs text-gray-500 font-bold uppercase tracking-wider">TOTAL ASIGNACIONES</div>
+             <div class="text-xl font-black text-gray-900 dark:text-white">{{roles.length}} Roles Activos</div>
+           </div>
+         </div>
+       </div>
+
+       <!-- Role Cards -->
+       <div *ngFor="let role of roles" 
+            class="bg-white dark:bg-[#1e1e1e] rounded-xl p-5 border-2 cursor-pointer transition-all duration-200 relative group"
+            [ngClass]="{'border-[#8B2346] shadow-md': selectedRole?.id === role.id, 'border-gray-100 dark:border-gray-800 hover:border-gray-300': selectedRole?.id !== role.id}"
+            (click)="selectRole(role)">
+          <div *ngIf="selectedRole?.id === role.id" class="absolute -top-3 right-4 bg-[#8B2346] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm tracking-wide">En Edición</div>
+          
+          <div class="flex justify-between items-start mb-2">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+               <span class="w-2.5 h-2.5 rounded-full" [ngClass]="role.active ? 'bg-green-500' : 'bg-red-500'"></span>
+               {{role.name}}
+            </h3>
+            <button pButton icon="pi pi-ellipsis-v" class="p-button-rounded p-button-text p-button-sm text-gray-400" (click)="$event.stopPropagation(); openEdit(role)"></button>
+          </div>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[40px]">{{role.description || 'Sin descripción detallada.'}}</p>
+          
+          <div class="flex justify-between items-center text-xs font-bold text-gray-600 dark:text-gray-400 mt-2">
+             <div class="bg-gray-100 dark:bg-[#2a2a2a] px-3 py-1.5 rounded-lg flex items-center gap-2 text-blue-600 dark:text-blue-400">
+               <i class="pi pi-user"></i>
+               <span>{{role.users?.length || 0}} usuarios asignados</span>
+             </div>
+             <div>Total: <span class="text-base" [ngClass]="{'text-[#8B2346] font-black': selectedRole?.id === role.id}">{{role.permissions?.length || 0}}</span> perms</div>
+          </div>
+       </div>
+     </div>
+
+     <!-- Right Panel: Permission Matrix -->
+     <div class="w-[65%] flex flex-col bg-white dark:bg-[#1e1e1e] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xl overflow-hidden" *ngIf="selectedRole">
+        
+        <!-- Matrix Header -->
+        <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-[#1a1a1a]">
+           <div class="flex items-center gap-4">
+              <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-2xl text-[#8B2346]">
+                <i class="pi pi-sitemap text-3xl"></i>
+              </div>
+              <div>
+                <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-1">Matriz de Permisos: {{selectedRole.name}}</h3>
+                <p class="text-sm text-gray-500">Aplicando cambios en tiempo real para usuarios con este rol en el sistema.</p>
+              </div>
+           </div>
+           <div class="flex gap-3 items-center">
+             <button *ngIf="hasUnsavedChanges" pButton label="Descartar" class="p-button-outlined p-button-secondary font-bold" (click)="discardChanges()"></button>
+             <button *ngIf="hasUnsavedChanges" pButton label="Guardar Cambios" icon="pi pi-save" class="p-button-danger bg-[#8B2346] hover:bg-[#a62b53] border-none font-bold shadow-md" (click)="savePermissions()"></button>
+             <div *ngIf="!hasUnsavedChanges" class="text-sm font-bold text-gray-400 flex items-center gap-2">
+               <i class="pi pi-check"></i> Sin cambios
+             </div>
+           </div>
+        </div>
+
+        <div class="px-8 py-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-[#1e1e1e]">
+          <span class="text-xs font-bold text-gray-500 tracking-wider flex items-center"><i class="pi pi-sliders-h mr-2 text-[#8B2346]"></i> MOSTRANDO {{selectedPermissionIds.length}} DE {{permissions.length}} PRIVILEGIOS</span>
+          <div class="flex gap-4 text-xs font-bold text-[#8B2346] cursor-pointer">
+            <span class="hover:underline">Expandir Todo</span>
+            <span class="text-gray-300">•</span>
+            <span class="hover:underline">Restablecer Defaults</span>
+          </div>
+        </div>
+
+        <!-- Matrix Content -->
+        <div class="flex-1 overflow-y-auto p-8 bg-[#fafafa] dark:bg-[#121212] custom-scrollbar">
+           <div *ngFor="let group of groupedPermissions" class="mb-8 bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div class="p-5 bg-gray-50 dark:bg-[#1a1a1a] border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+                 <div class="flex items-center gap-3">
+                   <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 p-2 rounded-lg"><i class="pi pi-folder-open text-lg"></i></div>
+                   <div>
+                     <h4 class="font-bold text-gray-900 dark:text-white text-lg">{{group.module}}</h4>
+                     <p class="text-xs text-gray-500">Gestión de permisos para el módulo de {{group.module | lowercase}}</p>
+                   </div>
+                 </div>
+                 <div class="flex items-center gap-4">
+                    <div class="text-sm font-bold text-gray-600 bg-white dark:bg-[#252525] px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+                       <span class="text-[#8B2346]">{{getActiveCount(group.module)}}</span> de {{group.items.length}} activos
+                    </div>
+                    <div class="flex items-center gap-2 border-l border-gray-300 dark:border-gray-600 pl-4">
+                      <span class="text-xs font-bold text-gray-500">Todos</span>
+                      <p-inputSwitch [ngModel]="getActiveCount(group.module) === group.items.length" (onChange)="toggleEntireModule(group.module, $event.checked)"></p-inputSwitch>
+                    </div>
+                 </div>
+              </div>
+              
+              <div class="p-0">
+                 <div *ngFor="let perm of group.items; let last = last" 
+                      class="px-8 py-5 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors group/item"
+                      [ngClass]="{'border-b border-gray-100 dark:border-gray-800': !last}">
+                    <div class="pr-8 max-w-[85%]">
+                       <div class="font-bold text-gray-900 dark:text-gray-100 text-base mb-1.5 flex items-center gap-2">
+                         {{perm.name}}
+                         <i *ngIf="perm.name.includes('ELIMINAR') || perm.name.includes('ANULAR') || perm.name.includes('BORRAR')" 
+                            class="pi pi-lock text-red-500 text-[11px] bg-red-50 px-1.5 py-0.5 rounded" 
+                            pTooltip="Permiso Crítico"></i>
+                       </div>
+                       <p class="text-sm text-gray-500 leading-relaxed">{{perm.description}}</p>
+                    </div>
+                    <div class="transform scale-110 group-hover/item:scale-125 transition-transform origin-right">
+                       <p-inputSwitch [ngModel]="isPermissionActive(perm.id!)" (onChange)="togglePermission(perm.id!, $event.checked)"></p-inputSwitch>
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+     </div>
+     
+     <!-- Empty State for right panel -->
+     <div class="w-[65%] flex flex-col items-center justify-center bg-white dark:bg-[#1e1e1e] rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 shadow-sm" *ngIf="!selectedRole">
+        <div class="bg-gray-50 dark:bg-[#252525] p-8 rounded-full mb-6">
+           <i class="pi pi-sitemap text-6xl text-gray-300 dark:text-gray-600"></i>
+        </div>
+        <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-300 mb-2">Selecciona un rol</h3>
+        <p class="text-gray-500 text-center max-w-sm">Haz clic en cualquier rol del panel izquierdo para visualizar y editar su matriz de permisos.</p>
+     </div>
+  </div>
 </div>
 
-<!-- Modal para Crear/Editar Rol -->
-<p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" [modal]="true" [style]="{width: '600px', 'max-height': '90vh'}" [draggable]="false" [resizable]="false">
-  <form [formGroup]="roleForm" (ngSubmit)="saveRole()" class="flex flex-col gap-6 py-4">
-    
-    <!-- Campos Básicos -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del Rol <span class="text-red-500">*</span></label>
-        <input pInputText formControlName="name" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028] uppercase" placeholder="Ej. RECEPCIONISTA" />
-        <small class="text-red-500" *ngIf="roleForm.get('name')?.invalid && roleForm.get('name')?.touched">El nombre es requerido (mín. 3 letras).</small>
-      </div>
-
-      <div class="flex items-center pt-8">
-        <p-checkbox formControlName="active" [binary]="true" inputId="activeRole"></p-checkbox>
-        <label for="activeRole" class="ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium">Rol Activo</label>
-      </div>
+<!-- Modal para Crear/Editar Info del Rol -->
+<p-dialog [(visible)]="displayDialog" [header]="isEditMode ? 'Editar Información del Rol' : 'Nuevo Rol'" [modal]="true" [style]="{width: '500px'}" [draggable]="false" [resizable]="false">
+  <form [formGroup]="roleForm" (ngSubmit)="saveRoleInfo()" class="flex flex-col gap-6 py-4">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Nombre del Rol <span class="text-red-500">*</span></label>
+      <input pInputText formControlName="name" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#8B2346] uppercase p-3 rounded-xl transition-shadow" placeholder="Ej. RECEPCIONISTA" />
+      <small class="text-red-500" *ngIf="roleForm.get('name')?.invalid && roleForm.get('name')?.touched">El nombre es requerido (mín. 3 letras).</small>
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
-      <textarea pInputTextarea formControlName="description" rows="2" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028]" placeholder="¿Qué hace este rol?"></textarea>
+      <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Descripción</label>
+      <textarea pInputTextarea formControlName="description" rows="3" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#8B2346] p-3 rounded-xl transition-shadow" placeholder="¿Qué hace este rol?"></textarea>
+    </div>
+    
+    <div class="flex flex-col gap-2" *ngIf="!isEditMode">
+      <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Plantilla de Permisos (Opcional)</label>
+      <p-dropdown [options]="roles" formControlName="copyFromRoleId" optionLabel="name" optionValue="id" [showClear]="true" placeholder="Copiar permisos de un rol existente..." styleClass="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none rounded-xl"></p-dropdown>
+      <small class="text-gray-500">Si seleccionas un rol, el nuevo rol nacerá con sus mismos permisos.</small>
     </div>
 
-    <hr class="border-gray-200 dark:border-gray-800" />
-
-    <!-- Checklist de Permisos Dinámicos -->
-    <div>
-      <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase tracking-wide">Permisos del Sistema</h3>
-      
-      <div class="h-64 overflow-y-auto pr-2 custom-scrollbar">
-        <div *ngFor="let group of groupedPermissions" class="mb-4">
-          <div class="bg-gray-100 dark:bg-[#252525] px-3 py-2 rounded-lg mb-3">
-            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">{{group.module}}</span>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pl-2">
-            <div *ngFor="let perm of group.items" class="flex items-start gap-2">
-              <p-checkbox [value]="perm.id" [(ngModel)]="selectedPermissionIds" [ngModelOptions]="{standalone: true}" [inputId]="'perm_' + perm.id"></p-checkbox>
-              <div class="flex flex-col -mt-0.5">
-                <label [for]="'perm_' + perm.id" class="text-sm font-medium text-gray-800 dark:text-gray-300 cursor-pointer">{{perm.name}}</label>
-                <small class="text-gray-500 dark:text-gray-500 text-xs leading-tight">{{perm.description}}</small>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div class="flex items-center mt-2 bg-gray-50 dark:bg-[#252525] p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-100 transition-colors cursor-pointer" (click)="roleForm.get('active')?.setValue(!roleForm.get('active')?.value)">
+      <p-inputSwitch formControlName="active" inputId="activeRole" (click)="$event.stopPropagation()"></p-inputSwitch>
+      <div class="ml-4">
+        <label for="activeRole" class="text-sm font-bold text-gray-900 dark:text-gray-100 cursor-pointer block">Rol Activo en el Sistema</label>
+        <span class="text-xs text-gray-500">Los usuarios con este rol podrán acceder al sistema.</span>
       </div>
     </div>
 
-    <div class="flex justify-end gap-3 mt-2">
-      <p-button label="Cancelar" icon="pi pi-times" styleClass="p-button-text text-gray-600 dark:text-gray-300" (onClick)="displayDialog = false"></p-button>
-      <p-button label="Guardar Rol" icon="pi pi-check" type="submit" [disabled]="roleForm.invalid" styleClass="bg-[#bca028] hover:bg-[#d9bd72] border-none text-white"></p-button>
+    <div class="flex justify-end gap-3 mt-6">
+      <p-button label="Cancelar" styleClass="p-button-text text-gray-600 font-bold" (onClick)="displayDialog = false"></p-button>
+      <p-button label="Guardar Configuración" type="submit" [disabled]="roleForm.invalid" styleClass="bg-[#8B2346] hover:bg-[#a62b53] border-none text-white font-bold px-6 py-2.5 shadow-md"></p-button>
     </div>
-
   </form>
 </p-dialog>
-
 <p-toast></p-toast>

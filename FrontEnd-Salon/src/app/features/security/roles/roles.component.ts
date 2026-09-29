@@ -13,6 +13,9 @@ import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
+import { InputSwitchModule } from 'primeng/inputswitch';
+import { TooltipModule } from 'primeng/tooltip';
+import { DropdownModule } from 'primeng/dropdown';
 
 @Component({
   selector: 'app-roles',
@@ -20,7 +23,8 @@ import { TagModule } from 'primeng/tag';
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
     TableModule, ButtonModule, DialogModule, InputTextModule, 
-    TextareaModule, CheckboxModule, ToastModule, TagModule
+    TextareaModule, CheckboxModule, ToastModule, TagModule,
+    InputSwitchModule, TooltipModule, DropdownModule
   ],
   providers: [MessageService],
   templateUrl: './roles.component.html'
@@ -35,24 +39,24 @@ export class RolesComponent implements OnInit {
   permissions: Permission[] = [];
   groupedPermissions: { module: string, items: Permission[] }[] = [];
   
-  // Table state
   loading: boolean = false;
-  totalRecords: number = 0;
   
-  // Dialog state
+  // Dialog state for Role Info
   displayDialog: boolean = false;
   roleForm: FormGroup;
   isEditMode: boolean = false;
-  selectedRole: Role | null = null;
   
-  // Selected permissions (IDs)
+  // Master-Detail State
+  selectedRole: Role | null = null;
   selectedPermissionIds: number[] = [];
+  originalPermissionIds: number[] = []; // To check for unsaved changes
 
   constructor() {
     this.roleForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: [''],
-      active: [true]
+      active: [true],
+      copyFromRoleId: [null]
     });
   }
 
@@ -61,13 +65,24 @@ export class RolesComponent implements OnInit {
     this.loadPermissions();
   }
 
-  loadRoles(page: number = 0, size: number = 10) {
+  // Load all roles without pagination to show in the list
+  loadRoles() {
     this.loading = true;
-    this.securityService.getRoles(page, size).subscribe({
+    this.securityService.getRoles(0, 100).subscribe({
       next: (response: any) => {
         this.roles = response.data.content;
-        this.totalRecords = response.data.totalElements;
         this.loading = false;
+        
+        // Update selected role if it was already selected
+        if (this.selectedRole) {
+          const updatedRole = this.roles.find(r => r.id === this.selectedRole?.id);
+          if (updatedRole) {
+            this.selectedRole = updatedRole;
+            this.syncPermissionsFromRole(updatedRole);
+          } else {
+            this.selectedRole = null;
+          }
+        }
       },
       error: (err: any) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los roles.' });
@@ -97,93 +112,170 @@ export class RolesComponent implements OnInit {
       if (!map.has(mod)) map.set(mod, []);
       map.get(mod)!.push(p);
     });
-    this.groupedPermissions = Array.from(map.entries()).map(([module, items]) => ({ module, items }));
+    this.groupedPermissions = Array.from(map.entries())
+      .map(([module, items]) => ({ module, items }))
+      .sort((a, b) => a.module.localeCompare(b.module));
   }
 
-  onPageChange(event: any) {
-    this.loadRoles(event.first / event.rows, event.rows);
+  // --- Master Detail Logic ---
+
+  selectRole(role: Role) {
+    if (this.hasUnsavedChanges) {
+      if (!confirm('Tienes cambios sin guardar. ¿Deseas descartarlos y cambiar de rol?')) {
+        return;
+      }
+    }
+    this.selectedRole = role;
+    this.syncPermissionsFromRole(role);
   }
+
+  syncPermissionsFromRole(role: Role) {
+    this.selectedPermissionIds = role.permissions?.map((p: any) => p.id) || [];
+    this.originalPermissionIds = [...this.selectedPermissionIds];
+  }
+
+  isPermissionActive(permId: number): boolean {
+    return this.selectedPermissionIds.includes(permId);
+  }
+
+  togglePermission(permId: number, checked: boolean) {
+    if (checked) {
+      if (!this.selectedPermissionIds.includes(permId)) {
+        this.selectedPermissionIds.push(permId);
+      }
+    } else {
+      this.selectedPermissionIds = this.selectedPermissionIds.filter(id => id !== permId);
+    }
+  }
+
+  toggleEntireModule(module: string, checked: boolean) {
+    const group = this.groupedPermissions.find(g => g.module === module);
+    if (!group) return;
+    
+    group.items.forEach(perm => {
+      if (checked) {
+        if (!this.selectedPermissionIds.includes(perm.id!)) {
+          this.selectedPermissionIds.push(perm.id!);
+        }
+      } else {
+        this.selectedPermissionIds = this.selectedPermissionIds.filter(id => id !== perm.id);
+      }
+    });
+  }
+
+  getActiveCount(module: string): number {
+    const group = this.groupedPermissions.find(g => g.module === module);
+    if (!group) return 0;
+    return group.items.filter(p => this.selectedPermissionIds.includes(p.id!)).length;
+  }
+
+  get hasUnsavedChanges(): boolean {
+    if (!this.selectedRole) return false;
+    if (this.selectedPermissionIds.length !== this.originalPermissionIds.length) return true;
+    
+    // Sort arrays to compare content
+    const current = [...this.selectedPermissionIds].sort();
+    const original = [...this.originalPermissionIds].sort();
+    
+    for (let i = 0; i < current.length; i++) {
+      if (current[i] !== original[i]) return true;
+    }
+    return false;
+  }
+
+  discardChanges() {
+    this.selectedPermissionIds = [...this.originalPermissionIds];
+  }
+
+  savePermissions() {
+    if (!this.selectedRole?.id) return;
+
+    const payload = {
+      ...this.selectedRole,
+      permissionIds: this.selectedPermissionIds
+    };
+
+    // Assuming the API expects the full role or at least permissionIds
+    this.securityService.updateRole(this.selectedRole.id, payload).subscribe({
+      next: (res: any) => {
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Matriz de permisos actualizada.' });
+        this.loadRoles(); // Reload to update UI stats
+      },
+      error: (err: any) => this.showError(err.error?.message || 'Error al actualizar permisos')
+    });
+  }
+
+  // --- Role CRUD (Info) ---
 
   openNew() {
     this.isEditMode = false;
-    this.selectedRole = null;
-    this.selectedPermissionIds = [];
-    this.roleForm.reset({ active: true });
+    this.roleForm.reset({ active: true, copyFromRoleId: null });
     this.roleForm.get('name')?.enable();
     this.displayDialog = true;
   }
 
   openEdit(role: Role) {
     this.isEditMode = true;
-    this.selectedRole = role;
     this.roleForm.patchValue({
       name: role.name,
       description: role.description,
       active: role.active
     });
     
-    // Si es ADMIN, no permitimos editar el nombre por seguridad
     if (role.name === 'ADMIN') {
       this.roleForm.get('name')?.disable();
     } else {
       this.roleForm.get('name')?.enable();
     }
 
-    this.selectedPermissionIds = role.permissions?.map((p: any) => p.id) || [];
     this.displayDialog = true;
   }
 
-  saveRole() {
+  saveRoleInfo() {
     if (this.roleForm.invalid) return;
     
     const roleData = this.roleForm.getRawValue();
     roleData.name = roleData.name.toUpperCase();
-    roleData.permissionIds = this.selectedPermissionIds;
-
-    if (this.isEditMode && this.selectedRole?.id) {
-      this.securityService.updateRole(this.selectedRole.id, roleData).subscribe({
-        next: (res: any) => this.finishSave(),
+    
+    // Si estamos editando, preservamos los permisos actuales
+    if (this.isEditMode && this.selectedRole) {
+      roleData.permissionIds = this.selectedRole.permissions?.map((p:any) => p.id) || [];
+      this.securityService.updateRole(this.selectedRole.id!, roleData).subscribe({
+        next: (res: any) => this.finishSaveInfo(res.data || this.selectedRole),
         error: (err: any) => this.showError(err.error?.message || 'No se pudo actualizar el rol')
       });
     } else {
+      // Nuevo rol
+      if (roleData.copyFromRoleId) {
+        const sourceRole = this.roles.find(r => r.id === roleData.copyFromRoleId);
+        roleData.permissionIds = sourceRole?.permissions?.map((p:any) => p.id) || [];
+      } else {
+        roleData.permissionIds = []; // Nace vacío
+      }
+      
+      delete roleData.copyFromRoleId; // No enviar al backend
+      
       this.securityService.createRole(roleData).subscribe({
-        next: (res: any) => this.finishSave(),
+        next: (res: any) => this.finishSaveInfo(res.data),
         error: (err: any) => this.showError(err.error?.message || 'No se pudo crear el rol')
       });
     }
   }
 
-  private finishSave() {
+  private finishSaveInfo(savedRole?: Role) {
     this.displayDialog = false;
-    this.loadRoles();
-    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Rol guardado correctamente.' });
-  }
-
-  deleteRole(role: Role) {
-    if (role.name === 'ADMIN') {
-      this.showError('No se puede eliminar el rol de Administrador.');
-      return;
-    }
+    this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Información del rol guardada.' });
     
-    if (confirm(`¿Estás seguro de eliminar el rol ${role.name}?`)) {
-      this.securityService.deleteRole(role.id!).subscribe({
-        next: () => {
-          this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Rol eliminado.' });
-          this.loadRoles();
-        },
-        error: () => this.showError('No se pudo eliminar el rol.')
-      });
-    }
-  }
-
-  onPermissionCheckboxChange(event: any, permissionId: number) {
-    if (event.checked) {
-      if (!this.selectedPermissionIds.includes(permissionId)) {
-        this.selectedPermissionIds.push(permissionId);
+    // Recargar roles y auto-seleccionar el rol recién guardado
+    this.securityService.getRoles(0, 100).subscribe(res => {
+      this.roles = res.data.content;
+      if (savedRole && savedRole.id) {
+        const found = this.roles.find(r => r.id === savedRole.id);
+        if (found) {
+          this.selectRole(found);
+        }
       }
-    } else {
-      this.selectedPermissionIds = this.selectedPermissionIds.filter(id => id !== permissionId);
-    }
+    });
   }
 
   private showError(msg: string) {

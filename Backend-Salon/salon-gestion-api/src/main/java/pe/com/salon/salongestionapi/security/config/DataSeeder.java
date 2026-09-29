@@ -71,29 +71,65 @@ public class DataSeeder implements CommandLineRunner {
         AccesoMain portalAdmin = createAccesoMainIfNotFound("Portal Administrativo");
         AccesoMain portalSalon = createAccesoMainIfNotFound("Portal Salón");
 
-        // 2. Crear Permisos (Permissions)
-        // Permisos Admin (Seguridad y RRHH)
-        Permission permRoles = createPermissionIfNotFound("GESTION_ROLES", "Módulo de Seguridad", portalAdmin);
-        Permission permUsuarios = createPermissionIfNotFound("GESTION_USUARIOS", "Módulo de Seguridad", portalAdmin);
-        Permission permEmpleados = createPermissionIfNotFound("GESTION_EMPLEADOS", "Módulo RRHH", portalAdmin);
-        Permission permEspecialidades = createPermissionIfNotFound("GESTION_ESPECIALIDADES", "Módulo RRHH", portalAdmin);
+        // 2. Crear Permisos (Permissions) Granulares (CRUD)
         
-        Permission permCatalogo = createPermissionIfNotFound("GESTION_CATALOGO", "Módulo de Catálogo", portalAdmin);
-        Permission permReportes = createPermissionIfNotFound("VER_REPORTES", "Módulo Analítica", portalAdmin);
+        // 2. Crear Permisos (Permissions) Granulares por Sub-Módulo
+        Set<Permission> adminPerms = new HashSet<>();
         
-        // Permisos Salón
-        Permission permCaja = createPermissionIfNotFound("PUNTO_VENTA", "Módulo Operaciones", portalSalon);
-        Permission permCitas = createPermissionIfNotFound("GESTION_CITAS", "Módulo Operaciones", portalSalon);
+        // Módulo Operaciones
+        createCrudPermissions("Agenda y Citas", "Operaciones", portalSalon, adminPerms);
+        createCrudPermissions("Punto de Venta POS", "Operaciones", portalSalon, adminPerms);
+
+        // Módulo RRHH
+        createCrudPermissions("Control de Asistencia", "RRHH", portalAdmin, adminPerms);
+        createCrudPermissions("Gestión de Empleados", "RRHH", portalAdmin, adminPerms);
+        createCrudPermissions("Especialidades", "RRHH", portalAdmin, adminPerms);
+        createCrudPermissions("Turnos", "RRHH", portalAdmin, adminPerms);
+        createCrudPermissions("Comisiones", "RRHH", portalAdmin, adminPerms);
+        createCrudPermissions("Campañas e Incentivos", "RRHH", portalAdmin, adminPerms);
+        createCrudPermissions("Monitor de Comisiones", "RRHH", portalAdmin, adminPerms);
+
+        // Módulo Catálogo
+        createCrudPermissions("Servicios", "Catálogo", portalAdmin, adminPerms);
+        createCrudPermissions("Productos", "Catálogo", portalAdmin, adminPerms);
+        createCrudPermissions("Categorías", "Catálogo", portalAdmin, adminPerms);
+        createCrudPermissions("Control de Inventario", "Catálogo", portalAdmin, adminPerms);
+
+        // Módulo Finanzas
+        createCrudPermissions("Caja", "Finanzas", portalAdmin, adminPerms);
+        createCrudPermissions("Facturación", "Finanzas", portalAdmin, adminPerms);
+        createCrudPermissions("Egresos", "Finanzas", portalAdmin, adminPerms);
+        createCrudPermissions("Liquidaciones", "Finanzas", portalAdmin, adminPerms);
+
+        // Módulo Analítica & Seguridad
+        createCrudPermissions("Reportes de Rendimiento", "Analítica y Seguridad", portalAdmin, adminPerms);
+        createCrudPermissions("Usuarios", "Analítica y Seguridad", portalAdmin, adminPerms);
+        createCrudPermissions("Roles y Permisos", "Analítica y Seguridad", portalAdmin, adminPerms);
 
         // 3. Crear Roles y asignar permisos
-        Role roleAdmin = createRoleIfNotFound("ADMIN", "Administrador Total del Sistema", portalAdmin, 
-            Set.of(permRoles, permUsuarios, permEmpleados, permEspecialidades, permCatalogo, permReportes, permCaja, permCitas));
+        Role roleAdmin = createRoleIfNotFound("ADMIN", "Administrador Total del Sistema", portalAdmin, adminPerms);
             
-        Role roleCajero = createRoleIfNotFound("CAJERO", "Cobros y Punto de Venta", portalSalon, 
-            Set.of(permCaja));
+        // Extraer algunos permisos específicos para Cajero
+        Set<Permission> cajeroPerms = new HashSet<>();
+        permissionRepository.findAll().forEach(p -> {
+            if (p.getModule().contains("Punto de Venta POS") || p.getModule().contains("Caja") || p.getModule().contains("Facturación")) {
+                if (p.getName().startsWith("VER_") || p.getName().startsWith("CREAR_")) {
+                    cajeroPerms.add(p);
+                }
+            }
+        });
+        Role roleCajero = createRoleIfNotFound("CAJERO", "Cobros y Punto de Venta", portalSalon, cajeroPerms);
             
-        Role roleBarbero = createRoleIfNotFound("BARBERO", "Especialista del Salón", portalSalon, 
-            Set.of(permCitas));
+        // Extraer algunos permisos para Barbero
+        Set<Permission> barberoPerms = new HashSet<>();
+        permissionRepository.findAll().forEach(p -> {
+            if (p.getModule().contains("Agenda y Citas")) {
+                if (p.getName().startsWith("VER_") || p.getName().startsWith("CREAR_") || p.getName().startsWith("ACTUALIZAR_")) {
+                    barberoPerms.add(p);
+                }
+            }
+        });
+        Role roleBarbero = createRoleIfNotFound("BARBERO", "Especialista del Salón", portalSalon, barberoPerms);
 
         // 4. Crear Usuarios por Defecto
         createUserIfNotFound("admin@salon.com", "admin123", Set.of(roleAdmin));
@@ -287,5 +323,25 @@ public class DataSeeder implements CommandLineRunner {
             log.warn("No se pudo cargar la imagen {} a base64: {}", filename, e.getMessage());
             return null; // Si no lo encuentra, quedará null y usará el ui-avatars por defecto
         }
+    }
+
+    private void createCrudPermissions(String subModule, String moduleName, AccesoMain acceso, Set<Permission> adminPerms) {
+        String baseName = subModule.toUpperCase()
+                .replace(" ", "_")
+                .replace("Y", "Y")
+                .replace("Ñ", "N")
+                .replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U");
+
+        String fullModuleName = moduleName + " - " + subModule;
+        
+        Permission ver = createPermissionIfNotFound("VER_" + baseName, fullModuleName, acceso);
+        Permission crear = createPermissionIfNotFound("CREAR_" + baseName, fullModuleName, acceso);
+        Permission act = createPermissionIfNotFound("ACTUALIZAR_" + baseName, fullModuleName, acceso);
+        Permission elim = createPermissionIfNotFound("ELIMINAR_" + baseName, fullModuleName, acceso);
+
+        adminPerms.add(ver);
+        adminPerms.add(crear);
+        adminPerms.add(act);
+        adminPerms.add(elim);
     }
 }

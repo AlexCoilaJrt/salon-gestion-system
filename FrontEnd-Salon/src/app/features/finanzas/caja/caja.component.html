@@ -103,21 +103,13 @@
       <div class="flex-1 p-4 overflow-y-auto bg-gray-50/50 dark:bg-[#1a1d24]">
         <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Servicios Frecuentes</h4>
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          <!-- Dummy Item -->
-          <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 cursor-pointer hover:border-[#bca028] hover:shadow-md transition-all group flex flex-col items-center text-center">
-            <div class="w-12 h-12 bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <i class="pi pi-sparkles text-xl"></i>
+          <div *ngFor="let item of serviciosFrecuentes" (click)="agregarAlTicket(item)" class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 cursor-pointer hover:border-[#bca028] hover:shadow-md transition-all group flex flex-col items-center text-center">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+                 [ngClass]="item.tipo === 'servicio' ? 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'">
+              <i class="pi text-xl" [ngClass]="item.imagen"></i>
             </div>
-            <span class="font-semibold text-gray-800 dark:text-white text-sm mb-1">Corte de Mujer</span>
-            <span class="text-[#bca028] font-bold">S/ 35.00</span>
-          </div>
-          <!-- Dummy Item 2 -->
-          <div class="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl p-4 cursor-pointer hover:border-[#bca028] hover:shadow-md transition-all group flex flex-col items-center text-center">
-            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <i class="pi pi-star text-xl"></i>
-            </div>
-            <span class="font-semibold text-gray-800 dark:text-white text-sm mb-1">Manicure Rusa</span>
-            <span class="text-[#bca028] font-bold">S/ 45.00</span>
+            <span class="font-semibold text-gray-800 dark:text-white text-sm mb-1 truncate w-full">{{item.nombre}}</span>
+            <span class="text-[#bca028] font-bold">S/ {{item.precio | number:'1.2-2'}}</span>
           </div>
         </div>
       </div>

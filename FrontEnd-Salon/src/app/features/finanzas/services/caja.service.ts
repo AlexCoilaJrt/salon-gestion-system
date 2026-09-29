@@ -70,4 +70,8 @@ export class CajaService {
   obtenerTicketsCajaActual(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:8080/api/operaciones/tickets/caja-actual');
   }
+
+  obtenerServiciosFrecuentes(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:8080/api/analitica/dashboard/servicios-demandados');
+  }
 }

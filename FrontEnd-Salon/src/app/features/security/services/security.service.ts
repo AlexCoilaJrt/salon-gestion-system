@@ -17,6 +17,7 @@ export interface Role {
   active: boolean;
   permissions?: Permission[];
   permissionIds?: number[];
+  users?: any[];
 }
 
 export interface PageResponse<T> {

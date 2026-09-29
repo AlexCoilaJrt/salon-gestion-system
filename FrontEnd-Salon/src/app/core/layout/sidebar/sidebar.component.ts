@@ -55,46 +55,47 @@ export class SidebarComponent implements OnInit {
     {
       title: 'OPERACIONES',
       items: [
-        { label: 'Agenda y Citas', icon: 'pi pi-calendar', route: '/agenda', requiredPermissions: ['GESTION_CITAS'] },
-        { label: 'Punto de Venta POS', icon: 'pi pi-calculator', route: '/pos', requiredPermissions: ['PUNTO_VENTA'] }
+        { label: 'Agenda y Citas', icon: 'pi pi-calendar', route: '/agenda', requiredPermissions: ['VER_AGENDA_Y_CITAS'] },
+        { label: 'Punto de Venta POS', icon: 'pi pi-calculator', route: '/pos', requiredPermissions: ['VER_PUNTO_DE_VENTA_POS'] }
       ]
     },
     {
       title: 'RRHH',
       items: [
-        { label: 'Control de Asistencia', icon: 'pi pi-clock', route: '/asistencia' }, // Sin permiso, todos lo ven
-        { label: 'Gestión de Empleados', icon: 'pi pi-id-card', route: '/empleados', active: true, requiredPermissions: ['GESTION_EMPLEADOS'] },
-        { label: 'Especialidades', icon: 'pi pi-star', route: '/especialidades', requiredPermissions: ['GESTION_ESPECIALIDADES'] },
-        { label: 'Turnos', icon: 'pi pi-sun', route: '/turnos', requiredPermissions: ['GESTION_EMPLEADOS'] },
-        { label: 'Comisiones', icon: 'pi pi-money-bill', route: '/comisiones', requiredPermissions: ['VER_REPORTES'] },
-        { label: 'Campañas e Incentivos', icon: 'pi pi-sparkles', route: '/incentivos', requiredPermissions: ['VER_REPORTES'] },
-        { label: 'Monitor de Comisiones', icon: 'pi pi-chart-line', route: '/monitor-comisiones', requiredPermissions: ['VER_REPORTES'] }
+        { label: 'Control de Asistencia', icon: 'pi pi-clock', route: '/asistencia', requiredPermissions: ['VER_CONTROL_DE_ASISTENCIA'] },
+        { label: 'Gestión de Empleados', icon: 'pi pi-id-card', route: '/empleados', active: true, requiredPermissions: ['VER_GESTION_DE_EMPLEADOS'] },
+        { label: 'Especialidades', icon: 'pi pi-star', route: '/especialidades', requiredPermissions: ['VER_ESPECIALIDADES'] },
+        { label: 'Turnos', icon: 'pi pi-sun', route: '/turnos', requiredPermissions: ['VER_TURNOS'] },
+        { label: 'Comisiones', icon: 'pi pi-money-bill', route: '/comisiones', requiredPermissions: ['VER_COMISIONES'] },
+        { label: 'Campañas e Incentivos', icon: 'pi pi-sparkles', route: '/incentivos', requiredPermissions: ['VER_CAMPANAS_E_INCENTIVOS'] },
+        { label: 'Monitor de Comisiones', icon: 'pi pi-chart-line', route: '/monitor-comisiones', requiredPermissions: ['VER_MONITOR_DE_COMISIONES'] }
       ]
     },
     {
       title: 'CATÁLOGO',
       items: [
-        { label: 'Categorías', icon: 'pi pi-tags', route: '/categorias', requiredPermissions: ['GESTION_CATALOGO'] },
-        { label: 'Servicios', icon: 'pi pi-briefcase', route: '/servicios', requiredPermissions: ['GESTION_CATALOGO'] },
-        { label: 'Insumos (Uso Interno)', icon: 'pi pi-box', route: '/insumos', requiredPermissions: ['GESTION_CATALOGO'] },
-        { label: 'Productos Retail', icon: 'pi pi-shopping-bag', route: '/productos', requiredPermissions: ['GESTION_CATALOGO'] },
-        { label: 'Control de Inventario', icon: 'pi pi-list', route: '/inventario', requiredPermissions: ['GESTION_CATALOGO'] }
+        { label: 'Categorías', icon: 'pi pi-tags', route: '/categorias', requiredPermissions: ['VER_CATEGORIAS'] },
+        { label: 'Servicios', icon: 'pi pi-briefcase', route: '/servicios', requiredPermissions: ['VER_SERVICIOS'] },
+        { label: 'Insumos (Uso Interno)', icon: 'pi pi-box', route: '/insumos', requiredPermissions: ['VER_PRODUCTOS'] },
+        { label: 'Productos Retail', icon: 'pi pi-shopping-bag', route: '/productos', requiredPermissions: ['VER_PRODUCTOS'] },
+        { label: 'Control de Inventario', icon: 'pi pi-list', route: '/inventario', requiredPermissions: ['VER_CONTROL_DE_INVENTARIO'] }
       ]
     },
     {
       title: 'FINANZAS',
       items: [
-        { label: 'Caja', icon: 'pi pi-wallet', route: '/caja', requiredPermissions: ['PUNTO_VENTA'] },
-        { label: 'Facturación', icon: 'pi pi-file', route: '/facturacion', requiredPermissions: ['PUNTO_VENTA'] },
-        { label: 'Egresos', icon: 'pi pi-chart-line', route: '/egresos', requiredPermissions: ['VER_REPORTES'] }
+        { label: 'Caja', icon: 'pi pi-wallet', route: '/caja', requiredPermissions: ['VER_CAJA'] },
+        { label: 'Facturación', icon: 'pi pi-file', route: '/facturacion', requiredPermissions: ['VER_FACTURACION'] },
+        { label: 'Egresos', icon: 'pi pi-chart-line', route: '/egresos', requiredPermissions: ['VER_EGRESOS'] },
+        { label: 'Liquidaciones', icon: 'pi pi-money-bill', route: '/liquidaciones', requiredPermissions: ['VER_LIQUIDACIONES'] }
       ]
     },
     {
       title: 'ANALÍTICA & SEGURIDAD',
       items: [
-        { label: 'Reportes de Rendimiento', icon: 'pi pi-chart-bar', route: '/reportes', requiredPermissions: ['VER_REPORTES'] },
-        { label: 'Usuarios', icon: 'pi pi-users', route: '/usuarios', requiredPermissions: ['GESTION_USUARIOS'] },
-        { label: 'Roles y Permisos', icon: 'pi pi-shield', route: '/roles', requiredPermissions: ['GESTION_ROLES'] }
+        { label: 'Reportes de Rendimiento', icon: 'pi pi-chart-bar', route: '/reportes', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
+        { label: 'Usuarios', icon: 'pi pi-users', route: '/usuarios', requiredPermissions: ['VER_USUARIOS'] },
+        { label: 'Roles y Permisos', icon: 'pi pi-shield', route: '/roles', requiredPermissions: ['VER_ROLES_Y_PERMISOS'] }
       ]
     }
   ];
