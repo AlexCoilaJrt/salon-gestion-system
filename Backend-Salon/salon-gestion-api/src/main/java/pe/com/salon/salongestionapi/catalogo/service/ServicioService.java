@@ -47,6 +47,7 @@ public class ServicioService {
         servicio.setDuracionMinutos(request.getDuracionMinutos());
         servicio.setComisionPorcentaje(request.getComisionPorcentaje());
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
+        servicio.setImageUrl(request.getImageUrl());
         servicio.setEstado(true);
 
         Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadRequeridaId())
@@ -76,6 +77,9 @@ public class ServicioService {
         servicio.setDuracionMinutos(request.getDuracionMinutos());
         servicio.setComisionPorcentaje(request.getComisionPorcentaje());
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
+        if (request.getImageUrl() != null) {
+            servicio.setImageUrl(request.getImageUrl());
+        }
 
         if (!servicio.getEspecialidadRequerida().getId().equals(request.getEspecialidadRequeridaId())) {
             Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadRequeridaId())
@@ -117,6 +121,7 @@ public class ServicioService {
         response.setDuracionMinutos(servicio.getDuracionMinutos());
         response.setComisionPorcentaje(servicio.getComisionPorcentaje());
         response.setCostoMaterial(servicio.getCostoMaterial());
+        response.setImageUrl(servicio.getImageUrl());
         response.setEstado(servicio.getEstado());
         if (servicio.getEspecialidadRequerida() != null) {
             response.setEspecialidadRequeridaId(servicio.getEspecialidadRequerida().getId());

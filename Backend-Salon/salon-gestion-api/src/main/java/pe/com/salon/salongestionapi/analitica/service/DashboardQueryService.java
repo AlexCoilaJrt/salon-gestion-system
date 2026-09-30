@@ -58,7 +58,12 @@ public class DashboardQueryService {
 
         BigDecimal margen = ingresos.subtract(gastos).subtract(comisiones);
 
-        return new MargenNetoResponse(ingresos, gastos, comisiones, margen,
+        BigDecimal porServicios = ticketDetalleRepository.sumIngresosPorServicios(inicio, fin);
+        BigDecimal porProductos = ticketDetalleRepository.sumIngresosPorProductos(inicio, fin);
+        if (porServicios == null) porServicios = BigDecimal.ZERO;
+        if (porProductos == null) porProductos = BigDecimal.ZERO;
+
+        return new MargenNetoResponse(ingresos, porServicios, porProductos, gastos, comisiones, margen,
                 String.format("%02d/%d", mes, anio));
     }
 

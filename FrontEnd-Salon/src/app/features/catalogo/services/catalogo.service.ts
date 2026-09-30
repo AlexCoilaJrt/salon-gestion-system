@@ -24,6 +24,7 @@ export interface Servicio {
   categoriaNombre?: string;
   insumosIds?: number[];
   insumos?: Producto[];
+  imageUrl?: string;
 }
 
 export interface Producto {
@@ -92,6 +93,10 @@ export class CatalogoService {
   // --- Productos ---
   getProductos(): Observable<Producto[]> {
     return this.http.get<Producto[]>(`${this.apiUrl}/productos`);
+  }
+
+  getProductosAlertasStock(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${this.apiUrl}/productos/alertas-stock`);
   }
 
   createProducto(producto: Producto): Observable<Producto> {

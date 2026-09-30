@@ -24,6 +24,11 @@ public class ProductoController {
         return ResponseEntity.ok(productoService.listarTodos());
     }
 
+    @GetMapping("/alertas-stock")
+    public ResponseEntity<List<ProductoResponse>> obtenerAlertasStockBajo() {
+        return ResponseEntity.ok(productoService.obtenerAlertasStockBajo());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductoResponse> obtenerProducto(@PathVariable Long id) {
         return ResponseEntity.ok(productoService.obtenerPorId(id));

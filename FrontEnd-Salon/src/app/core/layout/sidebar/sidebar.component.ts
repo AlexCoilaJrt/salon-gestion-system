@@ -76,6 +76,7 @@ export class SidebarComponent implements OnInit {
       items: [
         { label: 'Categorías', icon: 'pi pi-tags', route: '/categorias', requiredPermissions: ['VER_CATEGORIAS'] },
         { label: 'Servicios', icon: 'pi pi-briefcase', route: '/servicios', requiredPermissions: ['VER_SERVICIOS'] },
+        { label: 'Fidelización y Promos', icon: 'pi pi-id-card', route: '/fidelizacion/cartillas', requiredPermissions: ['VER_SERVICIOS'] },
         { label: 'Insumos (Uso Interno)', icon: 'pi pi-box', route: '/insumos', requiredPermissions: ['VER_PRODUCTOS'] },
         { label: 'Productos Retail', icon: 'pi pi-shopping-bag', route: '/productos', requiredPermissions: ['VER_PRODUCTOS'] },
         { label: 'Control de Inventario', icon: 'pi pi-list', route: '/inventario', requiredPermissions: ['VER_CONTROL_DE_INVENTARIO'] }

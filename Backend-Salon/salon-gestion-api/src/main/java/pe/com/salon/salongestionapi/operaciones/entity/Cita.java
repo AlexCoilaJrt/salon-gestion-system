@@ -5,11 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import pe.com.salon.salongestionapi.catalogo.entity.Producto;
 import pe.com.salon.salongestionapi.catalogo.entity.Servicio;
 import pe.com.salon.salongestionapi.rrhh.entity.Empleado;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "cita")
@@ -33,6 +36,9 @@ public class Cita {
     @Column(precision = 10, scale = 2)
     private BigDecimal adelanto = BigDecimal.ZERO;
 
+    @Column(name = "metodo_pago", length = 50)
+    private String metodoPago;
+
     @Column(length = 255)
     private String notas;
 
@@ -47,4 +53,12 @@ public class Cita {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "servicio_id", nullable = false)
     private Servicio servicio;
+
+    @ManyToMany
+    @JoinTable(
+        name = "cita_productos",
+        joinColumns = @JoinColumn(name = "cita_id"),
+        inverseJoinColumns = @JoinColumn(name = "producto_id")
+    )
+    private List<Producto> productos = new ArrayList<>();
 }

@@ -112,6 +112,21 @@ export class ServiciosComponent implements OnInit {
     this.servicioDialog = false;
   }
 
+  onImageSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'La imagen debe ser menor a 2MB' });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.servicio.imageUrl = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   saveServicio() {
     if (this.servicio.nombre.trim() && this.servicio.precioBase > 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
       if (this.isEdit && this.servicio.id) {

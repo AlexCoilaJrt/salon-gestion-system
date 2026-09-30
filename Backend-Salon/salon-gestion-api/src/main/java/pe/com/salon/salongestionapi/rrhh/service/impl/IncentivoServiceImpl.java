@@ -186,6 +186,56 @@ public class IncentivoServiceImpl implements IncentivoService {
         return monitorList;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> getLiquidaciones(LocalDate fechaInicio, LocalDate fechaFin) {
+        List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> liquidaciones = new ArrayList<>();
+        List<Empleado> empleadosActivos = empleadoRepository.findAll().stream()
+                .filter(e -> e.getEstado() != null && e.getEstado())
+                .collect(Collectors.toList());
+
+        LocalDateTime inicioPeriodo = fechaInicio.atStartOfDay();
+        LocalDateTime finPeriodo = fechaFin.atTime(23, 59, 59);
+
+        for (Empleado empleado : empleadosActivos) {
+            pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse response = new pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse();
+            response.setEmpleadoId(empleado.getId());
+            response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
+            response.setSueldoFijo(empleado.getSueldoFijo() != null ? empleado.getSueldoFijo() : BigDecimal.ZERO);
+
+            // Ventas en el periodo
+            BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
+            response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
+
+            // Comision (usando comision base para reporte histórico)
+            BigDecimal basePorc = BigDecimal.ZERO;
+            BigDecimal baseMonto = BigDecimal.ZERO;
+            List<Comision> comisionesEmpleado = comisionRepository.findByEmpleadoId(empleado.getId());
+            for (Comision c : comisionesEmpleado) {
+                if (c.getEstado()) {
+                    if (c.getTipoComision() == TipoComision.PORCENTAJE) {
+                        basePorc = basePorc.add(c.getValor());
+                    } else {
+                        baseMonto = baseMonto.add(c.getValor());
+                    }
+                }
+            }
+
+            BigDecimal comisionTotal = response.getTotalVentas().multiply(basePorc).divide(new BigDecimal("100")).add(baseMonto);
+            response.setTotalComision(comisionTotal);
+
+            // TODO: Sumar descuentos y adelantos de egresos si aplica. Por ahora 0.
+            response.setDescuentosAdelantos(BigDecimal.ZERO);
+
+            BigDecimal totalPagar = response.getSueldoFijo().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
+            response.setTotalPagar(totalPagar);
+
+            liquidaciones.add(response);
+        }
+
+        return liquidaciones;
+    }
+
     private IncentivoResponse mapToResponse(IncentivoComision incentivo) {
         IncentivoResponse response = new IncentivoResponse();
         response.setId(incentivo.getId());

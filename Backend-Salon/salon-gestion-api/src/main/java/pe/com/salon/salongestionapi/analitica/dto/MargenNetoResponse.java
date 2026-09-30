@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class MargenNetoResponse {
     private BigDecimal ingresosTotales;
+    private BigDecimal ingresosServicios;
+    private BigDecimal ingresosProductos;
     private BigDecimal gastosOperativos;
     private BigDecimal pagoComisiones;
     private BigDecimal gananciaNeta;

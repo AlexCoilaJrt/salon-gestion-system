@@ -38,4 +38,6 @@ public class EmpleadoRequest {
     private Long turnoId;
 
     private Boolean estado;
+
+    private java.math.BigDecimal sueldoFijo;
 }

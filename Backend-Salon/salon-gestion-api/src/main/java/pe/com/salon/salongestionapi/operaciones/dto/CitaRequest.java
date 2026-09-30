@@ -8,6 +8,7 @@ import pe.com.salon.salongestionapi.operaciones.entity.EstadoCita;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class CitaRequest {
@@ -21,6 +22,8 @@ public class CitaRequest {
     @Min(value = 0, message = "El adelanto no puede ser negativo")
     private BigDecimal adelanto;
 
+    private String metodoPago;
+
     private String notas;
 
     @NotNull(message = "El cliente es obligatorio")
@@ -31,4 +34,6 @@ public class CitaRequest {
 
     @NotNull(message = "El servicio es obligatorio")
     private Long servicioId;
+
+    private List<Long> productosIds;
 }

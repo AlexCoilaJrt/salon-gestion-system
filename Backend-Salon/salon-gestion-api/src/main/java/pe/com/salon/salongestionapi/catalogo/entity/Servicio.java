@@ -45,6 +45,9 @@ public class Servicio {
     @Column(name = "costo_material", precision = 10, scale = 2)
     private BigDecimal costoMaterial = BigDecimal.ZERO;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     @Column(nullable = false)
     private Boolean estado = true;
 

@@ -1,0 +1,84 @@
+<div class="p-6">
+  <p-toast></p-toast>
+  
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Fidelización: Cartillas</h1>
+      <p class="text-gray-500 text-sm mt-1">Configura programas de lealtad basados en visitas/sellos.</p>
+    </div>
+    
+    <button pButton icon="pi pi-plus" label="Nueva Cartilla" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none shadow-md" (click)="openNew()"></button>
+  </div>
+
+  <div class="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+    <p-table [value]="cartillas" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Nombre del Programa</th>
+          <th>Servicio Asociado</th>
+          <th class="text-center">Meta (Sellos)</th>
+          <th class="text-center">Premio</th>
+          <th class="text-center">Estado</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-cartilla>
+        <tr>
+          <td class="font-bold text-gray-800 dark:text-gray-200">{{cartilla.nombre}}</td>
+          <td class="text-gray-600 dark:text-gray-400">
+            <i class="pi pi-briefcase mr-2 text-blue-500"></i>{{cartilla.servicioNombre}}
+          </td>
+          <td class="text-center font-bold text-indigo-600 dark:text-indigo-400">
+            {{cartilla.metaSellos}} Visitas
+          </td>
+          <td class="text-center font-bold text-emerald-600 dark:text-emerald-400">
+            {{cartilla.descuentoPremio}}% Dscto
+          </td>
+          <td class="text-center">
+            <p-tag [severity]="cartilla.estado ? 'success' : 'danger'" [value]="cartilla.estado ? 'ACTIVO' : 'INACTIVO'"></p-tag>
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="5" class="text-center p-8 text-gray-500">
+            <i class="pi pi-id-card text-4xl mb-4 text-gray-400"></i>
+            <p>No hay cartillas configuradas aún.</p>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<!-- Modal Nueva Cartilla -->
+<p-dialog [(visible)]="displayModal" [modal]="true" [style]="{width: '450px'}" header="Crear Nueva Cartilla" styleClass="p-fluid dark:bg-[#1e1e1e]">
+  <div class="flex flex-col gap-4 mt-4">
+    
+    <div class="field">
+      <label class="font-bold text-gray-700 dark:text-gray-300">Nombre del Programa</label>
+      <input type="text" pInputText [(ngModel)]="nuevaCartilla.nombre" placeholder="Ej: Facial 5+1 Gratis" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]" />
+    </div>
+
+    <div class="field">
+      <label class="font-bold text-gray-700 dark:text-gray-300">Servicio Asociado</label>
+      <p-dropdown [options]="servicios" [(ngModel)]="nuevaCartilla.servicioId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un servicio" [filter]="true" filterBy="nombre" styleClass="w-full mt-1 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]"></p-dropdown>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div class="field">
+        <label class="font-bold text-gray-700 dark:text-gray-300">Meta (Visitas)</label>
+        <p-inputNumber [(ngModel)]="nuevaCartilla.metaSellos" [min]="1" [max]="50" [showButtons]="true" styleClass="w-full mt-1"></p-inputNumber>
+      </div>
+      <div class="field">
+        <label class="font-bold text-gray-700 dark:text-gray-300">Premio (% Dscto)</label>
+        <p-inputNumber [(ngModel)]="nuevaCartilla.descuentoPremio" [min]="1" [max]="100" suffix="%" styleClass="w-full mt-1"></p-inputNumber>
+      </div>
+    </div>
+    
+  </div>
+
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text text-gray-500" (click)="displayModal=false"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary bg-[#bca028] border-none" (click)="guardarCartilla()"></button>
+  </ng-template>
+</p-dialog>

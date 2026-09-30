@@ -13,6 +13,7 @@
   <p-table [value]="servicios" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
     <ng-template pTemplate="header">
       <tr>
+        <th style="width: 80px" class="text-center">Imagen</th>
         <th>Categoría</th>
         <th>Nombre del Servicio</th>
         <th>Precio Base</th>
@@ -24,6 +25,12 @@
     </ng-template>
     <ng-template pTemplate="body" let-serv>
       <tr>
+        <td class="text-center">
+          <div class="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden shrink-0 mx-auto">
+            <img *ngIf="serv.imageUrl" [src]="serv.imageUrl" [alt]="serv.nombre" class="w-full h-full object-cover" (error)="serv.imageUrl = ''"/>
+            <i *ngIf="!serv.imageUrl" class="pi pi-sparkles text-gray-400 text-lg"></i>
+          </div>
+        </td>
         <td>
           <span class="text-xs font-bold px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md text-gray-600 dark:text-gray-300">
             {{serv.categoriaNombre}}
@@ -114,6 +121,24 @@
       <div class="field mb-4 col-span-1 md:col-span-2">
         <label for="descripcion" class="font-semibold block mb-2 dark:text-gray-200">Descripción Corta (Opcional)</label>
         <input type="text" pInputText id="descripcion" [(ngModel)]="servicio.descripcion" />
+      </div>
+
+      <div class="field mb-4 col-span-1 md:col-span-2">
+        <label class="font-semibold block mb-2 dark:text-gray-200">Imagen del Servicio</label>
+        <div class="flex items-center gap-4">
+          <div class="w-16 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+            <img *ngIf="servicio.imageUrl" [src]="servicio.imageUrl" alt="Preview" class="w-full h-full object-cover" />
+            <i *ngIf="!servicio.imageUrl" class="pi pi-image text-gray-400 text-2xl"></i>
+          </div>
+          
+          <div class="flex-1">
+            <input type="file" id="servicioImagenUpload" class="hidden" accept="image/*" (change)="onImageSelected($event)" />
+            <label for="servicioImagenUpload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors border border-gray-200 dark:border-gray-700">
+              <i class="pi pi-upload"></i> Subir Imagen
+            </label>
+            <p class="text-xs text-gray-500 mt-2">Formatos permitidos: JPG, PNG. Máx 2MB. (Se convertirá a Base64 automáticamente)</p>
+          </div>
+        </div>
       </div>
     </div>
   </ng-template>

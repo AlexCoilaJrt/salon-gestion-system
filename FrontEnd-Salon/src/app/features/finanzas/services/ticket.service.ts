@@ -39,6 +39,10 @@ export class TicketService {
     return this.http.get<TicketResponse[]>(this.apiUrl);
   }
 
+  emitirTicket(request: any): Observable<TicketResponse> {
+    return this.http.post<TicketResponse>(this.apiUrl, request);
+  }
+
   anularTicket(id: number): Observable<TicketResponse> {
     return this.http.put<TicketResponse>(`${this.apiUrl}/${id}/anular`, {});
   }

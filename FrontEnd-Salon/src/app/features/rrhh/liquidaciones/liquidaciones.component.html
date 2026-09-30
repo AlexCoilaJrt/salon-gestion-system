@@ -1,0 +1,84 @@
+<div class="p-6 h-[calc(100vh-80px)] overflow-y-auto no-print">
+  
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+    <div>
+      <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-gray-100 mb-2">Liquidación de Nómina</h1>
+      <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Cálculo de pagos por periodo seleccionado</p>
+    </div>
+    
+    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+      <div class="relative w-full sm:w-72 md:w-80">
+        <i class="pi pi-calendar absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-lg"></i>
+        <p-calendar [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" placeholder="Rango de Fechas" styleClass="w-full" inputStyleClass="w-full !pl-12 py-3 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-gray-100 shadow-sm focus:ring-[#bca028]"></p-calendar>
+      </div>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <button pButton icon="pi pi-search" label="Calcular" class="p-button-primary shadow-md font-bold px-6 py-3 rounded-xl flex-1 sm:flex-none" (click)="generarReporte()" [loading]="loading"></button>
+        <button pButton icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-secondary font-bold px-4 py-3 rounded-xl flex-1 sm:flex-none" (click)="exportarPDF()"></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden" id="print-area">
+    <p-table [value]="liquidaciones" [loading]="loading" [rowHover]="true" styleClass="p-datatable-lg p-datatable-gridlines">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider">Empleado</th>
+          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider text-right">Sueldo Fijo (S/)</th>
+          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider text-right">Ventas Totales (S/)</th>
+          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider text-right">Comisión a Pagar (S/)</th>
+          <th class="bg-gray-50/50 dark:bg-[#252525] text-red-500 dark:text-red-400 font-bold uppercase text-xs tracking-wider text-right">Descuentos/Adelantos (S/)</th>
+          <th class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-black uppercase text-sm tracking-wider text-right border-l-2 border-emerald-200 dark:border-emerald-800">Total a Pagar (S/)</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-liq>
+        <tr>
+          <td class="font-bold text-gray-900 dark:text-gray-200">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-black text-sm">
+                {{ liq.empleadoNombreCompleto?.substring(0, 2) | uppercase }}
+              </div>
+              {{ liq.empleadoNombreCompleto }}
+            </div>
+          </td>
+          <td class="text-right text-gray-600 dark:text-gray-400 font-medium">{{ liq.sueldoFijo | number:'1.2-2' }}</td>
+          <td class="text-right text-gray-500 dark:text-gray-400">{{ liq.totalVentas | number:'1.2-2' }}</td>
+          <td class="text-right text-blue-600 dark:text-blue-400 font-bold">{{ liq.totalComision | number:'1.2-2' }}</td>
+          <td class="text-right text-red-500 dark:text-red-400 font-medium">- {{ liq.descuentosAdelantos | number:'1.2-2' }}</td>
+          <td class="text-right font-black text-lg text-emerald-600 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10 border-l-2 border-emerald-100 dark:border-emerald-900/50">
+            {{ liq.totalPagar | number:'1.2-2' }}
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="6" class="text-center p-8 bg-white dark:bg-[#1e1e1e]">
+            <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+              <i class="pi pi-wallet text-5xl mb-4 text-gray-300 dark:text-gray-600"></i>
+              <p class="text-lg font-medium">No hay liquidaciones para el periodo seleccionado</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<style>
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+</style>

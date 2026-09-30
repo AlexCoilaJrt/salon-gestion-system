@@ -13,4 +13,5 @@ public interface IncentivoService {
     void delete(Long id);
     List<IncentivoResponse> getActiveIncentivos();
     List<pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse> getMonitorComisiones();
+    List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> getLiquidaciones(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin);
 }

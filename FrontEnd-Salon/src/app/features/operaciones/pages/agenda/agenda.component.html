@@ -1,0 +1,363 @@
+<p-toast position="top-center"></p-toast>
+<div class="-m-8 h-[calc(100vh-70px)] p-4 md:p-6 flex flex-col bg-slate-50 dark:bg-[#121212]">
+  <!-- Header Section -->
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <i class="pi pi-calendar text-[#bca028]"></i>
+        Agenda y Citas
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Gestiona las citas y horarios de tus profesionales.</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-4">
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 flex p-1">
+        <button (click)="viewMode.set('day')" [class]="viewMode() === 'day' ? 'px-4 py-1.5 text-sm font-medium rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-[#bca028] dark:text-yellow-400 shadow-sm transition-colors' : 'px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'">Día</button>
+        <button (click)="viewMode.set('week')" [class]="viewMode() === 'week' ? 'px-4 py-1.5 text-sm font-medium rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-[#bca028] dark:text-yellow-400 shadow-sm transition-colors' : 'px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'">Semana</button>
+        <button (click)="viewMode.set('month')" [class]="viewMode() === 'month' ? 'px-4 py-1.5 text-sm font-medium rounded-md bg-yellow-50 dark:bg-yellow-900/30 text-[#bca028] dark:text-yellow-400 shadow-sm transition-colors' : 'px-4 py-1.5 text-sm font-medium rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'">Mes</button>
+      </div>
+      <button (click)="abrirModal()" class="bg-[#bca028] hover:bg-[#9d841f] text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-all duration-200 flex items-center gap-2 active:scale-95">
+        <i class="pi pi-plus"></i>
+        Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Calendar Area -->
+  <div class="flex-1 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
+    
+    <!-- Calendar Toolbar -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
+      <div class="flex items-center gap-4">
+        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+          <i class="pi pi-chevron-left text-sm"></i>
+        </button>
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Octubre 2026</h2>
+        <button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+          <i class="pi pi-chevron-right text-sm"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="relative">
+          <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" placeholder="Buscar cliente o profesional..." class="pl-9 pr-4 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#252525] text-gray-800 dark:text-gray-200 focus:outline-none focus:border-[#bca028] focus:ring-1 focus:ring-[#bca028] transition-all w-64">
+        </div>
+        <button class="p-2 rounded-lg border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          <i class="pi pi-filter"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Calendar Grid (Skeleton / Mockup for Week View) -->
+    <div class="flex-1 overflow-auto flex">
+      <!-- Time Column -->
+      <div class="w-20 border-r border-gray-100 dark:border-gray-800 flex flex-col items-end pr-2 pt-14 bg-gray-50/50 dark:bg-[#1a1a1a]/50">
+        @for (hour of [9,10,11,12,13,14,15,16,17,18]; track hour) {
+          <div class="h-20 text-xs font-medium text-gray-400 relative">
+            <span class="absolute -top-2.5 right-0">{{ hour }}:00</span>
+          </div>
+        }
+      </div>
+
+      <div class="flex-1 flex flex-col min-w-[800px]" *ngIf="viewMode() !== 'month'">
+        <!-- Days Header -->
+        <div class="grid grid-cols-5 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] sticky top-0 z-10" [ngClass]="{'grid-cols-1': viewMode() === 'day', 'grid-cols-5': viewMode() === 'week'}">
+          @if (viewMode() === 'week') {
+            <div class="p-3 text-center border-r border-gray-100 dark:border-gray-800">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Lun</div>
+              <div class="text-lg font-bold text-gray-900 dark:text-gray-100">26</div>
+            </div>
+            <div class="p-3 text-center border-r border-gray-100 dark:border-gray-800">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Mar</div>
+              <div class="text-lg font-bold text-gray-900 dark:text-gray-100">27</div>
+            </div>
+          }
+          <div class="p-3 text-center border-r border-gray-100 dark:border-gray-800">
+            <div class="text-xs font-semibold text-[#bca028] uppercase tracking-wider mb-1">Mié</div>
+            <div class="text-lg font-bold text-[#bca028] bg-yellow-50 dark:bg-yellow-900/30 w-8 h-8 rounded-full flex items-center justify-center mx-auto">28</div>
+          </div>
+          @if (viewMode() === 'week') {
+            <div class="p-3 text-center border-r border-gray-100 dark:border-gray-800">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Jue</div>
+              <div class="text-lg font-bold text-gray-900 dark:text-gray-100">29</div>
+            </div>
+            <div class="p-3 text-center">
+              <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Vie</div>
+              <div class="text-lg font-bold text-gray-900 dark:text-gray-100">30</div>
+            </div>
+          }
+        </div>
+
+        <!-- Grid Body -->
+        <div class="flex-1 grid relative" [ngClass]="{'grid-cols-1': viewMode() === 'day', 'grid-cols-5': viewMode() === 'week'}">
+          <!-- Horizontal Lines -->
+          <div class="absolute inset-0 flex flex-col pointer-events-none">
+            @for (hour of [9,10,11,12,13,14,15,16,17,18]; track hour) {
+              <div class="h-20 border-b border-gray-100 dark:border-gray-800/50 w-full"></div>
+            }
+          </div>
+
+          @if (viewMode() === 'week') {
+            <!-- Column 1 -->
+            <div class="border-r border-gray-100 dark:border-gray-800/50 relative"></div>
+            <!-- Column 2 -->
+            <div class="border-r border-gray-100 dark:border-gray-800/50 relative"></div>
+          }
+          <!-- Column 3 (Today/Selected Day) -->
+          <div class="border-r border-gray-100 dark:border-gray-800/50 bg-yellow-50/20 dark:bg-yellow-900/5 relative">
+            <!-- Current Time Indicator -->
+            <div class="absolute top-[180px] left-0 right-0 flex items-center z-10">
+              <div class="w-2 h-2 rounded-full bg-[#bca028] -ml-1"></div>
+              <div class="h-[1px] bg-[#bca028] flex-1"></div>
+            </div>
+            
+            <!-- Real Events -->
+            @for (cita of citas(); track cita.id) {
+              <div (click)="abrirModalEdicion(cita)" class="absolute bg-amber-50 dark:bg-amber-900/20 border-l-4 border-[#bca028] rounded p-2 shadow-sm cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
+                   [ngStyle]="getCitaStyle(cita)">
+                <div class="text-xs font-bold text-amber-900 dark:text-amber-100 truncate">{{ cita.servicioNombre || 'Servicio' }}</div>
+                <div class="text-[10px] text-amber-700 dark:text-amber-400 mt-0.5 truncate">{{ cita.clienteNombreCompleto }}</div>
+                <div class="flex items-center gap-1 mt-1">
+                  <i class="pi pi-user text-[8px] text-amber-600"></i>
+                  <span class="text-[9px] text-amber-700 font-medium">{{ cita.empleadoNombreCompleto }}</span>
+                </div>
+              </div>
+            }
+          </div>
+          @if (viewMode() === 'week') {
+            <!-- Column 4 -->
+            <div class="border-r border-gray-100 dark:border-gray-800/50 relative"></div>
+            <!-- Column 5 -->
+            <div class="relative"></div>
+          }
+        </div>
+      </div>
+      
+      <!-- Mes Mockup -->
+      <div *ngIf="viewMode() === 'month'" class="flex-1 flex items-center justify-center min-w-[800px]">
+        <div class="text-center p-8 bg-gray-50 dark:bg-[#1a1a1a] rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+          <i class="pi pi-calendar text-4xl text-gray-400 mb-3"></i>
+          <h3 class="text-lg font-medium text-gray-600 dark:text-gray-300 mb-1">Vista Mensual</h3>
+          <p class="text-sm text-gray-500">Seleccione la vista de Semana o Día para gestionar horas exactas.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nueva Cita / Editar Cita -->
+<!-- Modal Nueva Cita / Editar Cita -->
+<!-- Modal Nueva Cita / Editar Cita -->
+<p-dialog [(visible)]="showModal" [modal]="true" [header]="editMode() ? 'Reprogramar Cita' : 'Nueva Reserva'" [style]="{width: '900px'}" styleClass="p-fluid rounded-2xl overflow-hidden shadow-2xl border-0">
+  
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-8 mt-2">
+    
+    <!-- Columna Izquierda: Servicios y Cliente (7 columnas) -->
+    <div class="md:col-span-7 flex flex-col gap-6">
+      
+      <!-- Bloque Cliente -->
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+        <div class="flex justify-between items-center mb-3">
+          <h3 class="text-gray-800 dark:text-gray-100 font-bold text-sm flex items-center gap-2">
+            <i class="pi pi-user text-[#bca028]"></i> Información del Cliente
+          </h3>
+          <button class="text-xs text-[#bca028] hover:text-[#9d841f] hover:underline font-bold transition-colors bg-[#bca028]/10 px-3 py-1.5 rounded-full" (click)="isNuevoCliente.set(!isNuevoCliente())">
+            <i [class]="isNuevoCliente() ? 'pi pi-search' : 'pi pi-user-plus'"></i>
+            {{ isNuevoCliente() ? 'Buscar Existente' : 'Nuevo Registro' }}
+          </button>
+        </div>
+
+        @if (!isNuevoCliente()) {
+          <p-dropdown [options]="clientes()" [(ngModel)]="formCita.clienteId" optionLabel="nombreCompleto" optionValue="id" [filter]="true" filterBy="nombreCompleto" placeholder="Seleccione o busque un cliente..." styleClass="w-full border-gray-300 dark:border-gray-700 dark:bg-[#252525] hover:border-[#bca028] focus-within:border-[#bca028] rounded-xl">
+            <ng-template let-cliente pTemplate="selectedItem">
+              <div class="flex items-center gap-3 font-medium text-gray-800 dark:text-gray-200">
+                <div class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs font-bold">{{ cliente.nombre.charAt(0) }}{{ cliente.apellido.charAt(0) }}</div>
+                <span>{{ cliente.nombreCompleto }}</span>
+              </div>
+            </ng-template>
+            <ng-template let-cliente pTemplate="item">
+              <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold border border-gray-200 dark:border-gray-700">{{ cliente.nombre.charAt(0) }}{{ cliente.apellido.charAt(0) }}</div>
+                <div>
+                  <div class="font-bold text-sm text-gray-800 dark:text-gray-200">{{ cliente.nombreCompleto }}</div>
+                  <div class="text-xs text-gray-500 mt-0.5"><i class="pi pi-phone text-[10px]"></i> {{ cliente.telefono || 'Sin teléfono' }}</div>
+                </div>
+              </div>
+            </ng-template>
+          </p-dropdown>
+        } @else {
+          <div class="grid grid-cols-2 gap-3 p-4 bg-gray-50 dark:bg-[#252525] rounded-xl border border-gray-200 dark:border-gray-700">
+            <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Nombres *</label><input type="text" [(ngModel)]="formNuevoCliente.nombres" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
+            <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Apellidos *</label><input type="text" [(ngModel)]="formNuevoCliente.apellidos" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
+            <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Teléfono</label><input type="text" [(ngModel)]="formNuevoCliente.telefono" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
+            <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Email</label><input type="email" [(ngModel)]="formNuevoCliente.email" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
+          </div>
+        }
+      </div>
+
+      <!-- Bloque Servicio & Profesional -->
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm flex flex-col gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Servicio a Realizar *</label>
+          <p-dropdown [options]="servicios()" [(ngModel)]="formCita.servicioId" (ngModelChange)="selectedServicioId.set($event)" optionLabel="nombre" optionValue="id" [filter]="true" filterBy="nombre" placeholder="Seleccione una experiencia..." styleClass="w-full border-gray-300 dark:border-gray-700 dark:bg-[#252525] hover:border-[#bca028] focus-within:border-[#bca028] rounded-xl">
+            <ng-template let-servicio pTemplate="selectedItem">
+              <div class="flex items-center gap-3 font-medium text-gray-800 dark:text-gray-200">
+                <i class="pi pi-sparkles text-[#bca028]"></i>
+                <span class="truncate">{{ servicio.nombre }}</span>
+                <span class="text-[#bca028] font-bold ml-auto shrink-0">S/ {{ servicio.precioBase }}</span>
+              </div>
+            </ng-template>
+            <ng-template let-servicio pTemplate="item">
+              <div class="flex items-center gap-4 py-1">
+                <img [src]="servicio.imageUrl || 'https://ui-avatars.com/api/?name=' + servicio.nombre + '&background=random&color=fff'" class="w-12 h-12 rounded-xl object-cover shadow-sm border border-gray-100 dark:border-gray-700" />
+                <div class="flex flex-col flex-1">
+                  <span class="font-bold text-sm text-gray-800 dark:text-gray-200">{{ servicio.nombre }}</span>
+                  <span class="text-xs text-gray-500 mt-0.5"><i class="pi pi-clock text-[10px]"></i> {{ servicio.duracionMinutos }} min</span>
+                </div>
+                <span class="font-bold text-[#bca028] text-base shrink-0">S/ {{ servicio.precioBase }}</span>
+              </div>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Profesional (Opcional)</label>
+          <p-dropdown [options]="empleadosFiltrados()" [(ngModel)]="formCita.empleadoId" optionLabel="nombres" optionValue="id" [showClear]="true" placeholder="Cualquier especialista disponible..." styleClass="w-full border-gray-300 dark:border-gray-700 dark:bg-[#252525] hover:border-[#bca028] focus-within:border-[#bca028] rounded-xl">
+            <ng-template let-emp pTemplate="selectedItem">
+              <div class="flex items-center gap-3 font-medium text-gray-800 dark:text-gray-200">
+                <i class="pi pi-id-card text-gray-400"></i>
+                <span>{{ emp.nombres }} {{ emp.apellidos }}</span>
+              </div>
+            </ng-template>
+            <ng-template let-emp pTemplate="item">
+              <div class="flex items-center gap-4">
+                <img [src]="emp.imageUrl || 'https://ui-avatars.com/api/?name=' + emp.nombres + '+' + emp.apellidos + '&background=bca028&color=fff'" class="w-9 h-9 rounded-full object-cover shadow-sm border border-gray-200 dark:border-gray-700" />
+                <div class="flex flex-col">
+                  <span class="font-bold text-sm text-gray-800 dark:text-gray-200">{{ emp.nombres }} {{ emp.apellidos }}</span>
+                  <span class="text-xs text-gray-500">Especialista</span>
+                </div>
+              </div>
+            </ng-template>
+          </p-dropdown>
+        </div>
+      </div>
+
+      <!-- Retail Productos (Comprimido) -->
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm flex flex-col gap-1.5">
+        <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Añadir Productos Retail</label>
+        <p-multiSelect [options]="productos()" [(ngModel)]="formCita.productosIds" optionLabel="nombre" optionValue="id" defaultLabel="Seleccione productos si el cliente desea comprar..." styleClass="w-full border-gray-300 dark:border-gray-700 dark:bg-[#252525] hover:border-[#bca028] focus-within:border-[#bca028] rounded-xl" [maxSelectedLabels]="2" [filter]="true" filterPlaceholder="Buscar producto..." display="chip">
+          <ng-template let-prod pTemplate="item">
+            <div class="flex items-center gap-3 w-full py-1">
+              <img [src]="prod.imageUrl || 'https://ui-avatars.com/api/?name=' + prod.nombre + '&background=f3f4f6&color=4b5563'" class="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-gray-700 shadow-sm" />
+              <div class="flex flex-col flex-1 overflow-hidden">
+                <span class="font-bold text-sm truncate text-gray-800 dark:text-gray-200">{{prod.nombre}}</span>
+                <span class="text-[10px] text-gray-500 uppercase">{{prod.marca || 'Genérico'}}</span>
+              </div>
+              <span class="font-bold text-[#bca028] text-sm shrink-0">S/ {{prod.precioVenta}}</span>
+            </div>
+          </ng-template>
+        </p-multiSelect>
+      </div>
+
+    </div>
+
+    <!-- Columna Derecha: Fecha, Hora, Pagos (5 columnas) -->
+    <div class="md:col-span-5 flex flex-col gap-6">
+      
+      <!-- Agenda -->
+      <div class="bg-gray-50 dark:bg-[#1a1a1a] rounded-xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm flex flex-col gap-4">
+        <h3 class="text-gray-800 dark:text-gray-100 font-bold text-sm flex items-center gap-2 mb-1">
+          <i class="pi pi-calendar-clock text-[#bca028]"></i> Horario Reservado
+        </h3>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Fecha *</label>
+            <input type="date" [(ngModel)]="formCita.fecha" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl dark:bg-[#252525] dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#bca028]/50 focus:border-[#bca028] shadow-sm font-medium transition-all text-sm">
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Hora *</label>
+            <select [(ngModel)]="formCita.hora" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl dark:bg-[#252525] dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#bca028]/50 focus:border-[#bca028] shadow-sm font-medium transition-all text-sm">
+              <option value="">--:--</option>
+              @for (h of horas; track h) {
+                <option [value]="h + ':00'">{{ h }}:00</option>
+                <option [value]="h + ':30'">{{ h }}:30</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagos -->
+      <div class="bg-yellow-50/30 dark:bg-yellow-900/5 rounded-xl border border-yellow-200/60 dark:border-yellow-900/30 p-5 shadow-sm flex flex-col gap-4 relative overflow-hidden">
+        
+        <div class="flex flex-col gap-1 relative z-10">
+          <label class="text-[11px] text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider">Adelanto (Garantía)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-gray-400">S/</span>
+            <input type="number" [(ngModel)]="formCita.adelanto" min="0" step="1" class="w-full pl-9 p-2.5 bg-white border border-gray-300 rounded-xl dark:bg-[#1e1e1e] dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#bca028]/50 focus:border-[#bca028] font-bold text-gray-800 dark:text-gray-200 shadow-sm text-lg" placeholder="0.00">
+          </div>
+        </div>
+        
+        @if (formCita.adelanto && formCita.adelanto > 0) {
+          <div class="flex flex-col gap-1 relative z-10 animate-fadein">
+            <label class="text-[11px] text-gray-600 dark:text-gray-400 font-bold uppercase tracking-wider">Método de Pago</label>
+            <select [(ngModel)]="formCita.metodoPago" class="w-full p-2.5 bg-white border border-gray-300 rounded-xl dark:bg-[#1e1e1e] dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#bca028]/50 focus:border-[#bca028] shadow-sm font-medium text-sm">
+              <option value="">Seleccione cómo pagó...</option>
+              <option value="EFECTIVO">Efectivo</option>
+              <option value="YAPE">Yape / Plin</option>
+              <option value="TARJETA">Tarjeta (POS)</option>
+              <option value="TRANSFERENCIA">Transferencia</option>
+            </select>
+          </div>
+        }
+      </div>
+
+      <!-- Resumen (Total) -->
+      <div class="bg-gray-900 dark:bg-black text-white p-5 rounded-2xl mt-auto shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-800 flex flex-col gap-2 relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-[#bca028] opacity-10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+        
+        <div class="flex justify-between items-center z-10">
+          <span class="text-gray-400 text-xs font-bold uppercase tracking-wider">Costo Total</span>
+          <span class="text-xl font-bold text-white">S/ {{ costoTotalCita | number:'1.2-2' }}</span>
+        </div>
+        
+        @if (formCita.adelanto && formCita.adelanto > 0) {
+          <div class="flex justify-between items-center z-10 animate-fadein">
+            <span class="text-gray-400 text-xs font-bold uppercase tracking-wider">Adelanto</span>
+            <span class="text-[#bca028] font-bold">- S/ {{ formCita.adelanto | number:'1.2-2' }}</span>
+          </div>
+        }
+        
+        <div class="w-full h-px bg-gray-800 my-2 z-10"></div>
+        
+        <div class="flex justify-between items-end z-10">
+          <span class="text-gray-300 text-xs font-bold uppercase tracking-wider mb-1">Saldo a Pagar</span>
+          <span class="text-[#bca028] font-black text-3xl leading-none">S/ {{ saldoRestante | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center w-full pt-4 border-t border-gray-100 dark:border-gray-800 mt-2 px-2">
+      <!-- Toggle Notas (Restricción de campos visuales) -->
+      <button class="text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-300 font-bold transition-colors flex items-center gap-1.5" onclick="document.getElementById('notasContainer').classList.toggle('hidden')">
+        <i class="pi pi-align-left"></i> Añadir Notas
+      </button>
+
+      <div class="flex gap-3">
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text p-button-secondary font-bold text-sm px-4" (click)="showModal.set(false)"></button>
+        <button pButton [label]="editMode() ? 'Confirmar' : 'Agendar'" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] border-none font-bold text-sm px-6 shadow-lg shadow-yellow-900/20 rounded-xl transition-transform active:scale-95" [loading]="isProcessing()" (click)="guardarCita()"></button>
+      </div>
+    </div>
+    
+    <!-- Notas Adicionales (Oculto por defecto) -->
+    <div id="notasContainer" class="hidden w-full mt-4 animate-fadein pb-2">
+      <textarea [(ngModel)]="formCita.notas" rows="2" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl dark:bg-[#1a1a1a] dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-[#bca028]/50 focus:border-[#bca028] shadow-inner transition-all resize-none text-sm" placeholder="Instrucciones especiales, alergias, preferencias del cliente..."></textarea>
+    </div>
+  </ng-template>
+</p-dialog>

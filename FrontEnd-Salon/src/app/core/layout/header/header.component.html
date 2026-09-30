@@ -19,10 +19,49 @@
     </button>
 
     <!-- Notificaciones -->
-    <button class="relative w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
+    <button (click)="notifOverlay.toggle($event)" class="relative w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
       <i class="pi pi-bell text-lg"></i>
-      <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
+      @if (alertasStock().length > 0) {
+        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
+      }
     </button>
+    <p-overlayPanel #notifOverlay styleClass="w-80 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800 p-0 overflow-hidden">
+      <ng-template pTemplate="content">
+        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-2 px-1">
+          <span class="font-bold text-gray-800 dark:text-gray-100">Alertas de Inventario</span>
+          @if (alertasStock().length > 0) {
+            <span class="text-[10px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ alertasStock().length }} nuevas</span>
+          }
+        </div>
+        
+        @if (alertasStock().length > 0) {
+          <div class="flex flex-col max-h-[300px] overflow-y-auto -mx-3 px-3">
+            @for (prod of alertasStock(); track prod.id) {
+              <div class="flex gap-3 p-2 hover:bg-gray-50 dark:hover:bg-[#252525] rounded-lg transition-colors border-b border-gray-50 dark:border-gray-800/50 last:border-0 cursor-pointer" (click)="irAInventario(); notifOverlay.hide()">
+                <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/10 flex items-center justify-center text-red-500 shrink-0 mt-0.5 border border-red-100 dark:border-red-900/30">
+                  <i class="pi pi-box text-sm"></i>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">{{ prod.nombre }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">Stock actual: <span class="text-red-500 font-bold">{{ prod.stockActual }}</span> (Mín: {{ prod.stockMinimo }})</span>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="border-t border-gray-100 dark:border-gray-800 pt-3 mt-2 text-center">
+            <button class="text-[#bca028] hover:text-[#9d841f] text-xs font-bold uppercase tracking-wider transition-colors" (click)="irAInventario(); notifOverlay.hide()">
+              Ver todo el inventario <i class="pi pi-arrow-right ml-1 text-[10px]"></i>
+            </button>
+          </div>
+        } @else {
+          <div class="flex flex-col items-center justify-center py-6 text-gray-500 dark:text-gray-400">
+            <i class="pi pi-check-circle text-3xl mb-3 text-green-500"></i>
+            <span class="text-sm font-medium text-gray-800 dark:text-gray-200">Todo en orden</span>
+            <span class="text-xs text-gray-400 mt-1 text-center">Tus productos tienen un stock saludable.</span>
+          </div>
+        }
+      </ng-template>
+    </p-overlayPanel>
     
     <!-- Ayuda -->
     <button class="w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">

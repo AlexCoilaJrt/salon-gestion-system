@@ -37,4 +37,6 @@ public class ServicioRequest {
     private Long categoriaId;
 
     private List<Long> insumosIds;
+
+    private String imageUrl;
 }

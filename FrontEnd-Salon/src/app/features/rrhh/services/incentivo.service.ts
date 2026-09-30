@@ -12,6 +12,16 @@ export interface Incentivo {
   estado?: boolean;
 }
 
+export interface LiquidacionResponse {
+  empleadoId: number;
+  empleadoNombreCompleto: string;
+  sueldoFijo: number;
+  totalVentas: number;
+  totalComision: number;
+  descuentosAdelantos: number;
+  totalPagar: number;
+}
+
 export interface MonitorComision {
   empleadoId: number;
   empleadoNombreCompleto: string;
@@ -41,6 +51,10 @@ export class IncentivoService {
 
   getMonitorComisiones(): Observable<MonitorComision[]> {
     return this.http.get<MonitorComision[]>(`${this.apiUrl}/monitor`);
+  }
+
+  getLiquidaciones(fechaInicio: string, fechaFin: string): Observable<LiquidacionResponse[]> {
+    return this.http.get<LiquidacionResponse[]>(`${this.apiUrl}/liquidaciones?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   }
 
   createIncentivo(incentivo: Incentivo): Observable<Incentivo> {

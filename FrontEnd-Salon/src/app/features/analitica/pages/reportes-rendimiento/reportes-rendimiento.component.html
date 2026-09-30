@@ -1,0 +1,145 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Reportes de Rendimiento</h1>
+      <p class="text-gray-500 text-sm mt-1">Analítica integral 360° de tu salón de belleza.</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <span class="text-sm font-medium text-gray-600 dark:text-gray-400">Filtrar por periodo:</span>
+      <p-dropdown 
+        [options]="periodos" 
+        [(ngModel)]="selectedPeriodo" 
+        (onChange)="onPeriodChange()"
+        styleClass="border-none shadow-sm dark:bg-[#2a2a2a]">
+      </p-dropdown>
+    </div>
+  </div>
+
+  <!-- KPIs Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <!-- Revenue -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between">
+      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <i class="pi pi-dollar text-6xl text-[#bca028]"></i>
+      </div>
+      <div>
+        <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm mb-2">Ingresos Totales</h3>
+        <div class="text-3xl font-bold text-gray-800 dark:text-white mb-2">S/ {{ kpiIngresos | number:'1.2-2' }}</div>
+      </div>
+      <div class="text-xs text-gray-500 dark:text-gray-400 font-medium flex flex-col gap-1 mt-2">
+        <span><i class="pi pi-briefcase text-blue-500 mr-1"></i> Servicios: <b>S/ {{ kpiIngresosServicios | number:'1.2-2' }}</b></span>
+        <span><i class="pi pi-box text-purple-500 mr-1"></i> Productos: <b>S/ {{ kpiIngresosProductos | number:'1.2-2' }}</b></span>
+      </div>
+    </div>
+
+    <!-- Citas -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer">
+      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <i class="pi pi-calendar-plus text-6xl text-blue-500"></i>
+      </div>
+      <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm mb-2">Citas Atendidas</h3>
+      <div class="text-3xl font-bold text-gray-800 dark:text-white mb-2">{{ kpiCitas }}</div>
+      <div class="text-xs text-green-500 font-medium flex items-center gap-1">
+        <i class="pi pi-arrow-up"></i>
+        <span>8.2% vs periodo anterior</span>
+      </div>
+    </div>
+
+    <!-- Ticket Promedio -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer">
+      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <i class="pi pi-ticket text-6xl text-purple-500"></i>
+      </div>
+      <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm mb-2">Ticket Promedio</h3>
+      <div class="text-3xl font-bold text-gray-800 dark:text-white mb-2">S/ {{ kpiTicketPromedio | number:'1.2-2' }}</div>
+      <div class="text-xs text-red-500 font-medium flex items-center gap-1">
+        <i class="pi pi-arrow-down"></i>
+        <span>1.5% vs periodo anterior</span>
+      </div>
+    </div>
+
+    <!-- Margen Neto / Comisiones -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden group hover:shadow-md transition-shadow cursor-pointer flex flex-col justify-between">
+      <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+        <i class="pi pi-chart-line text-6xl text-emerald-500"></i>
+      </div>
+      <div>
+        <h3 class="text-gray-500 dark:text-gray-400 font-medium text-sm mb-2">Margen Neto de Negocio</h3>
+        <div class="text-3xl font-bold text-gray-800 dark:text-white mb-2 text-emerald-600 dark:text-emerald-400">S/ {{ kpiMargenNeto | number:'1.2-2' }}</div>
+      </div>
+      <div class="text-xs text-gray-500 dark:text-gray-400 font-medium flex flex-col gap-1 mt-2">
+        <span class="text-red-500 dark:text-red-400">- Comisiones Pagadas: <b>S/ {{ kpiComisiones | number:'1.2-2' }}</b></span>
+        <span>Equivale al <b>{{ kpiComisionesPorcentaje | number:'1.1-1' }}%</b> de los ingresos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos Row 1 -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    
+    <!-- Line Chart: Ingresos & Citas -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 lg:col-span-2">
+      <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6">Evolución de Ingresos y Citas</h2>
+      <p-chart type="line" [data]="revenueChartData" [options]="revenueChartOptions" height="300px"></p-chart>
+    </div>
+
+    <!-- Doughnut Chart: Servicios Populares -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+      <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6">Servicios más demandados</h2>
+      <div class="flex justify-center items-center h-[300px]">
+        <p-chart type="doughnut" [data]="servicesChartData" [options]="servicesChartOptions" width="100%" height="250px"></p-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ranking y Detalles -->
+  <div class="grid grid-cols-1 gap-6">
+    <!-- Ranking Profesionales -->
+    <div class="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+      <h2 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-6">Top Rendimiento por Profesional</h2>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+          <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-[#252525] dark:text-gray-300">
+            <tr>
+              <th scope="col" class="px-6 py-3 rounded-tl-lg">Profesional</th>
+              <th scope="col" class="px-6 py-3 text-center">Citas Atendidas</th>
+              <th scope="col" class="px-6 py-3 text-right">Comisiones Generadas</th>
+              <th scope="col" class="px-6 py-3 rounded-tr-lg">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (prof of rankingProfesionales; track prof.nombre) {
+              <tr class="bg-white dark:bg-[#1e1e1e] border-b dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors">
+                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/20 text-[#bca028] flex items-center justify-center font-bold text-sm">
+                      {{ prof.avatar }}
+                    </div>
+                    <span>{{ prof.nombre }}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-center">
+                  <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                    {{ prof.citas }} citas
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right font-bold text-[#bca028]">
+                  S/ {{ prof.comisiones | number:'1.2-2' }}
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="h-2.5 w-2.5 rounded-full bg-green-500 mr-2"></div> Activo
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

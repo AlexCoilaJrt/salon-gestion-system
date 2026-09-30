@@ -31,10 +31,19 @@ export class InventarioComponent implements OnInit {
   // Filters
   searchQuery = signal<string>('');
   selectedCategory = signal<number | null | undefined>(null);
+  isStockCriticoFilter = signal<boolean>(false);
+
+  productosConStockBajo = computed(() => {
+    return this.productos().filter(p => p.stockActual <= p.stockMinimo);
+  });
 
   // Computed filtered list
   filteredProductos = computed(() => {
     let result = this.productos();
+    
+    if (this.isStockCriticoFilter()) {
+      result = result.filter(p => p.stockActual <= p.stockMinimo);
+    }
     
     if (this.selectedCategory() !== null) {
       result = result.filter(p => p.categoriaId === this.selectedCategory());
@@ -78,6 +87,18 @@ export class InventarioComponent implements OnInit {
   getCategoryCount(catId: number | null | undefined): number {
     if (catId === null) return this.productos().length;
     return this.productos().filter(p => p.categoriaId === catId).length;
+  }
+
+  filterStockCritico() {
+    this.isStockCriticoFilter.set(true);
+    this.selectedCategory.set(null);
+    this.searchQuery.set('');
+  }
+
+  clearFilters() {
+    this.isStockCriticoFilter.set(false);
+    this.selectedCategory.set(null);
+    this.searchQuery.set('');
   }
 
   actualizarStock(prod: Producto, nuevoStock: number, op?: any) {

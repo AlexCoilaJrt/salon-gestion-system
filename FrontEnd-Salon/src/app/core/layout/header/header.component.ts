@@ -9,13 +9,15 @@ import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
+import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { AuthService } from '../../auth/services/auth.service';
 import { EmpresaService, EmpresaResponse } from '../../services/empresa.service';
+import { CatalogoService, Producto } from '../../../features/catalogo/services/catalogo.service';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputTextModule, AvatarModule, BadgeModule, MenuModule, DialogModule, ButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, InputTextModule, AvatarModule, BadgeModule, MenuModule, DialogModule, ButtonModule, OverlayPanelModule],
   templateUrl: './header.component.html'
 })
 export class HeaderComponent implements OnInit {
@@ -23,10 +25,12 @@ export class HeaderComponent implements OnInit {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private empresaService = inject(EmpresaService);
+  private catalogoService = inject(CatalogoService);
   
   currentUser = signal<any>(null);
   isDarkMode = signal<boolean>(false);
   profileMenuItems: MenuItem[] = [];
+  alertasStock = signal<Producto[]>([]);
 
   // Modals state
   displayPerfilModal = signal<boolean>(false);
@@ -65,6 +69,19 @@ export class HeaderComponent implements OnInit {
         command: () => this.logout()
       }
     ];
+
+    this.cargarAlertasStock();
+  }
+
+  cargarAlertasStock() {
+    this.catalogoService.getProductosAlertasStock().subscribe({
+      next: (res: Producto[]) => this.alertasStock.set(res),
+      error: (err: any) => console.error('Error cargando alertas de stock', err)
+    });
+  }
+
+  irAInventario() {
+    this.router.navigate(['/dashboard/catalogo/inventario']);
   }
 
   initForm() {

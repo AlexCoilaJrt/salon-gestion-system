@@ -1,0 +1,322 @@
+<p-toast position="top-center"></p-toast>
+<div class="-m-8 h-[calc(100vh-70px)] flex flex-col md:flex-row bg-slate-50 dark:bg-[#121212] overflow-hidden font-sans">
+  
+  <!-- Left Side: Products & Services Selection -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden p-4 md:p-6">
+    
+    <!-- Top Terminal Info Bar -->
+    <div class="flex justify-between items-center bg-white dark:bg-[#1e1e1e] p-3 md:px-5 rounded-2xl shadow-md border border-gray-200 dark:border-gray-800 mb-5">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+          <i class="pi pi-desktop text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-gray-900 dark:text-white text-sm md:text-base">Terminal POS #03</h1>
+            <span class="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded uppercase tracking-wide">Caja Abierta</span>
+          </div>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Turno Mañana · Operador: admin</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button class="px-4 py-2 text-xs font-medium rounded-lg border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors flex items-center gap-2">
+          <i class="pi pi-history"></i> Últimas Ventas
+        </button>
+      </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="flex gap-3 mb-5">
+      <div class="relative flex-1">
+        <i class="pi pi-barcode absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+        <input type="text" [(ngModel)]="searchQuery" placeholder="Buscar servicio o producto por nombre..." class="w-full pl-12 pr-16 py-3.5 rounded-2xl border-none shadow-sm bg-white dark:bg-[#1e1e1e] text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#bca028] transition-all text-sm font-medium">
+      </div>
+    </div>
+
+    <!-- Category Pills -->
+    <div class="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar hide-scrollbar-on-mobile">
+      @for (cat of categories(); track cat) {
+        <button (click)="setCategory(cat)"
+                [ngClass]="selectedCategory() === cat ? 'bg-[#bca028] text-white shadow-[#bca028]/20' : 'bg-white dark:bg-[#1e1e1e] text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'"
+                class="whitespace-nowrap px-4 py-2 rounded-xl font-medium text-sm transition-all shadow-sm">
+          {{ cat }}
+        </button>
+      }
+    </div>
+
+    <!-- Items Grid -->
+    <div class="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-10">
+        
+        @for (item of filteredItems(); track item.id) {
+          <div (click)="addToCart(item)" class="bg-white dark:bg-[#1e1e1e] rounded-[20px] shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-[#bca028] cursor-pointer transition-all group flex flex-col h-[280px]">
+            <!-- Image Section -->
+            <div class="h-[130px] w-full relative overflow-hidden bg-gray-100 flex items-center justify-center">
+              @if (item.imageUrl) {
+                <img [src]="item.imageUrl" (error)="item.imageUrl = ''" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" [alt]="item.nombre">
+              } @else {
+                <div class="w-full h-full bg-gradient-to-br from-[#fcfbf4] to-[#faf5e5] dark:from-[#252525] dark:to-[#1e1e1e] flex flex-col items-center justify-center text-[#bca028]/40 dark:text-gray-600 transition-transform duration-500 group-hover:scale-105">
+                  <i class="pi" [ngClass]="item.tipo === 'SERVICIO' ? 'pi-sparkles' : 'pi-box'" style="font-size: 2.5rem;"></i>
+                  <span class="text-[10px] font-bold mt-2 opacity-60 uppercase tracking-widest">{{ item.tipo }}</span>
+                </div>
+              }
+              
+              @if (item.tipo === 'SERVICIO' && item.duracion) {
+                <div class="absolute top-2 left-2 bg-white/90 backdrop-blur-sm text-gray-700 text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                  <i class="pi pi-clock text-[10px]"></i> {{ item.duracion }}m
+                </div>
+              }
+              
+              @if (item.tipo === 'PRODUCTO' && item.stock !== undefined) {
+                <div class="absolute top-2 left-2 bg-emerald-100/90 text-emerald-800 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-lg shadow-sm border border-emerald-200">
+                  Stock: {{ item.stock }} uds
+                </div>
+              }
+            </div>
+            
+            <!-- Content Section -->
+            <div class="p-4 flex flex-col flex-1">
+              <h3 class="font-bold text-gray-900 dark:text-gray-100 text-sm leading-tight mb-1">{{ item.nombre }}</h3>
+              <p class="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 leading-snug">{{ item.descripcion }}</p>
+              
+              <div class="mt-auto flex justify-between items-end pt-3">
+                <div>
+                  <div class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-0.5">Precio</div>
+                  <div class="font-bold text-gray-900 dark:text-white text-lg">${{ item.precio | number:'1.2-2' }}</div>
+                </div>
+                <button class="w-9 h-9 rounded-xl bg-yellow-50 dark:bg-yellow-900/30 text-[#bca028] dark:text-yellow-400 flex items-center justify-center hover:bg-[#bca028] hover:text-white transition-colors active:scale-90">
+                  <i class="pi pi-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+        
+        @if (filteredItems().length === 0) {
+          <div class="col-span-full py-10 text-center text-gray-500">
+            No se encontraron items.
+          </div>
+        }
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Order Ticket -->
+  <div class="w-full md:w-[420px] bg-white dark:bg-[#1a1a1a] flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.05)] border-l border-gray-200 dark:border-gray-800 z-10 p-5">
+    
+    <!-- Ticket Header -->
+    <div class="flex justify-between items-center mb-4">
+      <div class="flex items-center gap-2 text-gray-700 dark:text-gray-200 font-bold">
+        <i class="pi pi-file-o"></i> Ticket de Venta
+      </div>
+      <span class="text-xs font-medium text-gray-400">#NUEVO</span>
+    </div>
+
+    <!-- Customer Card -->
+    <div (click)="opClientes.toggle($event)" class="bg-[#f8f9fc] dark:bg-[#252525] border border-gray-300 dark:border-gray-700 rounded-2xl p-3 flex items-center justify-between group cursor-pointer hover:border-[#bca028] transition-colors mb-5 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-500 flex items-center justify-center font-bold text-sm shadow-sm">
+          <i class="pi pi-user"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="font-bold text-gray-900 dark:text-gray-100 text-sm">{{ selectedCliente() ? selectedCliente()!.nombreCompleto : 'Público General' }}</h3>
+          </div>
+          <div class="text-[11px] text-gray-500 font-medium">Asignar Cliente (Opcional)</div>
+        </div>
+      </div>
+      <i class="pi pi-angle-down text-gray-400 group-hover:text-[#bca028]"></i>
+    </div>
+    
+    <p-overlayPanel #opClientes styleClass="w-80 p-3 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800">
+      <ng-template pTemplate="content">
+        <h4 class="font-bold text-sm mb-3">Seleccionar Cliente</h4>
+        <p-dropdown [options]="clientes()" [ngModel]="selectedCliente()" (ngModelChange)="onClienteSelected($event); opClientes.hide()" optionLabel="nombreCompleto" [filter]="true" filterBy="nombreCompleto" [showClear]="true" placeholder="Público General" styleClass="w-full" panelStyleClass="text-sm">
+        </p-dropdown>
+      </ng-template>
+    </p-overlayPanel>
+
+    <!-- Premios Disponibles Alert -->
+    @if (premiosDisponibles().length > 0) {
+      <div class="bg-yellow-50 border border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-700/50 rounded-xl p-3 mb-4 flex flex-col gap-2">
+        <div class="flex items-center gap-2 text-yellow-700 dark:text-yellow-500">
+          <i class="pi pi-star-fill"></i>
+          <span class="font-bold text-sm">¡Premios Disponibles!</span>
+        </div>
+        @for (premio of premiosDisponibles(); track premio.id) {
+          <div class="flex justify-between items-center bg-white/60 dark:bg-black/20 p-2 rounded-lg">
+            <div class="text-xs">
+              <div class="font-bold text-gray-800 dark:text-gray-200">{{ premio.cartillaNombre }}</div>
+              <div class="text-gray-500">{{ premio.descuentoPremio }}% Dscto.</div>
+            </div>
+            <button (click)="aplicarPremio(premio)" class="bg-[#bca028] hover:bg-[#a68d23] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+              CANJEAR
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Ticket Items -->
+    <div class="flex-1 overflow-y-auto mb-5 pr-2 custom-scrollbar space-y-4">
+      
+      @for (c of cart(); track c.id) {
+        <div class="flex justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+          <div class="flex-1 pr-3">
+            <h4 class="font-bold text-gray-800 dark:text-gray-100 text-sm leading-tight mb-1">{{ c.item.nombre }}</h4>
+            <div class="flex items-center gap-3 text-xs">
+              <span class="text-gray-500 font-medium">${{ c.item.precio | number:'1.2-2' }} c/u</span>
+              
+              @if (c.item.tipo === 'SERVICIO') {
+                <div class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded font-medium text-[10px] cursor-pointer" (click)="opEmpleado.toggle($event)">
+                  <i class="pi pi-user text-[9px]"></i> {{ c.empleadoNombre || 'Asignar' }} <i class="pi pi-angle-down text-[8px] ml-1"></i>
+                </div>
+                <p-overlayPanel #opEmpleado styleClass="w-64 p-2 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800">
+                  <ng-template pTemplate="content">
+                    <h4 class="font-bold text-xs mb-2">Asignar Especialista</h4>
+                    <p-dropdown [options]="empleados()" [ngModel]="c.empleadoId" (ngModelChange)="updateCartItemEmpleado(c, $event); opEmpleado.hide()" optionLabel="nombres" optionValue="id" [filter]="true" filterBy="nombres" placeholder="Seleccione especialista" styleClass="w-full text-sm" panelStyleClass="text-sm" appendTo="body">
+                    </p-dropdown>
+                  </ng-template>
+                </p-overlayPanel>
+              }
+              @if (c.item.tipo === 'PRODUCTO') {
+                <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded">Retail</span>
+              }
+            </div>
+          </div>
+          
+          <div class="flex flex-col items-end gap-2">
+            <div class="flex items-center gap-3 bg-[#f8f9fa] dark:bg-[#2a2a2a] rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+              <button (click)="updateQuantity(c, -1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-white rounded shadow-sm transition-all"><i class="pi pi-minus text-[10px]"></i></button>
+              <span class="text-sm font-bold w-3 text-center text-gray-800 dark:text-gray-100">{{ c.cantidad }}</span>
+              <button (click)="updateQuantity(c, 1)" class="w-6 h-6 flex items-center justify-center text-gray-500 hover:bg-white rounded shadow-sm transition-all"><i class="pi pi-plus text-[10px]"></i></button>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-gray-900 dark:text-white">${{ c.subtotal | number:'1.2-2' }}</span>
+              <i (click)="removeFromCart(c)" class="pi pi-trash text-gray-400 hover:text-red-500 cursor-pointer text-xs"></i>
+            </div>
+          </div>
+        </div>
+      }
+      
+      @if (cart().length === 0) {
+        <div class="text-center text-gray-400 mt-10 text-sm">
+          El ticket está vacío.<br>Selecciona items de la izquierda.
+        </div>
+      }
+      
+    </div>
+
+    <!-- Totals Section -->
+    <div class="space-y-2 mb-5">
+      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+        <span>Subtotal</span>
+        <span>${{ subtotal() | number:'1.2-2' }}</span>
+      </div>
+      <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 font-medium">
+        <span>Impuestos (IGV 18%)</span>
+        <span>${{ impuestos() | number:'1.2-2' }}</span>
+      </div>
+      <div class="h-[1px] border-b border-dashed border-gray-300 dark:border-gray-700 my-3"></div>
+      <div class="flex justify-between items-end">
+        <div>
+          <h2 class="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wide">Total a Pagar</h2>
+        </div>
+        <span class="text-3xl font-black text-[#bca028] tracking-tight">${{ total() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Metodo de Pago -->
+    <div class="mb-5">
+      <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-wider">Método de Pago</h4>
+      <p-selectButton [options]="metodoPagoOptions" [ngModel]="selectedMetodoPago()" (ngModelChange)="selectedMetodoPago.set($event)" optionLabel="label" optionValue="value" styleClass="w-full flex">
+      </p-selectButton>
+    </div>
+
+    <!-- Checkout Action -->
+    <button (click)="cobrarVenta()" [disabled]="isProcessing() || cart().length === 0" 
+            [ngClass]="{'opacity-50 cursor-not-allowed': isProcessing() || cart().length === 0}"
+            class="w-full bg-[#bca028] hover:bg-[#9d841f] text-white rounded-[16px] py-4 shadow-[0_8px_20px_rgba(188,160,40,0.25)] transition-transform active:scale-95 flex items-center justify-center gap-3 relative overflow-hidden group mb-4">
+      <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center absolute left-4">
+        <i [ngClass]="isProcessing() ? 'pi-spin pi-spinner' : 'pi-check'" class="pi text-white"></i>
+      </div>
+      <span class="font-bold text-lg">{{ isProcessing() ? 'Procesando...' : 'Cobrar Venta' }}</span>
+    </button>
+
+  </div>
+</div>
+
+<!-- Ticket Modal (Receipt) -->
+<p-dialog [(visible)]="showTicketModal" [modal]="true" [closable]="false" [style]="{width: '420px'}" styleClass="ticket-dialog border-none" [draggable]="false" [resizable]="false">
+  
+  <div id="print-section" class="bg-white text-gray-800 p-6 rounded-lg font-mono text-sm shadow-sm border border-gray-200 print-only-container" *ngIf="lastTicket()">
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h2 class="text-xl font-bold uppercase tracking-widest text-gray-900 mb-1">SPA DIANA</h2>
+      <p class="text-xs text-gray-500">Mi Salón S.A.C.</p>
+      <p class="text-xs text-gray-500 mt-1">Ticket #{{ lastTicket()?.id | number:'3.0-0' }}</p>
+      <p class="text-[10px] text-gray-400 mt-2">{{ lastTicket()?.fechaEmision | date:'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+
+    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+    <!-- Info -->
+    <div class="mb-4 text-xs">
+      <div class="flex justify-between mb-1"><span>Cliente:</span> <span>{{ lastTicket()?.clienteNombreCompleto || 'Público General' }}</span></div>
+      <div class="flex justify-between mb-1"><span>Método Pago:</span> <span>{{ lastTicket()?.metodoPago }}</span></div>
+      <div class="flex justify-between"><span>Cajero(a):</span> <span>admin</span></div>
+    </div>
+
+    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+    <!-- Detalle -->
+    <div class="mb-4">
+      <div class="flex justify-between text-xs font-bold mb-2 uppercase text-gray-700">
+        <span>Cant | Item</span>
+        <span>Subtotal</span>
+      </div>
+      @for (det of lastTicket()?.detalles; track det.id) {
+        <div class="flex justify-between text-xs mb-3">
+          <div class="flex flex-col pr-2">
+            <span class="font-semibold text-gray-800">{{ det.cantidad }}x {{ det.servicioNombre || det.productoNombre }}</span>
+            <span class="text-[10px] text-gray-500 pl-4 font-sans" *ngIf="det.empleadoNombreCompleto">Staff: {{ det.empleadoNombreCompleto }}</span>
+          </div>
+          <span class="shrink-0 pl-2 text-gray-800 font-semibold">S/ {{ det.subtotal | number:'1.2-2' }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="border-t border-dashed border-gray-300 my-4"></div>
+
+    <!-- Totals -->
+    <div class="text-right mb-6">
+      <div class="flex justify-between text-xs text-gray-500 mb-1">
+        <span>Subtotal:</span>
+        <span>S/ {{ (lastTicket()?.total || 0) / 1.18 | number:'1.2-2' }}</span>
+      </div>
+      <div class="flex justify-between text-xs text-gray-500 mb-2">
+        <span>IGV (18%):</span>
+        <span>S/ {{ (lastTicket()?.total || 0) - ((lastTicket()?.total || 0) / 1.18) | number:'1.2-2' }}</span>
+      </div>
+      <div class="flex justify-between text-lg font-black text-gray-900 mt-2 pt-2 border-t border-gray-200">
+        <span>TOTAL:</span>
+        <span>S/ {{ lastTicket()?.total | number:'1.2-2' }}</span>
+      </div>
+    </div>
+    
+    <div class="text-center text-[10px] text-gray-400 mt-8">
+      <p>¡Gracias por su preferencia!</p>
+      <p>Vuelva pronto</p>
+    </div>
+  </div>
+
+  <div class="flex gap-3 w-full mt-6 no-print">
+    <button class="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors flex items-center justify-center gap-2" (click)="cerrarTicket()">
+      <i class="pi pi-refresh"></i> Nueva Venta
+    </button>
+    <button class="flex-1 py-3 px-4 bg-[#bca028] hover:bg-[#9d841f] text-white rounded-xl font-bold shadow-lg transition-colors flex items-center justify-center gap-2" (click)="imprimirTicket()">
+      <i class="pi pi-print"></i> Imprimir Ticket
+    </button>
+  </div>
+</p-dialog>

@@ -20,4 +20,6 @@ public class ServicioResponse {
     private String categoriaNombre;
 
     private List<ProductoResponse> insumos;
+
+    private String imageUrl;
 }

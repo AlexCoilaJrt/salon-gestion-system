@@ -5,6 +5,7 @@ import pe.com.salon.salongestionapi.operaciones.entity.EstadoCita;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class CitaResponse {
@@ -12,6 +13,7 @@ public class CitaResponse {
     private LocalDateTime fechaHora;
     private EstadoCita estado;
     private BigDecimal adelanto;
+    private String metodoPago;
     private String notas;
 
     private Long clienteId;
@@ -22,4 +24,6 @@ public class CitaResponse {
 
     private Long servicioId;
     private String servicioNombre;
+
+    private List<Long> productosIds;
 }

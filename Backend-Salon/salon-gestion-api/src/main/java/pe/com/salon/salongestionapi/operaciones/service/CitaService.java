@@ -10,11 +10,14 @@ import pe.com.salon.salongestionapi.operaciones.entity.Cita;
 import pe.com.salon.salongestionapi.operaciones.entity.Cliente;
 import pe.com.salon.salongestionapi.operaciones.repository.CitaRepository;
 import pe.com.salon.salongestionapi.operaciones.repository.ClienteRepository;
+import pe.com.salon.salongestionapi.catalogo.entity.Producto;
+import pe.com.salon.salongestionapi.catalogo.repository.ProductoRepository;
 import pe.com.salon.salongestionapi.rrhh.entity.Empleado;
 import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +28,7 @@ public class CitaService {
     private final ClienteRepository clienteRepository;
     private final EmpleadoRepository empleadoRepository;
     private final ServicioRepository servicioRepository;
+    private final ProductoRepository productoRepository;
 
     public List<CitaResponse> listarTodas() {
         return citaRepository.findAll().stream()
@@ -52,10 +56,18 @@ public class CitaService {
         cita.setFechaHora(request.getFechaHora());
         cita.setEstado(request.getEstado());
         cita.setAdelanto(request.getAdelanto());
+        cita.setMetodoPago(request.getMetodoPago());
         cita.setNotas(request.getNotas());
         cita.setCliente(cliente);
         cita.setEmpleado(empleado);
         cita.setServicio(servicio);
+
+        if (request.getProductosIds() != null && !request.getProductosIds().isEmpty()) {
+            List<Producto> productos = productoRepository.findAllById(request.getProductosIds());
+            cita.setProductos(productos);
+        } else {
+            cita.setProductos(new ArrayList<>());
+        }
 
         Cita guardada = citaRepository.save(cita);
         return mapToResponse(guardada);
@@ -77,10 +89,18 @@ public class CitaService {
         cita.setFechaHora(request.getFechaHora());
         cita.setEstado(request.getEstado());
         cita.setAdelanto(request.getAdelanto());
+        cita.setMetodoPago(request.getMetodoPago());
         cita.setNotas(request.getNotas());
         cita.setCliente(cliente);
         cita.setEmpleado(empleado);
         cita.setServicio(servicio);
+
+        if (request.getProductosIds() != null && !request.getProductosIds().isEmpty()) {
+            List<Producto> productos = productoRepository.findAllById(request.getProductosIds());
+            cita.setProductos(productos);
+        } else {
+            cita.setProductos(new ArrayList<>());
+        }
 
         Cita actualizada = citaRepository.save(cita);
         return mapToResponse(actualizada);
@@ -99,6 +119,7 @@ public class CitaService {
         response.setFechaHora(cita.getFechaHora());
         response.setEstado(cita.getEstado());
         response.setAdelanto(cita.getAdelanto());
+        response.setMetodoPago(cita.getMetodoPago());
         response.setNotas(cita.getNotas());
         
         response.setClienteId(cita.getCliente().getId());
@@ -109,6 +130,12 @@ public class CitaService {
         
         response.setServicioId(cita.getServicio().getId());
         response.setServicioNombre(cita.getServicio().getNombre());
+        
+        if (cita.getProductos() != null) {
+            response.setProductosIds(cita.getProductos().stream().map(Producto::getId).collect(Collectors.toList()));
+        } else {
+            response.setProductosIds(new ArrayList<>());
+        }
         
         return response;
     }

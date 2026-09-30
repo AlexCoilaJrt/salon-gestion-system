@@ -26,6 +26,12 @@ public class ProductoService {
                 .collect(Collectors.toList());
     }
 
+    public List<ProductoResponse> obtenerAlertasStockBajo() {
+        return productoRepository.findProductosConStockBajo().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public ProductoResponse obtenerPorId(Long id) {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + id));

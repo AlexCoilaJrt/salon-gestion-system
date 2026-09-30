@@ -17,6 +17,8 @@ export class ReporteAsistenciaComponent implements OnInit {
   private asistenciaService = inject(AsistenciaService);
 
   registros: AsistenciaResponse[] = [];
+  consolidado: any[] = [];
+  vistaActiva: 'detallado' | 'consolidado' = 'detallado';
   loading: boolean = false;
   
   fechaInicio: Date = new Date();
@@ -36,6 +38,7 @@ export class ReporteAsistenciaComponent implements OnInit {
     this.asistenciaService.getReporte(inicioStr, finStr).subscribe({
       next: (data) => {
         this.registros = data;
+        this.generarConsolidado();
         this.loading = false;
       },
       error: (err) => {
@@ -43,6 +46,36 @@ export class ReporteAsistenciaComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  generarConsolidado() {
+    const mapa = new Map<number, any>();
+    
+    this.registros.forEach(reg => {
+      if (!mapa.has(reg.empleadoId)) {
+        mapa.set(reg.empleadoId, {
+          empleadoNombreCompleto: reg.empleadoNombreCompleto,
+          diasLaborados: 0,
+          tardanzasVeces: 0,
+          minutosTardanzaTotal: 0,
+          faltas: 0
+        });
+      }
+      
+      const emp = mapa.get(reg.empleadoId);
+      if (reg.tipo === 'ASISTIO' || reg.tipo === 'TARDANZA') {
+        emp.diasLaborados++;
+      }
+      if (reg.tipo === 'TARDANZA') {
+        emp.tardanzasVeces++;
+        emp.minutosTardanzaTotal += (reg.tardanzaMinutos || 0);
+      }
+      if (reg.tipo === 'FALTA') {
+        emp.faltas++;
+      }
+    });
+
+    this.consolidado = Array.from(mapa.values());
   }
 
   abrirKiosko() {

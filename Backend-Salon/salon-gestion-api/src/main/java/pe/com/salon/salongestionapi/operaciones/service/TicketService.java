@@ -21,6 +21,7 @@ import pe.com.salon.salongestionapi.operaciones.repository.TicketRepository;
 import pe.com.salon.salongestionapi.rrhh.entity.Empleado;
 import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
+import pe.com.salon.salongestionapi.fidelizacion.service.FidelizacionService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -38,6 +39,7 @@ public class TicketService {
     private final ServicioRepository servicioRepository;
     private final ProductoRepository productoRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final FidelizacionService fidelizacionService;
 
     // Puntos que se otorgan por cada sol gastado (GAP 6: Fidelización)
     private static final int PUNTOS_POR_SOL = 1;
@@ -132,11 +134,18 @@ public class TicketService {
         Ticket guardado = ticketRepository.save(ticket);
 
         // 6. GAP 6: Actualizar puntos de fidelización y fecha de última visita (Sólo si hay cliente)
-        if (cliente != null) {
+        if (cliente != null && !cliente.getId().equals(1L)) {
             int puntosGanados = totalVenta.intValue() * PUNTOS_POR_SOL;
             cliente.setPuntosFidelizacion(cliente.getPuntosFidelizacion() + puntosGanados);
             cliente.setFechaUltimaVisita(LocalDate.now());
             clienteRepository.save(cliente);
+
+            // Procesar Cartillas de Fidelización (Sellos automáticos)
+            for (TicketDetalle d : guardado.getDetalles()) {
+                if (d.getServicio() != null) {
+                    fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
+                }
+            }
         }
 
         return mapToResponse(guardado);
@@ -235,3 +244,4 @@ public class TicketService {
         return res;
     }
 }
+
