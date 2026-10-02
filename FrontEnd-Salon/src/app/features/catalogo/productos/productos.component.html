@@ -10,7 +10,7 @@
     <button pButton icon="pi pi-plus" label="Nuevo {{ modoInsumos ? 'Insumo' : 'Producto' }}" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="openNew()"></button>
   </div>
 
-  <p-dataView #dv [value]="productos" [paginator]="true" [rows]="12" [loading]="loading">
+  <p-dataView #dv [value]="productos" [paginator]="true" [rows]="12" [rowsPerPageOptions]="[6,12,24,48]" [loading]="loading">
     <!-- Vista Grid (Tarjetas de Tienda) -->
     <ng-template #list let-items>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4 w-full">

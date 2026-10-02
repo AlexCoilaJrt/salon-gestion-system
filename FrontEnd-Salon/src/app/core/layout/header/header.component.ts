@@ -54,6 +54,12 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser.set(this.authService.getCurrentUser());
+
+    // Restaurar la preferencia de modo oscuro guardada
+    const savedDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (savedDarkMode) {
+      document.documentElement.classList.add('app-dark');
+    }
     this.isDarkMode.set(document.documentElement.classList.contains('app-dark'));
 
     this.initForm();
@@ -176,7 +182,10 @@ export class HeaderComponent implements OnInit {
   toggleDarkMode() {
     const htmlElement = document.documentElement;
     htmlElement.classList.toggle('app-dark');
-    this.isDarkMode.set(htmlElement.classList.contains('app-dark'));
+    const isDark = htmlElement.classList.contains('app-dark');
+    this.isDarkMode.set(isDark);
+    // Guardar preferencia en localStorage para que persista al recargar
+    localStorage.setItem('darkMode', isDark.toString());
   }
 
   isUploadingAvatar = signal<boolean>(false);

@@ -291,7 +291,7 @@
     <!-- Tabla de Transacciones -->
     <div class="col-span-1 md:col-span-2">
       <h3 class="text-xl font-bold mb-4 text-gray-800 dark:text-gray-200"><i class="pi pi-list mr-2 text-[#bca028]"></i>Transacciones Registradas</h3>
-      <p-table [value]="ticketsDashboard" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+      <p-table [value]="ticketsDashboard" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>
             <th>Hora</th>

@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <p-table [value]="usuarios" [loading]="loading" [paginator]="true" [rows]="10" [totalRecords]="totalRecords"
+  <p-table [value]="usuarios" [loading]="loading" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" [totalRecords]="totalRecords"
            (onPage)="onPageChange($event)" responsiveLayout="scroll"
            styleClass="p-datatable-sm p-datatable-striped custom-table">
     <ng-template pTemplate="header">

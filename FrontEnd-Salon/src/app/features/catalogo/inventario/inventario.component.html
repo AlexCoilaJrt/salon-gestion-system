@@ -53,7 +53,7 @@
 
   <!-- Tabla de Inventario Principal -->
   <div class="bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-    <p-table [value]="filteredProductos()" [loading]="loading()" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm p-datatable-striped">
+    <p-table [value]="filteredProductos()" [loading]="loading()" responsiveLayout="scroll" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" styleClass="p-datatable-sm p-datatable-striped">
       <ng-template pTemplate="header">
         <tr>
           <th class="text-xs uppercase text-gray-500 tracking-wider font-semibold">Producto</th>

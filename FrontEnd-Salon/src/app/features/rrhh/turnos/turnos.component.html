@@ -9,7 +9,7 @@
         <button pButton icon="pi pi-plus" label="Nuevo Turno" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="showDialogToAdd()"></button>
     </div>
 
-    <p-table [value]="turnos" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm">
+    <p-table [value]="turnos" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" responsiveLayout="scroll" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
             <tr>
                 <th>Nombre del Turno</th>

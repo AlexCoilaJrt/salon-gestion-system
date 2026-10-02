@@ -23,7 +23,7 @@
     <!-- Tabla -->
     <div class="flex-1 p-0">
       <p-table #dt [value]="tickets" [loading]="loading" styleClass="p-datatable-lg" 
-               [paginator]="true" [rows]="10" [globalFilterFields]="['id','clienteNombreCompleto']"
+               [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" [globalFilterFields]="['id','clienteNombreCompleto']"
                responsiveLayout="scroll">
         <ng-template pTemplate="header">
           <tr>

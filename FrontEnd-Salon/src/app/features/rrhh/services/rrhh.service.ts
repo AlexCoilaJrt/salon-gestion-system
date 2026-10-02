@@ -1,6 +1,15 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+export interface PageResponse<T> {
+  content: T[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
 
 // En Angular no existe proxy environment de momento, hardcodeado por ahora
 const API_URL = 'http://localhost:8080/api/rrhh';
@@ -39,6 +48,16 @@ export class RrhhService {
   // === EMPLEADOS ===
   getEmpleados(): Observable<Empleado[]> {
     return this.http.get<Empleado[]>(`${API_URL}/empleados`);
+  }
+
+  getEmpleadosPaginado(page: number, size: number, search?: string): Observable<PageResponse<Empleado>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    if (search && search.trim()) {
+      params = params.set('search', search.trim());
+    }
+    return this.http.get<PageResponse<Empleado>>(`${API_URL}/empleados/paginado`, { params });
   }
 
   getEmpleado(id: number): Observable<Empleado> {

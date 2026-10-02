@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import pe.com.salon.salongestionapi.rrhh.dto.EmpleadoRequest;
 import pe.com.salon.salongestionapi.rrhh.dto.EmpleadoResponse;
 import pe.com.salon.salongestionapi.rrhh.service.EmpleadoService;
+import pe.com.salon.salongestionapi.shared.PageResponse;
 
 import java.util.List;
 
@@ -21,6 +22,14 @@ public class EmpleadoController {
     @GetMapping
     public ResponseEntity<List<EmpleadoResponse>> listarEmpleados() {
         return ResponseEntity.ok(empleadoService.listarTodos());
+    }
+
+    @GetMapping("/paginado")
+    public ResponseEntity<PageResponse<EmpleadoResponse>> listarPaginado(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(empleadoService.listarPaginado(page, size, search));
     }
 
     @PostMapping

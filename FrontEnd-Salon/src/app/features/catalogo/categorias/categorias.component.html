@@ -10,27 +10,34 @@
     <button pButton icon="pi pi-plus" label="Nueva Categoría" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="openNew()"></button>
   </div>
 
-  <p-table [value]="categorias" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+  <p-treeTable [value]="categoriasTree" [loading]="loading"
+               [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]"
+               [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} categorías"
+               styleClass="p-treetable-sm">
     <ng-template pTemplate="header">
       <tr>
-        <th>ID</th>
-        <th>Nombre</th>
+        <th style="width:60px">ID</th>
+        <th>Nombre de Categoría</th>
         <th>Descripción</th>
         <th class="text-center">Estado</th>
         <th class="text-right">Acciones</th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-cat>
-      <tr>
-        <td>{{cat.id}}</td>
-        <td class="font-bold text-gray-800 dark:text-gray-200">{{cat.nombre}}</td>
-        <td class="text-gray-600 dark:text-gray-400">{{cat.descripcion || '-'}}</td>
-        <td class="text-center">
-          <p-tag [severity]="cat.estado ? 'success' : 'danger'" [value]="cat.estado ? 'Activo' : 'Inactivo'"></p-tag>
+    <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+      <tr [ttRow]="rowNode">
+        <td class="text-gray-500 dark:text-gray-400 text-sm font-mono" style="width:60px">{{ rowData.id }}</td>
+        <td class="font-bold text-gray-800 dark:text-gray-200">
+          <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+          {{rowData.nombre}}
         </td>
-        <td class="text-right flex justify-end gap-2">
-          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-info" (click)="editCategoria(cat)"></button>
-          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="deleteCategoria(cat)"></button>
+        <td class="text-gray-600 dark:text-gray-400">{{rowData.descripcion || '-'}}</td>
+        <td class="text-center">
+          <p-tag [severity]="rowData.estado ? 'success' : 'danger'" [value]="rowData.estado ? 'Activo' : 'Inactivo'"></p-tag>
+        </td>
+        <td class="text-right">
+          <button pButton icon="pi pi-list" class="p-button-rounded p-button-text p-button-warning mr-1" pTooltip="Ver Servicios" tooltipPosition="top" (click)="verServicios(rowData)"></button>
+          <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-info mr-1" (click)="editCategoria(rowData)"></button>
+          <button pButton icon="pi pi-trash" class="p-button-rounded p-button-text p-button-danger" (click)="deleteCategoria(rowData)"></button>
         </td>
       </tr>
     </ng-template>
@@ -39,7 +46,7 @@
         <td colspan="5" class="text-center py-8 text-gray-500">No hay categorías registradas.</td>
       </tr>
     </ng-template>
-  </p-table>
+  </p-treeTable>
 </div>
 
 <p-dialog [(visible)]="categoriaDialog" [style]="{width: '450px'}" [header]="isEdit ? 'Editar Categoría' : 'Nueva Categoría'" [modal]="true" styleClass="p-fluid">
@@ -53,6 +60,39 @@
       <label for="descripcion" class="font-semibold block mb-2 dark:text-gray-200">Descripción (Opcional)</label>
       <input type="text" pInputText id="descripcion" [(ngModel)]="categoria.descripcion" class="w-full" />
     </div>
+    <div class="field mb-4">
+      <label class="font-semibold block mb-3 dark:text-gray-200">Tipo de Categoría</label>
+      <div class="flex gap-4">
+        <div class="flex items-center">
+          <p-radioButton name="tipo" [value]="false" [(ngModel)]="isSubcategoria" inputId="tipoPrincipal"></p-radioButton>
+          <label for="tipoPrincipal" class="ml-2">Categoría Principal</label>
+        </div>
+        <div class="flex items-center">
+          <p-radioButton name="tipo" [value]="true" [(ngModel)]="isSubcategoria" inputId="tipoSub"></p-radioButton>
+          <label for="tipoSub" class="ml-2">Subcategoría</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="field mb-4" *ngIf="isSubcategoria">
+      <label for="padre" class="font-semibold block mb-2 dark:text-gray-200">Seleccionar Categoría Padre</label>
+      <p-treeSelect id="padre" [options]="categoriasTreeOpciones" [(ngModel)]="categoriaPadreSeleccionada" placeholder="Seleccione una categoría padre" appendTo="body" [style]="{'width':'100%'}"></p-treeSelect>
+      <small class="p-error block mt-1" *ngIf="!categoriaPadreSeleccionada">Debe seleccionar una categoría padre.</small>
+    </div>
+
+    <div *ngIf="!isSubcategoria && !isEdit" class="field mb-4">
+      <label class="font-semibold block mb-2 dark:text-gray-200">Creación rápida de Subcategorías (Opcional)</label>
+      <div class="flex gap-2 mb-2">
+        <input type="text" pInputText [(ngModel)]="nuevaSubcategoriaTemp" placeholder="Ej: Acrílico" class="w-full" (keyup.enter)="addSubcategoria()" />
+        <button pButton icon="pi pi-plus" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="addSubcategoria()"></button>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-2">
+        <span *ngFor="let sub of subcategoriasNuevas; let i = index" class="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full text-sm">
+          {{sub}}
+          <i class="pi pi-times cursor-pointer text-red-500 hover:text-red-700" (click)="removeSubcategoria(i)"></i>
+        </span>
+      </div>
+    </div>
   </ng-template>
 
   <ng-template pTemplate="footer">
@@ -60,3 +100,56 @@
     <button pButton label="Guardar" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="saveCategoria()"></button>
   </ng-template>
 </p-dialog>
+
+<!-- Panel lateral de Servicios -->
+<p-sidebar [(visible)]="serviciosPanel" position="right" [style]="{width:'420px'}" styleClass="dark:bg-[#1e1e1e]">
+  <ng-template pTemplate="header">
+    <div class="flex flex-col">
+      <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 m-0">Servicios Ligados</h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 m-0 mt-1" *ngIf="categoriaPanelSeleccionada">
+        <span class="font-semibold text-[#bca028]">{{ categoriaPanelSeleccionada.nombre }}</span>
+        &nbsp;e incluye subcategorías
+      </p>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="content">
+    <div *ngIf="loadingServicios" class="flex justify-center items-center h-32">
+      <i class="pi pi-spin pi-spinner text-3xl text-[#bca028]"></i>
+    </div>
+
+    <div *ngIf="!loadingServicios && serviciosDeCategoria.length === 0" class="flex flex-col items-center justify-center h-48 text-gray-400">
+      <i class="pi pi-inbox text-4xl mb-3"></i>
+      <p class="text-sm">No hay servicios ligados a esta categoría.</p>
+    </div>
+
+    <div *ngIf="!loadingServicios && serviciosDeCategoria.length > 0" class="flex flex-col gap-3">
+      <div *ngFor="let serv of serviciosDeCategoria"
+           class="flex items-center gap-3 p-3 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-[#2a2a2a] hover:border-[#bca028] transition-colors">
+        <!-- Imagen o ícono -->
+        <div class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden shrink-0">
+          <img *ngIf="serv.imageUrl" [src]="serv.imageUrl" [alt]="serv.nombre" class="w-full h-full object-cover" />
+          <i *ngIf="!serv.imageUrl" class="pi pi-sparkles text-gray-400 text-xl"></i>
+        </div>
+        <!-- Info -->
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-gray-800 dark:text-gray-100 text-sm m-0 truncate">{{ serv.nombre }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 m-0">{{ serv.categoriaNombre }}</p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-xs font-bold text-green-600 dark:text-green-400">S/ {{ serv.precioBase }}</span>
+            <span class="text-gray-300 dark:text-gray-600">·</span>
+            <span class="text-xs text-gray-500"><i class="pi pi-clock text-xs mr-1"></i>{{ serv.duracionMinutos }} min</span>
+          </div>
+        </div>
+        <!-- Estado -->
+        <p-tag [severity]="serv.estado ? 'success' : 'danger'" [value]="serv.estado ? 'Activo' : 'Inact.'" class="shrink-0"></p-tag>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-between items-center pt-2">
+      <span class="text-sm text-gray-500">{{ serviciosDeCategoria.length }} servicio(s) encontrado(s)</span>
+    </div>
+  </ng-template>
+</p-sidebar>

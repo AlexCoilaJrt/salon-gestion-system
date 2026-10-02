@@ -39,7 +39,29 @@ public class CategoriaService {
                 .descripcion(request.getDescripcion())
                 .estado(true)
                 .build();
-        return mapToResponse(categoriaRepository.save(categoria));
+
+        if (request.getPadreId() != null) {
+            Categoria padre = categoriaRepository.findById(request.getPadreId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoria padre no encontrada con id: " + request.getPadreId()));
+            categoria.setCategoriaPadre(padre);
+        }
+
+        Categoria savedCategoria = categoriaRepository.save(categoria);
+
+        if (request.getPadreId() == null && request.getSubcategorias() != null && !request.getSubcategorias().isEmpty()) {
+            for (String subName : request.getSubcategorias()) {
+                if (subName != null && !subName.trim().isEmpty()) {
+                    Categoria sub = Categoria.builder()
+                            .nombre(subName.trim())
+                            .estado(true)
+                            .categoriaPadre(savedCategoria)
+                            .build();
+                    categoriaRepository.save(sub);
+                }
+            }
+        }
+
+        return mapToResponse(savedCategoria);
     }
 
     @Transactional
@@ -49,6 +71,17 @@ public class CategoriaService {
         
         categoria.setNombre(request.getNombre());
         categoria.setDescripcion(request.getDescripcion());
+        
+        if (request.getPadreId() != null) {
+            if (request.getPadreId().equals(id)) {
+                throw new IllegalArgumentException("Una categoría no puede ser padre de sí misma");
+            }
+            Categoria padre = categoriaRepository.findById(request.getPadreId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoria padre no encontrada con id: " + request.getPadreId()));
+            categoria.setCategoriaPadre(padre);
+        } else {
+            categoria.setCategoriaPadre(null);
+        }
         
         return mapToResponse(categoriaRepository.save(categoria));
     }
@@ -67,6 +100,10 @@ public class CategoriaService {
         response.setNombre(categoria.getNombre());
         response.setDescripcion(categoria.getDescripcion());
         response.setEstado(categoria.getEstado());
+        if (categoria.getCategoriaPadre() != null) {
+            response.setPadreId(categoria.getCategoriaPadre().getId());
+            response.setPadreNombre(categoria.getCategoriaPadre().getNombre());
+        }
         return response;
     }
 }

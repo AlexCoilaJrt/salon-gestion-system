@@ -44,7 +44,13 @@ export class TurnosComponent implements OnInit {
 
   loadTurnos() {
     this.turnoService.getAll().subscribe({
-      next: (data) => this.turnos = data,
+      next: (data) => {
+        data.sort((a, b) => {
+          if (a.estado === b.estado) return (a.id || 0) - (b.id || 0);
+          return a.estado ? -1 : 1;
+        });
+        this.turnos = data;
+      },
       error: (err) => console.error(err)
     });
   }

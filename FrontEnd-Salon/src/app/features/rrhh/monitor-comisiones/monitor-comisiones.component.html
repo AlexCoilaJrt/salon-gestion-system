@@ -7,7 +7,10 @@
     <button pButton icon="pi pi-refresh" label="Actualizar" class="p-button-outlined" (click)="loadMonitor()"></button>
   </div>
 
-  <p-table [value]="monitores" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
+  <p-table [value]="monitores" [loading]="loading" responsiveLayout="scroll"
+           [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]"
+           [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} empleados"
+           styleClass="p-datatable-sm">
     <ng-template pTemplate="header">
       <tr>
         <th>Empleado</th>

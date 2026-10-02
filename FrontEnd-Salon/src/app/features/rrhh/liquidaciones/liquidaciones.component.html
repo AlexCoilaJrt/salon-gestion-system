@@ -19,7 +19,10 @@
   </div>
 
   <div class="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden" id="print-area">
-    <p-table [value]="liquidaciones" [loading]="loading" [rowHover]="true" styleClass="p-datatable-lg p-datatable-gridlines">
+    <p-table [value]="liquidaciones" [loading]="loading" [rowHover]="true"
+             [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]"
+             [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
+             styleClass="p-datatable-lg p-datatable-gridlines">
       <ng-template pTemplate="header">
         <tr>
           <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider">Empleado</th>

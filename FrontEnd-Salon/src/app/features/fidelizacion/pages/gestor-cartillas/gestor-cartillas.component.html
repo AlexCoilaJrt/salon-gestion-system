@@ -68,7 +68,7 @@
 
     <!-- TAB 2: Progreso Clientes -->
     @if (activeTab === 'progreso') {
-      <p-table [value]="progresoClientes" responsiveLayout="scroll" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" [globalFilterFields]="['clienteNombre', 'cartillaNombre', 'servicioRequerido']">
+      <p-table [value]="progresoClientes" responsiveLayout="scroll" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" [globalFilterFields]="['clienteNombre', 'cartillaNombre', 'servicioRequerido']">
         <ng-template pTemplate="header">
           <tr>
             <th>Cliente</th>

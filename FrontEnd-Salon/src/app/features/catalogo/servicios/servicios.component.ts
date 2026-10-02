@@ -11,7 +11,8 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { MessageService, ConfirmationService } from 'primeng/api';
+import { TreeSelectModule } from 'primeng/treeselect';
+import { MessageService, ConfirmationService, TreeNode } from 'primeng/api';
 import { CatalogoService, Servicio, Categoria, Producto } from '../services/catalogo.service';
 import { RrhhService, Especialidad } from '../../rrhh/services/rrhh.service';
 
@@ -21,7 +22,7 @@ import { RrhhService, Especialidad } from '../../rrhh/services/rrhh.service';
   imports: [
     CommonModule, FormsModule, TableModule, ButtonModule, DialogModule, 
     InputTextModule, InputNumberModule, DropdownModule, TagModule, 
-    ToastModule, ConfirmDialogModule, MultiSelectModule
+    ToastModule, ConfirmDialogModule, MultiSelectModule, TreeSelectModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './servicios.component.html'
@@ -34,12 +35,15 @@ export class ServiciosComponent implements OnInit {
 
   servicios: Servicio[] = [];
   categorias: Categoria[] = [];
+  categoriasTree: TreeNode[] = [];
+  categoriaSeleccionada: TreeNode | null = null;
   especialidades: Especialidad[] = [];
   insumosDisponibles: Producto[] = [];
   
   servicioDialog: boolean = false;
   servicio: Servicio = this.getEmptyServicio();
   isEdit: boolean = false;
+  submitted: boolean = false;
   loading: boolean = true;
 
   ngOnInit() {
@@ -48,17 +52,64 @@ export class ServiciosComponent implements OnInit {
 
   loadData() {
     this.loading = true;
-    this.catalogoService.getCategoriasActivas().subscribe(cats => this.categorias = cats);
+    this.catalogoService.getCategoriasActivas().subscribe(cats => {
+      this.categorias = cats;
+      this.buildCategoriasTree();
+    });
     this.rrhhService.getEspecialidades().subscribe(esps => this.especialidades = esps.filter(e => e.estado));
     this.catalogoService.getProductos().subscribe(prods => this.insumosDisponibles = prods.filter(p => p.estado && p.usoInterno));
     
     this.catalogoService.getServicios().subscribe({
       next: (data) => {
+        data.sort((a, b) => {
+          if (a.estado === b.estado) return (a.id || 0) - (b.id || 0);
+          return a.estado ? -1 : 1;
+        });
         this.servicios = data;
         this.loading = false;
       },
       error: () => this.loading = false
     });
+  }
+
+  buildCategoriasTree() {
+    const map = new Map<number, TreeNode>();
+    const roots: TreeNode[] = [];
+
+    this.categorias.forEach(cat => {
+      if (cat.id) {
+        map.set(cat.id, {
+          key: cat.id.toString(),
+          label: cat.nombre,
+          data: cat,
+          children: [],
+          expanded: true
+        });
+      }
+    });
+
+    this.categorias.forEach(cat => {
+      if (cat.id) {
+        const node = map.get(cat.id)!;
+        if (cat.padreId && map.has(cat.padreId)) {
+          map.get(cat.padreId)!.children!.push(node);
+        } else {
+          roots.push(node);
+        }
+      }
+    });
+    this.categoriasTree = roots;
+  }
+
+  findNodeByKey(nodes: TreeNode[], key: string): TreeNode | null {
+    for (let node of nodes) {
+      if (node.key === key) return node;
+      if (node.children) {
+        let child = this.findNodeByKey(node.children, key);
+        if (child) return child;
+      }
+    }
+    return null;
   }
 
   getEmptyServicio(): Servicio {
@@ -78,6 +129,8 @@ export class ServiciosComponent implements OnInit {
   openNew() {
     this.servicio = this.getEmptyServicio();
     this.isEdit = false;
+    this.submitted = false;
+    this.categoriaSeleccionada = null;
     this.servicioDialog = true;
   }
 
@@ -87,6 +140,8 @@ export class ServiciosComponent implements OnInit {
       insumosIds: serv.insumos?.map(i => i.id!) || []
     };
     this.isEdit = true;
+    this.submitted = false;
+    this.categoriaSeleccionada = serv.categoriaId ? this.findNodeByKey(this.categoriasTree, serv.categoriaId.toString()) : null;
     this.servicioDialog = true;
   }
 
@@ -128,7 +183,10 @@ export class ServiciosComponent implements OnInit {
   }
 
   saveServicio() {
-    if (this.servicio.nombre.trim() && this.servicio.precioBase > 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
+    this.submitted = true;
+    this.servicio.categoriaId = this.categoriaSeleccionada ? this.categoriaSeleccionada.data.id : 0;
+    
+    if (this.servicio.nombre.trim() && this.servicio.precioBase >= 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
       if (this.isEdit && this.servicio.id) {
         this.catalogoService.updateServicio(this.servicio.id, this.servicio).subscribe({
           next: () => {

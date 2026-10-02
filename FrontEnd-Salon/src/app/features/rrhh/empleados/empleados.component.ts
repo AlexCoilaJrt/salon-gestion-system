@@ -1,9 +1,11 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
@@ -20,8 +22,8 @@ import { DropdownModule } from 'primeng/dropdown';
   standalone: true,
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
-    TableModule, ButtonModule, InputTextModule, TagModule,
-    DialogModule, ToastModule, MultiSelectModule, CheckboxModule,
+    TableModule, ButtonModule, InputTextModule, IconFieldModule, InputIconModule,
+    TagModule, DialogModule, ToastModule, MultiSelectModule, CheckboxModule,
     KeyFilterModule, DropdownModule
   ],
   providers: [MessageService],
@@ -33,6 +35,10 @@ export class EmpleadosComponent implements OnInit {
   private fb = inject(FormBuilder);
 
   empleados: Empleado[] = [];
+  totalRecords: number = 0;
+  pageSize: number = 10;
+  searchTerm: string = '';
+  private searchTimeout: any;
   especialidades: Especialidad[] = [];
   turnos: Turno[] = [];
   private turnoService = inject(TurnoService);
@@ -65,11 +71,12 @@ export class EmpleadosComponent implements OnInit {
     this.loadEmpleados();
   }
 
-  loadEmpleados() {
+  loadEmpleados(page: number = 0, size: number = this.pageSize, search?: string) {
     this.loading = true;
-    this.rrhhService.getEmpleados().subscribe({
+    this.rrhhService.getEmpleadosPaginado(page, size, search).subscribe({
       next: (data) => {
-        this.empleados = data;
+        this.empleados = data.content;
+        this.totalRecords = data.totalElements;
         this.loading = false;
       },
       error: () => {
@@ -77,6 +84,19 @@ export class EmpleadosComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  onLazyLoad(event: TableLazyLoadEvent) {
+    const page = Math.floor((event.first ?? 0) / (event.rows ?? this.pageSize));
+    this.pageSize = event.rows ?? this.pageSize;
+    this.loadEmpleados(page, this.pageSize, this.searchTerm);
+  }
+
+  onSearchChange() {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.loadEmpleados(0, this.pageSize, this.searchTerm);
+    }, 400);
   }
 
   loadEspecialidades() {
@@ -164,7 +184,7 @@ export class EmpleadosComponent implements OnInit {
 
   private finishSave(msg: string) {
     this.displayDialog = false;
-    this.loadEmpleados();
+    this.loadEmpleados(0, this.pageSize, this.searchTerm);
     this.messageService.add({ severity: 'success', summary: 'Éxito', detail: msg });
   }
 

@@ -25,7 +25,7 @@
     </div>
   </div>
 
-  <p-table *ngIf="vistaActiva === 'detallado'" [value]="registros" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
+  <p-table *ngIf="vistaActiva === 'detallado'" [value]="registros" [loading]="loading" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-striped">
     <ng-template pTemplate="header">
       <tr>
         <th>Fecha</th>
@@ -63,7 +63,7 @@
   </p-table>
 
   <!-- Tabla Consolidado -->
-  <p-table *ngIf="vistaActiva === 'consolidado'" [value]="consolidado" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-gridlines mt-4">
+  <p-table *ngIf="vistaActiva === 'consolidado'" [value]="consolidado" [loading]="loading" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" responsiveLayout="scroll" styleClass="p-datatable-sm p-datatable-gridlines mt-4">
     <ng-template pTemplate="header">
       <tr>
         <th class="bg-gray-50 dark:bg-[#252525] uppercase text-xs">Empleado</th>

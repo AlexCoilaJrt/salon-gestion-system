@@ -53,6 +53,10 @@ export class EspecialidadesComponent implements OnInit {
     this.loading = true;
     this.rrhhService.getEspecialidades().subscribe({
       next: (data) => {
+        data.sort((a, b) => {
+          if (a.estado === b.estado) return (a.id || 0) - (b.id || 0);
+          return a.estado ? -1 : 1;
+        });
         this.especialidades = data;
         this.loading = false;
       },

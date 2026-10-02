@@ -8,4 +8,6 @@ public class CategoriaResponse {
     private String nombre;
     private String descripcion;
     private Boolean estado;
+    private Long padreId;
+    private String padreNombre;
 }

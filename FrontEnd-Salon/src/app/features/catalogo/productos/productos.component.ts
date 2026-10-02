@@ -58,6 +58,10 @@ export class ProductosComponent implements OnInit {
     
     this.catalogoService.getProductos().subscribe({
       next: (data) => {
+        data.sort((a, b) => {
+          if (a.estado === b.estado) return (a.id || 0) - (b.id || 0);
+          return a.estado ? -1 : 1;
+        });
         if (this.modoInsumos) {
           this.productos = data.filter(p => p.usoInterno === true);
         } else {

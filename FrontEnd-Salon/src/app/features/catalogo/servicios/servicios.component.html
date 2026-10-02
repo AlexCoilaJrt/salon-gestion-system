@@ -10,7 +10,10 @@
     <button pButton icon="pi pi-plus" label="Nuevo Servicio" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="openNew()"></button>
   </div>
 
-  <p-table [value]="servicios" [loading]="loading" responsiveLayout="scroll" [paginator]="true" [rows]="10" styleClass="p-datatable-sm">
+  <p-table [value]="servicios" [loading]="loading" responsiveLayout="scroll"
+           [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]"
+           [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} servicios"
+           styleClass="p-datatable-sm">
     <ng-template pTemplate="header">
       <tr>
         <th style="width: 80px" class="text-center">Imagen</th>
@@ -66,22 +69,26 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="field mb-4 col-span-1 md:col-span-2">
         <label for="nombre" class="font-semibold block mb-2 dark:text-gray-200">Nombre del Servicio *</label>
-        <input type="text" pInputText id="nombre" [(ngModel)]="servicio.nombre" required autofocus />
+        <input type="text" pInputText id="nombre" [(ngModel)]="servicio.nombre" required autofocus [ngClass]="{'ng-invalid ng-dirty': submitted && !servicio.nombre}" />
+        <small class="p-error block mt-1" *ngIf="submitted && !servicio.nombre">El nombre es requerido.</small>
       </div>
 
       <div class="field mb-4">
         <label for="categoria" class="font-semibold block mb-2 dark:text-gray-200">Categoría *</label>
-        <p-dropdown id="categoria" [options]="categorias" [(ngModel)]="servicio.categoriaId" optionLabel="nombre" optionValue="id" placeholder="Selecciona una categoría" appendTo="body"></p-dropdown>
+        <p-treeSelect id="categoria" [options]="categoriasTree" [(ngModel)]="categoriaSeleccionada" placeholder="Selecciona una categoría" appendTo="body" [style]="{'width':'100%'}" [ngClass]="{'ng-invalid ng-dirty': submitted && !categoriaSeleccionada}"></p-treeSelect>
+        <small class="p-error block mt-1" *ngIf="submitted && !categoriaSeleccionada">La categoría es requerida.</small>
       </div>
 
       <div class="field mb-4">
         <label for="especialidad" class="font-semibold block mb-2 dark:text-gray-200">Especialidad Requerida *</label>
-        <p-dropdown id="especialidad" [options]="especialidades" [(ngModel)]="servicio.especialidadRequeridaId" optionLabel="nombre" optionValue="id" placeholder="Selecciona una especialidad" appendTo="body"></p-dropdown>
+        <p-dropdown id="especialidad" [options]="especialidades" [(ngModel)]="servicio.especialidadRequeridaId" optionLabel="nombre" optionValue="id" placeholder="Selecciona una especialidad" appendTo="body" [ngClass]="{'ng-invalid ng-dirty': submitted && !servicio.especialidadRequeridaId}"></p-dropdown>
+        <small class="p-error block mt-1" *ngIf="submitted && !servicio.especialidadRequeridaId">La especialidad es requerida.</small>
       </div>
 
       <div class="field mb-4">
         <label for="precio" class="font-semibold block mb-2 dark:text-gray-200">Precio Base (S/) *</label>
-        <p-inputNumber id="precio" [(ngModel)]="servicio.precioBase" mode="currency" currency="PEN" locale="es-PE"></p-inputNumber>
+        <p-inputNumber id="precio" [(ngModel)]="servicio.precioBase" mode="currency" currency="PEN" locale="es-PE" [ngClass]="{'ng-invalid ng-dirty': submitted && servicio.precioBase === null}"></p-inputNumber>
+        <small class="p-error block mt-1" *ngIf="submitted && servicio.precioBase === null">El precio base es requerido.</small>
       </div>
 
       <div class="field mb-4">
@@ -145,6 +152,6 @@
 
   <ng-template pTemplate="footer">
     <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text" (click)="hideDialog()"></button>
-    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="saveServicio()" [disabled]="!servicio.nombre || !servicio.precioBase || !servicio.categoriaId || !servicio.especialidadRequeridaId"></button>
+    <button pButton label="Guardar" icon="pi pi-check" class="bg-[#bca028] hover:bg-[#9d841f] border-none" (click)="saveServicio()"></button>
   </ng-template>
 </p-dialog>

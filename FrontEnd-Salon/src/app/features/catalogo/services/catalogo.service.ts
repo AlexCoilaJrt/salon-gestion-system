@@ -7,6 +7,9 @@ export interface Categoria {
   nombre: string;
   descripcion?: string;
   estado?: boolean;
+  padreId?: number;
+  padreNombre?: string;
+  subcategorias?: string[];
 }
 
 export interface Servicio {
@@ -71,6 +74,10 @@ export class CatalogoService {
 
   deleteCategoria(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/categorias/${id}`);
+  }
+
+  getServiciosByCategoria(categoriaId: number): Observable<Servicio[]> {
+    return this.http.get<Servicio[]>(`${this.apiUrl}/servicios?categoriaId=${categoriaId}`);
   }
 
   // --- Servicios ---

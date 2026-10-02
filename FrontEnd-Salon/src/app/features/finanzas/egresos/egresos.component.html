@@ -10,7 +10,7 @@
   </div>
 
   <div class="flex-1 bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-    <p-table [value]="egresos" [loading]="loading" styleClass="p-datatable-lg" [paginator]="true" [rows]="10" responsiveLayout="scroll">
+    <p-table [value]="egresos" [loading]="loading" styleClass="p-datatable-lg" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" responsiveLayout="scroll">
       <ng-template pTemplate="header">
         <tr>
           <th>Fecha y Hora</th>

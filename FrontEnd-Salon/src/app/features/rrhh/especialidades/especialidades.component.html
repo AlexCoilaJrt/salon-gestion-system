@@ -7,7 +7,7 @@
     <button pButton icon="pi pi-plus" label="Nueva Especialidad" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none" (click)="openNew()"></button>
   </div>
 
-  <p-table [value]="especialidades" [loading]="loading" [paginator]="true" [rows]="10" responsiveLayout="scroll"
+  <p-table [value]="especialidades" [loading]="loading" [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]" responsiveLayout="scroll"
            styleClass="p-datatable-sm p-datatable-striped custom-table">
     <ng-template pTemplate="header">
       <tr>

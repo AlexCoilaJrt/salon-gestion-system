@@ -1,6 +1,10 @@
 package pe.com.salon.salongestionapi.rrhh.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pe.com.salon.salongestionapi.rrhh.dto.EmpleadoRequest;
 import pe.com.salon.salongestionapi.rrhh.dto.EmpleadoResponse;
@@ -8,6 +12,7 @@ import pe.com.salon.salongestionapi.rrhh.entity.Empleado;
 import pe.com.salon.salongestionapi.rrhh.entity.Especialidad;
 import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.rrhh.repository.EspecialidadRepository;
+import pe.com.salon.salongestionapi.shared.PageResponse;
 import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
 
 import java.util.List;
@@ -25,6 +30,29 @@ public class EmpleadoService {
         return empleadoRepository.findAll().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    public PageResponse<EmpleadoResponse> listarPaginado(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"));
+        // IMPORTANTE: pasar "" en lugar de null para evitar error lower(bytea) en PostgreSQL
+        String searchTerm = (search != null && !search.isBlank()) ? search.trim() : "";
+        Page<Empleado> resultado = empleadoRepository.buscarPaginado(searchTerm, pageable);
+        List<EmpleadoResponse> content = resultado.getContent().stream()
+                .map(this::mapToResponse)
+                .sorted((a, b) -> {
+                    if (a.getEstado() == null || b.getEstado() == null) return 0;
+                    if (a.getEstado().equals(b.getEstado())) return 0;
+                    return a.getEstado() ? -1 : 1;
+                })
+                .collect(Collectors.toList());
+        return PageResponse.<EmpleadoResponse>builder()
+                .content(content)
+                .pageNumber(resultado.getNumber())
+                .pageSize(resultado.getSize())
+                .totalElements(resultado.getTotalElements())
+                .totalPages(resultado.getTotalPages())
+                .isLast(resultado.isLast())
+                .build();
     }
 
     public EmpleadoResponse crearEmpleado(EmpleadoRequest request) {
