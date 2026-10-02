@@ -13,6 +13,8 @@ import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { AuthService } from '../../auth/services/auth.service';
 import { EmpresaService, EmpresaResponse } from '../../services/empresa.service';
 import { CatalogoService, Producto } from '../../../features/catalogo/services/catalogo.service';
+import { AgendaService, ClienteResponse } from '../../../features/operaciones/pages/agenda/agenda.service';
+import { RrhhService, Empleado } from '../../../features/rrhh/services/rrhh.service';
 
 @Component({
   selector: 'app-header',
@@ -26,11 +28,20 @@ export class HeaderComponent implements OnInit {
   private fb = inject(FormBuilder);
   private empresaService = inject(EmpresaService);
   private catalogoService = inject(CatalogoService);
+  private agendaService = inject(AgendaService);
+  private rrhhService = inject(RrhhService);
   
   currentUser = signal<any>(null);
   isDarkMode = signal<boolean>(false);
   profileMenuItems: MenuItem[] = [];
   alertasStock = signal<Producto[]>([]);
+
+  // Cumpleaños
+  cumpleanerosEmpleados = signal<any[]>([]);
+  
+  get totalCumpleanos() {
+    return this.cumpleanerosEmpleados().length;
+  }
 
   // Modals state
   displayPerfilModal = signal<boolean>(false);
@@ -71,6 +82,27 @@ export class HeaderComponent implements OnInit {
     ];
 
     this.cargarAlertasStock();
+    this.cargarCumpleanos();
+  }
+
+  cargarCumpleanos() {
+    const currentMonth = new Date().getMonth() + 1; // 1-12
+
+    this.rrhhService.getEmpleados().subscribe(empleados => {
+      const cumpleaneros = empleados.filter(e => {
+        if (!e.fechaNacimiento) return false;
+        // The date comes as YYYY-MM-DD from backend
+        const [year, month, day] = e.fechaNacimiento.toString().split('-');
+        return parseInt(month, 10) === currentMonth;
+      });
+      // Sort by day of month
+      cumpleaneros.sort((a, b) => {
+        const dayA = parseInt(a.fechaNacimiento!.toString().split('-')[2], 10);
+        const dayB = parseInt(b.fechaNacimiento!.toString().split('-')[2], 10);
+        return dayA - dayB;
+      });
+      this.cumpleanerosEmpleados.set(cumpleaneros);
+    });
   }
 
   cargarAlertasStock() {

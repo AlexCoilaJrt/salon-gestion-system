@@ -12,7 +12,8 @@ export const routes: Routes = [
     component: MainLayoutComponent,
     canActivate: [authGuard],
     children: [
-      { path: '', redirectTo: '/roles', pathMatch: 'full' },
+      { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
+      { path: 'dashboard', loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent) },
       { path: 'roles', component: RolesComponent },
       { path: 'usuarios', component: UsuariosComponent },
       { path: 'empleados', loadComponent: () => import('./features/rrhh/empleados/empleados.component').then(m => m.EmpleadosComponent) },

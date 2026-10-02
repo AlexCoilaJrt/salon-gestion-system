@@ -140,10 +140,37 @@ public class TicketService {
             cliente.setFechaUltimaVisita(LocalDate.now());
             clienteRepository.save(cliente);
 
-            // Procesar Cartillas de Fidelización (Sellos automáticos)
-            for (TicketDetalle d : guardado.getDetalles()) {
-                if (d.getServicio() != null) {
-                    fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
+            // Procesar Cartillas de Fidelización (Sellos automáticos): Máximo 1 sello por ticket
+            // Si el cliente eligió a qué servicio aplicarlo, usamos ese. Si no, tomamos el más caro por defecto.
+            Long servicioPrioridadId = request.getServicioSelloId();
+
+            List<TicketDetalle> detallesFiltrados = guardado.getDetalles().stream()
+                .filter(d -> d.getServicio() != null)
+                .collect(Collectors.toList());
+
+            if (servicioPrioridadId != null) {
+                // Poner el servicio elegido por el cliente de primero en la lista
+                detallesFiltrados.sort((d1, d2) -> {
+                    if (d1.getServicio().getId().equals(servicioPrioridadId)) return -1;
+                    if (d2.getServicio().getId().equals(servicioPrioridadId)) return 1;
+                    return d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()); // Fallback: ordenar por precio
+                });
+            } else {
+                // Si no eligió nada, simplemente ordenar por el más caro
+                detallesFiltrados.sort((d1, d2) -> d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()));
+            }
+
+            for (TicketDetalle d : detallesFiltrados) {
+                boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
+                if (selloAgregado) {
+                    break; // Solo otorgamos 1 sello por visita/ticket
+                }
+            }
+
+            // Procesar canje de premios en bloque (al confirmar el ticket)
+            if (request.getPremiosFidelizacionIds() != null && !request.getPremiosFidelizacionIds().isEmpty()) {
+                for (Long cartillaId : request.getPremiosFidelizacionIds()) {
+                    fidelizacionService.canjearPremio(cliente.getId(), cartillaId);
                 }
             }
         }

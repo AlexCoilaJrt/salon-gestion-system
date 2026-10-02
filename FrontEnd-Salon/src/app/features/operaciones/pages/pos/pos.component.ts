@@ -7,6 +7,8 @@ import { DialogModule } from 'primeng/dialog';
 import { DropdownModule } from 'primeng/dropdown';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { SelectButtonModule } from 'primeng/selectbutton';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { CatalogoService, Servicio, Producto } from '../../../catalogo/services/catalogo.service';
 import { TicketService, TicketResponse } from '../../../finanzas/services/ticket.service';
 import { RrhhService, Empleado } from '../../../rrhh/services/rrhh.service';
@@ -37,7 +39,7 @@ interface CartItem {
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule, DialogModule, DropdownModule, OverlayPanelModule, SelectButtonModule],
+  imports: [CommonModule, FormsModule, ToastModule, DialogModule, DropdownModule, OverlayPanelModule, SelectButtonModule, ButtonModule, InputTextModule],
   providers: [MessageService],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss'
@@ -105,6 +107,11 @@ export class PosComponent implements OnInit {
   selectedMetodoPago = signal<string>('EFECTIVO');
 
   premiosDisponibles = signal<ClienteCartillaDTO[]>([]);
+  premiosAplicados = signal<number[]>([]);
+
+  // Registro Rápido de Cliente
+  showNuevoClienteDialog = signal(false);
+  nuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '' };
 
   ngOnInit() {
     this.loadData();
@@ -233,9 +240,33 @@ export class PosComponent implements OnInit {
     this.cart.update(current => current.filter(c => c.id !== cartItem.id));
   }
 
+  servicioSelloId = signal<number | null>(null);
+  
+  serviciosEnTicket = computed(() => {
+    // Unique services in the cart
+    const map = new Map<number, any>();
+    for (const c of this.cart()) {
+      if (c.item.tipo === 'SERVICIO' && !c.id.startsWith('PREMIO')) {
+        map.set(c.item.id, c.item);
+      }
+    }
+    return Array.from(map.values());
+  });
+
+  servicioMasCaro = computed(() => {
+    const servicios = this.serviciosEnTicket();
+    if (servicios.length === 0) return null;
+    return servicios.reduce((prev, current) => (prev.precio > current.precio) ? prev : current);
+  });
+
   cobrarVenta() {
     if (this.cart().length === 0) {
       this.messageService.add({ severity: 'warn', summary: 'Carrito Vacío', detail: 'Agrega al menos un item para cobrar.' });
+      return;
+    }
+
+    if (this.selectedCliente() && this.serviciosEnTicket().length > 1 && !this.servicioSelloId()) {
+      this.messageService.add({ severity: 'warn', summary: 'Sello Requerido', detail: 'Por favor pregúntele al cliente y seleccione a qué servicio desea aplicar el sello de fidelización.' });
       return;
     }
 
@@ -246,11 +277,13 @@ export class PosComponent implements OnInit {
       clienteId: this.selectedCliente() ? this.selectedCliente()!.id : null,
       nombreClienteNoRegistrado: this.selectedCliente() ? this.selectedCliente()!.nombreCompleto : 'Público General',
       detalles: this.cart().map(c => ({
-        servicioId: c.item.tipo === 'SERVICIO' ? c.item.id : null,
+        servicioId: c.item.tipo === 'SERVICIO' && !c.id.startsWith('PREMIO') ? c.item.id : null,
         productoId: c.item.tipo === 'PRODUCTO' ? c.item.id : null,
         empleadoId: c.empleadoId,
         cantidad: c.cantidad
-      }))
+      })),
+      servicioSelloId: this.servicioSelloId() || undefined,
+      premiosFidelizacionIds: this.premiosAplicados()
     };
 
     this.ticketService.emitirTicket(request).subscribe({
@@ -261,6 +294,8 @@ export class PosComponent implements OnInit {
         this.cart.set([]);
         this.selectedCliente.set(null);
         this.selectedMetodoPago.set('EFECTIVO');
+        this.servicioSelloId.set(null);
+        this.premiosAplicados.set([]);
         this.isProcessing.set(false);
         this.loadData(); // Recargar para actualizar stock
       },
@@ -280,6 +315,7 @@ export class PosComponent implements OnInit {
   onClienteSelected(cliente: ClienteResponse | null) {
     this.selectedCliente.set(cliente);
     this.premiosDisponibles.set([]);
+    this.premiosAplicados.set([]);
     
     if (cliente) {
       this.fidelizacionService.listarPremiosDisponibles(cliente.id).subscribe(res => {
@@ -289,6 +325,35 @@ export class PosComponent implements OnInit {
         }
       });
     }
+  }
+
+  abrirNuevoClienteDialog() {
+    this.nuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '' };
+    this.showNuevoClienteDialog.set(true);
+  }
+
+  guardarNuevoCliente() {
+    if (!this.nuevoCliente.nombres || !this.nuevoCliente.apellidos) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Nombres y apellidos son obligatorios' });
+      return;
+    }
+
+    this.isProcessing.set(true);
+    this.agendaService.crearCliente(this.nuevoCliente).subscribe({
+      next: (res) => {
+        // Añadir a la lista local y seleccionarlo
+        this.clientes.update(current => [...current, res]);
+        this.onClienteSelected(res);
+        
+        this.messageService.add({ severity: 'success', summary: 'Éxito', detail: 'Cliente registrado correctamente' });
+        this.showNuevoClienteDialog.set(false);
+        this.isProcessing.set(false);
+      },
+      error: (err) => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo registrar el cliente' });
+        this.isProcessing.set(false);
+      }
+    });
   }
 
   aplicarPremio(premio: ClienteCartillaDTO) {
@@ -325,13 +390,11 @@ export class PosComponent implements OnInit {
       }];
     });
 
-    // Lo marcamos en el backend como canjeado
-    this.fidelizacionService.canjearPremio(this.selectedCliente()!.id, premio.cartillaId).subscribe({
-      next: () => {
-        this.messageService.add({ severity: 'success', summary: 'Premio Aplicado', detail: `Se aplicó ${premio.descuentoPremio}% Dscto.` });
-        this.premiosDisponibles.update(current => current.filter(p => p.id !== premio.id));
-      }
-    });
+    // Guardar el cartillaId para enviarlo en la venta
+    this.premiosAplicados.update(current => [...current, premio.cartillaId]);
+    
+    this.messageService.add({ severity: 'success', summary: 'Premio Aplicado en Carrito', detail: `Se aplicó ${premio.descuentoPremio}% Dscto. Se guardará al cobrar.` });
+    this.premiosDisponibles.update(current => current.filter(p => p.id !== premio.id));
   }
 
   imprimirTicket() {

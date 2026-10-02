@@ -45,4 +45,9 @@ public class FidelizacionController {
         fidelizacionService.canjearPremio(clienteId, cartillaId);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/clientes/progreso")
+    public ResponseEntity<List<ClienteCartillaDTO>> listarProgresoTodosLosClientes() {
+        return ResponseEntity.ok(fidelizacionService.listarTodasCartillasClientes());
+    }
 }

@@ -53,6 +53,12 @@ export class SidebarComponent implements OnInit {
   // Menú dinámico basado en Permisos
   menuCategories: MenuCategory[] = [
     {
+      title: 'INICIO',
+      items: [
+        { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' }
+      ]
+    },
+    {
       title: 'OPERACIONES',
       items: [
         { label: 'Agenda y Citas', icon: 'pi pi-calendar', route: '/agenda', requiredPermissions: ['VER_AGENDA_Y_CITAS'] },

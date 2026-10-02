@@ -249,6 +249,7 @@ export class CajaComponent implements OnInit {
     this.metodoPago = 'Efectivo';
     this.referenciaPago = '';
     this.nombreCliente = '';
+    this.servicioSelloId = null;
     this.cobroDialog = true;
   }
 
@@ -266,6 +267,12 @@ export class CajaComponent implements OnInit {
     if (!this.ticketGenerado?.id) return '000001';
     return this.ticketGenerado.id.toString().padStart(6, '0');
   }
+
+  get serviciosEnTicket() {
+    return this.ticket.filter(t => t.tipo === 'servicio');
+  }
+  
+  servicioSelloId: number | null = null;
 
   confirmarCobro() {
     if (this.metodoPago === 'Efectivo' && this.montoRecibido < this.totalTicket) {
@@ -295,7 +302,8 @@ export class CajaComponent implements OnInit {
     const request = {
       metodoPago: this.metodoPago.toUpperCase(),
       nombreClienteNoRegistrado: this.nombreCliente || 'Público General',
-      detalles: detallesRequest
+      detalles: detallesRequest,
+      servicioSelloId: this.servicioSelloId || undefined
     };
 
     this.cajaService.emitirTicket(request).subscribe({

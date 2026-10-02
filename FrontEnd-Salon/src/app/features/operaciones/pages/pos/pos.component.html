@@ -131,7 +131,12 @@
     
     <p-overlayPanel #opClientes styleClass="w-80 p-3 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800">
       <ng-template pTemplate="content">
-        <h4 class="font-bold text-sm mb-3">Seleccionar Cliente</h4>
+        <div class="flex justify-between items-center mb-3">
+          <h4 class="font-bold text-sm">Seleccionar Cliente</h4>
+          <button (click)="abrirNuevoClienteDialog(); opClientes.hide()" class="text-xs font-bold text-[#bca028] hover:text-[#9d841f] transition-colors flex items-center gap-1">
+            <i class="pi pi-plus text-[10px]"></i> Nuevo
+          </button>
+        </div>
         <p-dropdown [options]="clientes()" [ngModel]="selectedCliente()" (ngModelChange)="onClienteSelected($event); opClientes.hide()" optionLabel="nombreCompleto" [filter]="true" filterBy="nombreCompleto" [showClear]="true" placeholder="Público General" styleClass="w-full" panelStyleClass="text-sm">
         </p-dropdown>
       </ng-template>
@@ -155,6 +160,32 @@
             </button>
           </div>
         }
+      </div>
+    }
+
+    <!-- Selector de Sello de Fidelización -->
+    @if (selectedCliente() && serviciosEnTicket().length > 1) {
+      <div class="bg-[#fcfbf4] border border-yellow-400 dark:bg-[#252525] dark:border-yellow-700 rounded-2xl p-3 mb-5 shadow-sm">
+        <label class="font-bold block mb-1 text-xs text-yellow-700 dark:text-yellow-500">
+          <i class="pi pi-exclamation-circle"></i> Acción Requerida: Sello de Fidelización
+        </label>
+        <p-dropdown 
+          [options]="serviciosEnTicket()" 
+          [ngModel]="servicioSelloId()" 
+          (ngModelChange)="servicioSelloId.set($event)"
+          optionLabel="nombre" 
+          optionValue="id" 
+          placeholder="Seleccione el servicio a sellar..." 
+          [showClear]="false"
+          styleClass="w-full text-xs border-yellow-300" panelStyleClass="text-xs">
+          <ng-template pTemplate="selectedItem" let-selectedOption>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-star-fill text-[#bca028] text-xs"></i>
+              <div>{{selectedOption.nombre}}</div>
+            </div>
+          </ng-template>
+        </p-dropdown>
+        <div class="text-[10px] text-gray-500 mt-1 leading-tight">Obligatorio: Pregúntele al cliente en qué cartilla desea acumular su sello hoy.</div>
       </div>
     }
 
@@ -246,6 +277,32 @@
 
   </div>
 </div>
+
+<!-- Dialog: Nuevo Cliente (Registro Rápido) -->
+<p-dialog [(visible)]="showNuevoClienteDialog" [modal]="true" [style]="{width: '400px'}" header="Registrar Nuevo Cliente" [draggable]="false" [resizable]="false">
+  <div class="flex flex-col gap-4 mt-2">
+    <div>
+      <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Nombres <span class="text-red-500">*</span></label>
+      <input type="text" pInputText [(ngModel)]="nuevoCliente.nombres" class="w-full text-sm" placeholder="Ej: Maria">
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Apellidos <span class="text-red-500">*</span></label>
+      <input type="text" pInputText [(ngModel)]="nuevoCliente.apellidos" class="w-full text-sm" placeholder="Ej: Gomez">
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Teléfono (Opcional)</label>
+      <input type="text" pInputText [(ngModel)]="nuevoCliente.telefono" class="w-full text-sm" placeholder="Ej: 999 888 777">
+    </div>
+    <div>
+      <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Email (Opcional)</label>
+      <input type="email" pInputText [(ngModel)]="nuevoCliente.email" class="w-full text-sm" placeholder="Ej: maria@email.com">
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <button pButton label="Cancelar" class="p-button-text text-sm" (click)="showNuevoClienteDialog.set(false)"></button>
+    <button pButton label="Guardar y Seleccionar" class="bg-[#bca028] border-none text-sm" [loading]="isProcessing()" (click)="guardarNuevoCliente()"></button>
+  </ng-template>
+</p-dialog>
 
 <!-- Ticket Modal (Receipt) -->
 <p-dialog [(visible)]="showTicketModal" [modal]="true" [closable]="false" [style]="{width: '420px'}" styleClass="ticket-dialog border-none" [draggable]="false" [resizable]="false">

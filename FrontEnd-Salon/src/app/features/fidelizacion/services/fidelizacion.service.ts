@@ -55,4 +55,8 @@ export class FidelizacionService {
   canjearPremio(clienteId: number, cartillaId: number): Observable<void> {
     return this.http.post<void>(`${this.API_URL}/clientes/${clienteId}/canjear/${cartillaId}`, {});
   }
+
+  listarProgresoTodosLosClientes(): Observable<ClienteCartillaDTO[]> {
+    return this.http.get<ClienteCartillaDTO[]>(`${this.API_URL}/clientes/progreso`);
+  }
 }

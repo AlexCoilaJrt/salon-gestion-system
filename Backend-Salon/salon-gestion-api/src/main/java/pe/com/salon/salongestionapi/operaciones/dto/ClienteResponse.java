@@ -9,5 +9,6 @@ public class ClienteResponse {
     private String apellidos;
     private String telefono;
     private String email;
+    private java.time.LocalDate fechaNacimiento;
     private Boolean estado;
 }

@@ -55,12 +55,12 @@ public class FidelizacionServiceImpl implements FidelizacionService {
 
     @Override
     @Transactional
-    public void procesarPagoServicio(Long clienteId, Long servicioId) {
-        if (clienteId == null || servicioId == null) return;
+    public boolean procesarPagoServicio(Long clienteId, Long servicioId) {
+        if (clienteId == null || servicioId == null) return false;
 
         // Check if there is an active loyalty program for this service
         CartillaFidelizacion cartillaActiva = cartillaRepository.findByServicioIdAndEstadoTrue(servicioId);
-        if (cartillaActiva == null) return;
+        if (cartillaActiva == null) return false;
 
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
@@ -85,12 +85,21 @@ public class FidelizacionServiceImpl implements FidelizacionService {
                 progress.setCompletada(true);
             }
             clienteCartillaRepository.save(progress);
+            return true;
         }
+        return false;
     }
 
     @Override
     public List<ClienteCartillaDTO> listarCartillasPorCliente(Long clienteId) {
         return clienteCartillaRepository.findByClienteId(clienteId).stream()
+                .map(this::mapToClienteCartillaDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ClienteCartillaDTO> listarTodasCartillasClientes() {
+        return clienteCartillaRepository.findAll().stream()
                 .map(this::mapToClienteCartillaDTO)
                 .collect(Collectors.toList());
     }

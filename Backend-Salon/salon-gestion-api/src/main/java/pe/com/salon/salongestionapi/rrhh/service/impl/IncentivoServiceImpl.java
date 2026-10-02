@@ -17,6 +17,7 @@ import pe.com.salon.salongestionapi.rrhh.repository.ComisionRepository;
 import pe.com.salon.salongestionapi.rrhh.service.IncentivoService;
 import pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse;
 import pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse.IncentivoAplicado;
+import pe.com.salon.salongestionapi.operaciones.entity.TicketDetalle;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -176,8 +177,11 @@ public class IncentivoServiceImpl implements IncentivoService {
             BigDecimal ventasHoy = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioDia, finDia);
             response.setVentasHoy(ventasHoy != null ? ventasHoy : BigDecimal.ZERO);
             
-            BigDecimal comisionPorcentualGanada = response.getVentasHoy().multiply(totalPorc).divide(new BigDecimal("100"));
-            BigDecimal comisionGanadaTotal = comisionPorcentualGanada.add(totalMonto);
+            List<TicketDetalle> detallesHoy = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioDia, finDia);
+            long cantidadServiciosHoy = detallesHoy.size();
+
+            BigDecimal comisionPorcentualGanada = response.getVentasHoy().multiply(totalPorc).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
+            BigDecimal comisionGanadaTotal = comisionPorcentualGanada.add(totalMonto.multiply(new BigDecimal(cantidadServiciosHoy)));
             response.setComisionesGanadasHoy(comisionGanadaTotal);
             
             monitorList.add(response);
@@ -207,6 +211,9 @@ public class IncentivoServiceImpl implements IncentivoService {
             BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
             response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
 
+            List<TicketDetalle> detalles = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioPeriodo, finPeriodo);
+            long cantidadServicios = detalles.size();
+
             // Comision (usando comision base para reporte histórico)
             BigDecimal basePorc = BigDecimal.ZERO;
             BigDecimal baseMonto = BigDecimal.ZERO;
@@ -221,7 +228,8 @@ public class IncentivoServiceImpl implements IncentivoService {
                 }
             }
 
-            BigDecimal comisionTotal = response.getTotalVentas().multiply(basePorc).divide(new BigDecimal("100")).add(baseMonto);
+            BigDecimal comisionMontoFijoTotal = baseMonto.multiply(new BigDecimal(cantidadServicios));
+            BigDecimal comisionTotal = response.getTotalVentas().multiply(basePorc).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP).add(comisionMontoFijoTotal);
             response.setTotalComision(comisionTotal);
 
             // TODO: Sumar descuentos y adelantos de egresos si aplica. Por ahora 0.

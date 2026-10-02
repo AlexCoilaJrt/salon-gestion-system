@@ -10,75 +10,223 @@
     <button pButton icon="pi pi-plus" label="Nueva Cartilla" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none shadow-md" (click)="openNew()"></button>
   </div>
 
+  <!-- TABS -->
+  <div class="flex gap-6 mb-6 border-b border-gray-200 dark:border-gray-800">
+    <button class="pb-3 font-bold px-1 transition-colors border-b-2 text-sm focus:outline-none" 
+            [ngClass]="activeTab === 'plantillas' ? 'text-[#bca028] border-[#bca028]' : 'text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+            (click)="activeTab = 'plantillas'">
+      <i class="pi pi-th-large mr-2 text-xs"></i>Programas Activos
+    </button>
+    <button class="pb-3 font-bold px-1 transition-colors border-b-2 text-sm focus:outline-none" 
+            [ngClass]="activeTab === 'progreso' ? 'text-[#bca028] border-[#bca028]' : 'text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+            (click)="activeTab = 'progreso'">
+      <i class="pi pi-users mr-2 text-xs"></i>Progreso de Clientes
+    </button>
+  </div>
+
   <div class="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
-    <p-table [value]="cartillas" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
-      <ng-template pTemplate="header">
-        <tr>
-          <th>Nombre del Programa</th>
-          <th>Servicio Asociado</th>
-          <th class="text-center">Meta (Sellos)</th>
-          <th class="text-center">Premio</th>
-          <th class="text-center">Estado</th>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="body" let-cartilla>
-        <tr>
-          <td class="font-bold text-gray-800 dark:text-gray-200">{{cartilla.nombre}}</td>
-          <td class="text-gray-600 dark:text-gray-400">
-            <i class="pi pi-briefcase mr-2 text-blue-500"></i>{{cartilla.servicioNombre}}
-          </td>
-          <td class="text-center font-bold text-indigo-600 dark:text-indigo-400">
-            {{cartilla.metaSellos}} Visitas
-          </td>
-          <td class="text-center font-bold text-emerald-600 dark:text-emerald-400">
-            {{cartilla.descuentoPremio}}% Dscto
-          </td>
-          <td class="text-center">
-            <p-tag [severity]="cartilla.estado ? 'success' : 'danger'" [value]="cartilla.estado ? 'ACTIVO' : 'INACTIVO'"></p-tag>
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template pTemplate="emptymessage">
-        <tr>
-          <td colspan="5" class="text-center p-8 text-gray-500">
-            <i class="pi pi-id-card text-4xl mb-4 text-gray-400"></i>
-            <p>No hay cartillas configuradas aún.</p>
-          </td>
-        </tr>
-      </ng-template>
-    </p-table>
+    
+    <!-- TAB 1: Plantillas -->
+    @if (activeTab === 'plantillas') {
+      <p-table [value]="cartillas" [loading]="loading" responsiveLayout="scroll" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Nombre del Programa</th>
+            <th>Servicio Asociado</th>
+            <th class="text-center">Meta (Sellos)</th>
+            <th class="text-center">Premio</th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-cartilla>
+          <tr>
+            <td class="font-bold text-gray-800 dark:text-gray-200">{{cartilla.nombre}}</td>
+            <td class="text-gray-600 dark:text-gray-400">
+              <i class="pi pi-briefcase mr-2 text-blue-500"></i>{{cartilla.servicioNombre}}
+            </td>
+            <td class="text-center font-bold text-indigo-600 dark:text-indigo-400">
+              {{cartilla.metaSellos}} Visitas
+            </td>
+            <td class="text-center font-bold text-emerald-600 dark:text-emerald-400">
+              {{cartilla.descuentoPremio}}% Dscto
+            </td>
+            <td class="text-center">
+              <p-tag [severity]="cartilla.estado ? 'success' : 'danger'" [value]="cartilla.estado ? 'ACTIVO' : 'INACTIVO'"></p-tag>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="5" class="text-center p-8 text-gray-500">
+              <i class="pi pi-id-card text-4xl mb-4 text-gray-400"></i>
+              <p>No hay cartillas configuradas aún.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+
+    <!-- TAB 2: Progreso Clientes -->
+    @if (activeTab === 'progreso') {
+      <p-table [value]="progresoClientes" responsiveLayout="scroll" styleClass="p-datatable-sm" [paginator]="true" [rows]="10" [globalFilterFields]="['clienteNombre', 'cartillaNombre', 'servicioRequerido']">
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Cliente</th>
+            <th>Programa</th>
+            <th>Servicio</th>
+            <th class="text-center">Progreso</th>
+            <th class="text-center">Estado</th>
+            <th>Última Visita</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-progreso>
+          <tr>
+            <td class="font-bold text-gray-800 dark:text-gray-200">
+              <i class="pi pi-user mr-2 text-gray-400"></i>{{progreso.clienteNombre}}
+            </td>
+            <td class="text-gray-600 dark:text-gray-400">{{progreso.cartillaNombre}}</td>
+            <td class="text-gray-600 dark:text-gray-400">{{progreso.servicioRequerido}}</td>
+            <td class="text-center">
+              <div class="flex items-center justify-center gap-2">
+                <div class="font-bold" [ngClass]="progreso.completada ? 'text-emerald-500' : 'text-[#bca028]'">
+                  {{progreso.sellosActuales}} / {{progreso.metaSellos}}
+                </div>
+                <div class="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" 
+                       [ngClass]="progreso.completada ? 'bg-emerald-500' : 'bg-[#bca028]'"
+                       [style.width.%]="(progreso.sellosActuales / progreso.metaSellos) * 100">
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td class="text-center">
+              @if (progreso.canjeada) {
+                <p-tag severity="secondary" value="CANJEADO"></p-tag>
+              } @else if (progreso.completada) {
+                <p-tag severity="success" value="PREMIO LISTO"></p-tag>
+              } @else {
+                <p-tag severity="info" value="EN PROGRESO"></p-tag>
+              }
+            </td>
+            <td class="text-sm text-gray-500">{{progreso.fechaUltimaActualizacion | date:'dd/MM/yyyy HH:mm'}}</td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="6" class="text-center p-8 text-gray-500">
+              <i class="pi pi-users text-4xl mb-4 text-gray-400"></i>
+              <p>No hay sellos registrados para ningún cliente aún.</p>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
   </div>
 </div>
 
 <!-- Modal Nueva Cartilla -->
-<p-dialog [(visible)]="displayModal" [modal]="true" [style]="{width: '450px'}" header="Crear Nueva Cartilla" styleClass="p-fluid dark:bg-[#1e1e1e]">
-  <div class="flex flex-col gap-4 mt-4">
+<p-dialog [(visible)]="displayModal" [modal]="true" [style]="{width: '750px'}" header="Configurar Fidelización" styleClass="p-fluid dark:bg-[#1e1e1e]">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
     
-    <div class="field">
-      <label class="font-bold text-gray-700 dark:text-gray-300">Nombre del Programa</label>
-      <input type="text" pInputText [(ngModel)]="nuevaCartilla.nombre" placeholder="Ej: Facial 5+1 Gratis" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]" />
+    <!-- Columna 1: Formulario -->
+    <div class="flex flex-col gap-4">
+      
+      <!-- Switch Aplicar a Todos -->
+      <div class="flex items-center justify-between bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-xl border border-yellow-200 dark:border-yellow-700/50">
+        <div>
+          <h5 class="font-bold text-sm text-yellow-800 dark:text-yellow-500 m-0">Universal</h5>
+          <span class="text-[10px] text-yellow-600 dark:text-yellow-400">Crear cartilla para TODOS los servicios</span>
+        </div>
+        <div class="field-checkbox mb-0">
+          <input type="checkbox" id="aplicarATodos" [(ngModel)]="aplicarATodos" class="w-5 h-5 accent-[#bca028]">
+        </div>
+      </div>
+
+      <!-- Nombre del programa y servicio (Solo si NO es universal) -->
+      @if (!aplicarATodos) {
+        <div class="field">
+          <label class="font-bold text-gray-700 dark:text-gray-300">Nombre del Programa</label>
+          <input type="text" pInputText [(ngModel)]="nuevaCartilla.nombre" placeholder="Ej: Facial 5+1 Gratis" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]" />
+        </div>
+
+        <div class="field">
+          <label class="font-bold text-gray-700 dark:text-gray-300">Servicio Asociado</label>
+          <p-dropdown [options]="servicios" [(ngModel)]="nuevaCartilla.servicioId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un servicio" [filter]="true" filterBy="nombre" styleClass="w-full mt-1 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]"></p-dropdown>
+        </div>
+      }
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="field">
+          <label class="font-bold text-gray-700 dark:text-gray-300">Meta (Visitas)</label>
+          <input type="number" pInputText [(ngModel)]="nuevaCartilla.metaSellos" min="1" max="20" class="w-full mt-1 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]" />
+        </div>
+        <div class="field">
+          <label class="font-bold text-gray-700 dark:text-gray-300">Premio (% Dscto)</label>
+          <div class="relative w-full mt-1">
+            <input type="number" pInputText [(ngModel)]="nuevaCartilla.descuentoPremio" min="1" max="100" class="w-full p-3 pr-8 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]" />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold">%</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="field">
-      <label class="font-bold text-gray-700 dark:text-gray-300">Servicio Asociado</label>
-      <p-dropdown [options]="servicios" [(ngModel)]="nuevaCartilla.servicioId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un servicio" [filter]="true" filterBy="nombre" styleClass="w-full mt-1 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d]"></p-dropdown>
-    </div>
+    <!-- Columna 2: Plantilla Visual de la Cartilla -->
+    <div id="cartilla-preview" class="flex flex-col bg-white dark:bg-[#1a1d24] rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden">
+      <!-- Decoración de fondo premium -->
+      <div class="absolute -right-8 -top-8 w-24 h-24 bg-[#bca028]/10 rounded-full blur-xl pointer-events-none"></div>
+      
+      <div class="relative z-10 flex flex-col h-full">
+        <!-- Cabecera de la Cartilla -->
+        <div class="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4 mb-4">
+          <div class="w-12 h-12 rounded-xl bg-gray-50 dark:bg-gray-800 flex items-center justify-center shadow-sm overflow-hidden shrink-0 border border-gray-100 dark:border-gray-600">
+            <img *ngIf="empresaData?.logoUrl" [src]="empresaData?.logoUrl" class="w-full h-full object-cover">
+            <i *ngIf="!empresaData?.logoUrl" class="pi pi-sparkles text-[#bca028] text-xl"></i>
+          </div>
+          <div class="flex-1 overflow-hidden">
+            <h5 class="font-bold text-gray-800 dark:text-white leading-tight m-0 text-sm truncate">{{ empresaData?.nombreComercial || 'Mi Salón VIP' }}</h5>
+            <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold block mt-0.5 truncate">
+              {{ nuevaCartilla.nombre || 'Nombre del Programa' }}
+            </span>
+          </div>
+        </div>
+        
+        <!-- Instrucciones -->
+        <p class="text-xs text-gray-600 dark:text-gray-400 mb-5 text-center leading-relaxed">
+          Completa <span class="font-bold text-[#bca028]">{{nuevaCartilla.metaSellos || 5}} sellos</span> de 
+          <span class="font-bold text-gray-800 dark:text-gray-300">{{ servicioSeleccionadoNombre }}</span> y obtén 
+          <span class="font-bold text-[#bca028]">{{nuevaCartilla.descuentoPremio || 100}}%</span> de dscto en tu próxima visita.
+        </p>
 
-    <div class="grid grid-cols-2 gap-4">
-      <div class="field">
-        <label class="font-bold text-gray-700 dark:text-gray-300">Meta (Visitas)</label>
-        <p-inputNumber [(ngModel)]="nuevaCartilla.metaSellos" [min]="1" [max]="50" [showButtons]="true" styleClass="w-full mt-1"></p-inputNumber>
-      </div>
-      <div class="field">
-        <label class="font-bold text-gray-700 dark:text-gray-300">Premio (% Dscto)</label>
-        <p-inputNumber [(ngModel)]="nuevaCartilla.descuentoPremio" [min]="1" [max]="100" suffix="%" styleClass="w-full mt-1"></p-inputNumber>
+        <!-- Cuadrícula de Sellos -->
+        <div class="flex flex-wrap gap-2 justify-center mt-auto">
+          <div *ngFor="let s of sellosArray; let i = index" 
+               class="w-10 h-10 rounded-full border-2 border-dashed border-gray-200 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 relative transition-transform hover:scale-110">
+            
+            <!-- Sello final (Premio) -->
+            <ng-container *ngIf="i === sellosArray.length - 1; else emptyStamp">
+              <div class="absolute inset-0 bg-[#bca028]/10 rounded-full flex items-center justify-center">
+                <i class="pi pi-gift text-[#bca028] text-lg drop-shadow-sm"></i>
+              </div>
+            </ng-container>
+
+            <!-- Sello regular -->
+            <ng-template #emptyStamp>
+              <span class="text-[10px] font-bold text-gray-300 dark:text-gray-500">{{i + 1}}</span>
+            </ng-template>
+
+          </div>
+        </div>
       </div>
     </div>
-    
   </div>
 
   <ng-template pTemplate="footer">
-    <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text text-gray-500" (click)="displayModal=false"></button>
-    <button pButton label="Guardar" icon="pi pi-check" class="p-button-primary bg-[#bca028] border-none" (click)="guardarCartilla()"></button>
+    <div class="border-t border-gray-100 dark:border-gray-800 pt-4 mt-2 flex justify-between">
+      <button pButton label="Imprimir Plantilla" icon="pi pi-print" class="p-button-outlined p-button-secondary bg-white dark:bg-transparent" (click)="imprimirPlantilla()"></button>
+      <div>
+        <button pButton label="Cancelar" icon="pi pi-times" class="p-button-text text-gray-500" (click)="displayModal=false"></button>
+        <button pButton label="Guardar Cartilla" icon="pi pi-check" class="p-button-primary bg-[#bca028] border-none shadow-md hover:bg-[#d9bd72]" (click)="guardarCartilla()"></button>
+      </div>
+    </div>
   </ng-template>
 </p-dialog>

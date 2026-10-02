@@ -10,9 +10,12 @@ public interface FidelizacionService {
     List<CartillaDTO> listarCartillas();
     
     // Core logic
-    void procesarPagoServicio(Long clienteId, Long servicioId);
+    boolean procesarPagoServicio(Long clienteId, Long servicioId);
     
     List<ClienteCartillaDTO> listarCartillasPorCliente(Long clienteId);
     List<ClienteCartillaDTO> listarPremiosDisponibles(Long clienteId);
     void canjearPremio(Long clienteId, Long cartillaId);
+    
+    // Para ver el progreso global
+    List<ClienteCartillaDTO> listarTodasCartillasClientes();
 }

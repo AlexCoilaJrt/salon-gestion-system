@@ -210,6 +210,27 @@
         </span>
       </div>
 
+      <!-- Selector de Fidelización (Solo si hay cliente y hay >1 servicios) -->
+      <div class="field" *ngIf="nombreCliente && serviciosEnTicket.length > 1">
+        <label class="font-bold block mb-2 text-[#bca028]">Sello de Fidelización</label>
+        <p-dropdown 
+          [options]="serviciosEnTicket" 
+          [(ngModel)]="servicioSelloId" 
+          optionLabel="nombre" 
+          optionValue="id" 
+          placeholder="Automático (Servicio más caro)" 
+          [showClear]="true"
+          styleClass="w-full">
+          <ng-template pTemplate="selectedItem" let-selectedOption>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-star-fill text-[#bca028]"></i>
+              <div>{{selectedOption.nombre}}</div>
+            </div>
+          </ng-template>
+        </p-dropdown>
+        <small class="text-gray-500 block mt-1">El cliente elige a qué servicio acumular el sello hoy.</small>
+      </div>
+
       <!-- Método de Pago -->
       <div class="field">
         <label class="font-bold block mb-3 text-gray-800 dark:text-gray-200">Método de Pago</label>

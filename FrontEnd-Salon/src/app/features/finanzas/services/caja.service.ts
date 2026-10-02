@@ -38,6 +38,7 @@ export interface TicketRequest {
   clienteId?: number;
   nombreClienteNoRegistrado?: string;
   detalles: TicketDetalleRequest[];
+  servicioSelloId?: number;
 }
 
 @Injectable({

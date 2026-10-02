@@ -69,6 +69,7 @@ public class ClienteService {
         response.setApellidos(cliente.getApellidos());
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
+        response.setFechaNacimiento(cliente.getFechaNacimiento());
         response.setEstado(cliente.getEstado());
         return response;
     }

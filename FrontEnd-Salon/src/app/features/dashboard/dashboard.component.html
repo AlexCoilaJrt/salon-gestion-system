@@ -1,0 +1,225 @@
+<div class="p-2 md:p-3 animate-fadein h-full flex flex-col">
+  
+  <!-- Header / Welcome -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-3">
+    <div>
+      <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">¡Hola, {{userName()}}! 👋</h1>
+      <p class="text-gray-500 text-xs mt-0.5">Resumen del día.</p>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="mt-2 md:mt-0 flex gap-2">
+      <button [routerLink]="['/pos']" class="px-3 py-1.5 bg-[#bca028] hover:bg-[#d9bd72] text-white text-xs font-bold rounded shadow-sm transition-all flex items-center gap-1.5">
+        <i class="pi pi-cart-plus text-sm"></i> Nueva Venta
+      </button>
+      <button [routerLink]="['/agenda']" class="px-3 py-1.5 bg-white dark:bg-[#2d2d2d] hover:bg-gray-50 dark:hover:bg-[#3d3d3d] text-gray-800 dark:text-gray-100 text-xs font-bold rounded shadow-sm border border-gray-200 dark:border-gray-700 transition-all flex items-center gap-1.5">
+        <i class="pi pi-calendar-plus text-[#bca028] text-sm"></i> Nueva Cita
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+    
+    <!-- Ventas Hoy -->
+    <div class="bg-white dark:bg-[#1e1e1e] rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
+        <i class="pi pi-dollar text-emerald-500 text-lg"></i>
+      </div>
+      <div>
+        <h3 class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Ventas de Hoy</h3>
+        <p class="text-xl font-bold text-gray-800 dark:text-white leading-none">S/ {{ventasHoy() | number:'1.2-2'}}</p>
+      </div>
+    </div>
+
+    <!-- Citas Hoy -->
+    <div class="bg-white dark:bg-[#1e1e1e] rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors" [routerLink]="['/agenda']">
+      <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center shrink-0">
+        <i class="pi pi-calendar text-blue-500 text-lg"></i>
+      </div>
+      <div>
+        <h3 class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Citas Hoy</h3>
+        <p class="text-xl font-bold text-gray-800 dark:text-white leading-none">{{citasHoy()}}</p>
+      </div>
+    </div>
+
+    <!-- Tickets Hoy -->
+    <div class="bg-white dark:bg-[#1e1e1e] rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-800 flex items-center gap-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors" [routerLink]="['/caja']">
+      <div class="w-10 h-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center shrink-0">
+        <i class="pi pi-receipt text-purple-500 text-lg"></i>
+      </div>
+      <div>
+        <h3 class="text-gray-500 dark:text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Tickets Emitidos</h3>
+        <p class="text-xl font-bold text-gray-800 dark:text-white leading-none">{{ticketsHoy()}}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Banners / Promos -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+    <div class="bg-gradient-to-r from-[#1f2937] to-[#111827] rounded-lg p-4 text-white relative overflow-hidden flex flex-col justify-center">
+      <div class="absolute -right-10 -top-10 w-24 h-24 bg-[#bca028] rounded-full blur-2xl opacity-20 pointer-events-none"></div>
+      <div class="relative z-10 flex flex-row items-center justify-between">
+        <div>
+          <span class="bg-[#bca028]/20 text-[#d9bd72] text-[8px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded border border-[#bca028]/30 mb-1 inline-block">Novedad</span>
+          <h3 class="text-sm font-bold mb-0.5">Fidelización de Clientes</h3>
+          <p class="text-gray-300 text-[10px] max-w-[200px] leading-tight">Premia a tus clientes más leales. Crea cartillas y asigna sellos.</p>
+        </div>
+        <button [routerLink]="['/fidelizacion/cartillas']" class="px-3 py-1.5 bg-white text-gray-900 hover:bg-gray-100 font-bold rounded text-[10px] transition-colors shrink-0">
+          Ver Cartillas
+        </button>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-r from-[#bca028] to-[#d9bd72] rounded-lg p-4 text-white relative overflow-hidden flex flex-col justify-center">
+      <div class="absolute -right-10 -top-10 w-24 h-24 bg-white rounded-full blur-2xl opacity-10 pointer-events-none"></div>
+      <div class="relative z-10 flex flex-row items-center justify-between">
+        <div>
+          <span class="bg-white/20 text-white text-[8px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded border border-white/30 mb-1 inline-block">Control Total</span>
+          <h3 class="text-sm font-bold mb-0.5">Punto de Venta (POS)</h3>
+          <p class="text-white/90 text-[10px] max-w-[200px] leading-tight">Registra ventas, verifica stock y asigna servicios.</p>
+        </div>
+        <button [routerLink]="['/pos']" class="px-3 py-1.5 bg-black/20 hover:bg-black/30 text-white font-bold rounded text-[10px] transition-colors shrink-0">
+          Abrir POS
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Sections -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0">
+    
+    <!-- Left Column: Citas de Hoy -->
+    <div class="lg:col-span-2 bg-white dark:bg-[#1e1e1e] rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col">
+      <div class="flex items-center justify-between mb-3 shrink-0">
+        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100">Citas para Hoy</h3>
+        <button [routerLink]="['/agenda']" class="text-[10px] font-bold text-[#bca028] hover:text-[#9d841f] transition-colors uppercase tracking-wider">
+          Agenda completa
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-auto min-h-[150px]">
+        @if (citasDelDiaLista().length > 0) {
+          <table class="w-full text-left border-collapse">
+            <thead class="sticky top-0 bg-white dark:bg-[#1e1e1e] z-10">
+              <tr class="text-[9px] uppercase text-gray-400 border-b border-gray-100 dark:border-gray-800">
+                <th class="pb-1.5 font-bold">Hora</th>
+                <th class="pb-1.5 font-bold">Cliente</th>
+                <th class="pb-1.5 font-bold">Servicio</th>
+                <th class="pb-1.5 font-bold">Especialista</th>
+                <th class="pb-1.5 font-bold text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (cita of citasDelDiaLista(); track cita.id) {
+                <tr class="border-b border-gray-50 dark:border-gray-800/50 last:border-0 hover:bg-gray-50 dark:hover:bg-[#252525] transition-colors">
+                  <td class="py-1.5 text-[11px] font-bold text-gray-800 dark:text-gray-200">
+                    {{ cita.fechaHora | date:'HH:mm' }}
+                  </td>
+                  <td class="py-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                    {{ cita.clienteNombreCompleto }}
+                  </td>
+                  <td class="py-1.5 text-[11px] text-gray-600 dark:text-gray-300 truncate max-w-[120px]">
+                    {{ cita.servicioNombre }}
+                  </td>
+                  <td class="py-1.5 text-[11px] text-gray-600 dark:text-gray-300">
+                    {{ cita.empleadoNombreCompleto }}
+                  </td>
+                  <td class="py-1.5 text-center">
+                    <span class="px-1.5 py-0.5 text-[8px] font-bold rounded uppercase tracking-wider"
+                      [ngClass]="{
+                        'bg-blue-100 text-blue-700': cita.estado === 'PROGRAMADA',
+                        'bg-yellow-100 text-yellow-700': cita.estado === 'EN_ESPERA',
+                        'bg-emerald-100 text-emerald-700': cita.estado === 'ATENDIDA',
+                        'bg-red-100 text-red-700': cita.estado === 'CANCELADA',
+                        'bg-purple-100 text-purple-700': cita.estado === 'EN_ATENCION'
+                      }">
+                      {{ cita.estado }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <div class="flex flex-col items-center justify-center h-full text-gray-400">
+            <i class="pi pi-calendar-times text-2xl mb-1"></i>
+            <p class="text-[10px] font-medium">No hay citas para hoy.</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Right Column: Caja & Stock -->
+    <div class="flex flex-col gap-3 h-full">
+      
+      <!-- Estado de Caja -->
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 shrink-0">
+        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-1.5">
+          <i class="pi pi-wallet text-[#bca028]"></i> Estado de Caja
+        </h3>
+        
+        @if (cajaAbierta()) {
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] text-gray-500">Saldo Inicial</span>
+            <span class="text-[11px] font-bold text-gray-800 dark:text-gray-200">S/ {{ cajaAbierta()?.montoInicial | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-[10px] text-gray-500">Ventas Efectivo</span>
+            <span class="text-[11px] font-bold text-emerald-500">+ S/ {{ cajaAbierta()?.totalVentasEfectivo | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-100 dark:border-gray-800">
+            <span class="text-[10px] text-gray-500">Egresos</span>
+            <span class="text-[11px] font-bold text-red-500">- S/ {{ cajaAbierta()?.totalEgresosEfectivo | number:'1.2-2' }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300">Total Esperado</span>
+            <span class="text-sm font-bold text-gray-800 dark:text-white">S/ {{ cajaAbierta()?.totalEsperadoEfectivo | number:'1.2-2' }}</span>
+          </div>
+        } @else {
+          <div class="bg-red-50 text-red-600 p-2 rounded text-center">
+            <p class="text-[10px] font-bold"><i class="pi pi-lock text-[10px] mr-1"></i>Caja Cerrada</p>
+          </div>
+        }
+      </div>
+
+      <!-- Alertas de Inventario -->
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-lg p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col flex-1 min-h-0">
+        <h3 class="text-sm font-bold text-gray-800 dark:text-gray-100 mb-2 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-1.5">
+            <i class="pi pi-box text-red-500"></i> Stock Bajo
+          </div>
+          @if (alertasStock().length > 0) {
+            <span class="text-[8px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-bold uppercase">{{ alertasStock().length }}</span>
+          }
+        </h3>
+        
+        <div class="flex-1 overflow-auto min-h-[50px]">
+          @if (alertasStock().length > 0) {
+            <div class="flex flex-col gap-1.5 pr-1">
+              @for (prod of alertasStock(); track prod.id) {
+                <div class="flex justify-between items-center p-1.5 bg-red-50 rounded border border-red-100">
+                  <div class="flex flex-col">
+                    <span class="text-[10px] font-bold text-gray-800 truncate w-24">{{ prod.nombre }}</span>
+                  </div>
+                  <div class="text-right flex items-center gap-1">
+                    <span class="text-[8px] text-gray-400 font-bold uppercase">Stock:</span>
+                    <span class="text-[11px] font-black text-red-500 leading-none">{{ prod.stockActual }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="flex flex-col items-center justify-center h-full text-green-500">
+              <i class="pi pi-check-circle text-xl mb-1"></i>
+              <p class="text-[10px] font-medium text-gray-800">Stock OK</p>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

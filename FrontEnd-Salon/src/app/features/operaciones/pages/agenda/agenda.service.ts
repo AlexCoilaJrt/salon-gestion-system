@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface CitaResponse {
   id: number;
@@ -32,8 +33,8 @@ export interface CitaRequest {
 
 export interface ClienteResponse {
   id: number;
-  nombre: string;
-  apellido: string;
+  nombres: string;
+  apellidos: string;
   nombreCompleto: string;
   email: string;
   telefono: string;
@@ -67,10 +68,20 @@ export class AgendaService {
   }
 
   obtenerClientes(): Observable<ClienteResponse[]> {
-    return this.http.get<ClienteResponse[]>(this.clientesUrl);
+    return this.http.get<ClienteResponse[]>(this.clientesUrl).pipe(
+      map(clientes => clientes.map(c => ({
+        ...c,
+        nombreCompleto: c.nombreCompleto || `${c.nombres} ${c.apellidos}`
+      })))
+    );
   }
 
   crearCliente(request: ClienteRequest): Observable<ClienteResponse> {
-    return this.http.post<ClienteResponse>(this.clientesUrl, request);
+    return this.http.post<ClienteResponse>(this.clientesUrl, request).pipe(
+      map(c => ({
+        ...c,
+        nombreCompleto: c.nombreCompleto || `${c.nombres} ${c.apellidos}`
+      }))
+    );
   }
 }
