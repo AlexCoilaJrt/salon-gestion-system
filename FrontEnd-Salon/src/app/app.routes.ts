@@ -26,6 +26,7 @@ export const routes: Routes = [
       { path: 'liquidaciones', loadComponent: () => import('./features/rrhh/liquidaciones/liquidaciones.component').then(m => m.LiquidacionesComponent) },
       { path: 'agenda', loadComponent: () => import('./features/operaciones/pages/agenda/agenda.component').then(m => m.AgendaComponent) },
       { path: 'pos', loadComponent: () => import('./features/operaciones/pages/pos/pos.component').then(m => m.PosComponent) },
+      { path: 'generar-orden', loadComponent: () => import('./features/operaciones/pages/generar-orden/generar-orden.component').then(m => m.GenerarOrdenComponent) },
       { path: 'categorias', loadComponent: () => import('./features/catalogo/categorias/categorias.component').then(m => m.CategoriasComponent) },
       { path: 'servicios', loadComponent: () => import('./features/catalogo/servicios/servicios.component').then(m => m.ServiciosComponent) },
       { path: 'fidelizacion/cartillas', loadComponent: () => import('./features/fidelizacion/pages/gestor-cartillas/gestor-cartillas.component').then(m => m.GestorCartillasComponent) },

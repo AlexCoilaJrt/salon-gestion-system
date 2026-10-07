@@ -43,19 +43,35 @@
   <form [formGroup]="especialidadForm" (ngSubmit)="saveEspecialidad()" class="flex flex-col gap-6 py-4">
     
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-gray-700">Nombre de Especialidad <span class="text-red-500">*</span></label>
-      <input type="text" pInputText formControlName="nombre" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028] uppercase" placeholder="Ej: MANICURISTA" />
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Nombre de Especialidad <span class="text-red-500">*</span></label>
+      <input type="text" pInputText formControlName="nombre" class="w-full bg-[#f4f7fa] dark:bg-gray-800 dark:text-white border-none focus:ring-2 focus:ring-[#bca028] uppercase" placeholder="Ej: MANICURISTA" />
       <small class="text-red-500" *ngIf="especialidadForm.get('nombre')?.invalid && especialidadForm.get('nombre')?.touched">Requerido (mín. 3 letras).</small>
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-gray-700">Descripción (Opcional)</label>
-      <textarea pInputTextarea formControlName="descripcion" rows="3" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Detalles sobre esta especialidad..."></textarea>
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Descripción (Opcional)</label>
+      <textarea pInputTextarea formControlName="descripcion" rows="3" class="w-full bg-[#f4f7fa] dark:bg-gray-800 dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Detalles sobre esta especialidad..."></textarea>
+    </div>
+
+    
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Tipo de Pago <span class="text-red-500">*</span></label>
+      <p-dropdown [options]="[{label:'Porcentaje de Comisión', value:'PORCENTAJE'}, {label:'Sueldo Fijo Mensual', value:'FIJO'}]" formControlName="tipoPago" optionLabel="label" optionValue="value" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-gray-800 dark:text-white dark:bg-gray-800 dark:text-white"></p-dropdown>
+    </div>
+
+    <div class="flex flex-col gap-2" *ngIf="especialidadForm.get('tipoPago')?.value === 'FIJO'">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Sueldo Fijo Mensual (S/)</label>
+      <input type="number" pInputText formControlName="montoFijo" class="w-full bg-[#f4f7fa] dark:bg-gray-800 dark:text-white dark:bg-gray-800 dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Ej: 1200" step="0.01" min="0" />
+    </div>
+
+    <div class="flex flex-col gap-2" *ngIf="especialidadForm.get('tipoPago')?.value === 'PORCENTAJE'">
+      <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Porcentaje de Comisión (%)</label>
+      <input type="number" pInputText formControlName="porcentajeComision" class="w-full bg-[#f4f7fa] dark:bg-gray-800 dark:text-white dark:bg-gray-800 dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" placeholder="Ej: 35" step="0.01" min="0" max="100" />
     </div>
 
     <div class="flex items-center pt-2">
       <p-checkbox formControlName="estado" [binary]="true" inputId="estadoEsp"></p-checkbox>
-      <label for="estadoEsp" class="ml-2 text-sm text-gray-700 font-medium">Especialidad Activa</label>
+      <label for="estadoEsp" class="ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium">Especialidad Activa</label>
     </div>
 
     <div class="flex justify-end gap-3 mt-4">

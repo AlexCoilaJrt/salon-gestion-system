@@ -1,63 +1,97 @@
-<div class="p-6 h-[calc(100vh-80px)] overflow-y-auto no-print">
-  
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-    <div>
-      <h1 class="text-3xl font-black tracking-tight text-gray-900 dark:text-gray-100 mb-2">Liquidación de Nómina</h1>
-      <p class="text-gray-500 dark:text-gray-400 font-medium text-lg">Cálculo de pagos por periodo seleccionado</p>
-    </div>
-    
-    <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-      <div class="relative w-full sm:w-72 md:w-80">
-        <i class="pi pi-calendar absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10 text-lg"></i>
-        <p-calendar [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" placeholder="Rango de Fechas" styleClass="w-full" inputStyleClass="w-full !pl-12 py-3 rounded-xl border-gray-200 dark:border-gray-700 bg-white dark:bg-[#2d2d2d] text-gray-900 dark:text-gray-100 shadow-sm focus:ring-[#bca028]"></p-calendar>
+<div class="p-6 h-full bg-[#f4f7fa] dark:bg-[#1a1a1a] flex flex-col gap-6">
+  <!-- Cabecera -->
+  <div class="flex justify-between items-center bg-white dark:bg-[#2d2d2d] p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 bg-[#f4f7fa] dark:bg-gray-800 rounded-xl flex items-center justify-center">
+        <i class="pi pi-money-bill text-[#bca028] text-xl"></i>
       </div>
-      <div class="flex gap-2 w-full sm:w-auto">
-        <button pButton icon="pi pi-search" label="Calcular" class="p-button-primary shadow-md font-bold px-6 py-3 rounded-xl flex-1 sm:flex-none" (click)="generarReporte()" [loading]="loading"></button>
-        <button pButton icon="pi pi-print" label="Imprimir" class="p-button-outlined p-button-secondary font-bold px-4 py-3 rounded-xl flex-1 sm:flex-none" (click)="exportarPDF()"></button>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white m-0">Monitor de Pagos</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 m-0 mt-1">Control de liquidaciones y fondos retenidos</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <p-calendar [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" placeholder="Rango de Fechas" class="w-64" styleClass="w-full"></p-calendar>
+        <button (click)="generarLiquidaciones()"
+                class="px-4 py-2 bg-[#bca028] text-white hover:bg-[#a68c22] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
+          <i class="pi pi-cog"></i> Pre-Calcular Pagos
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden" id="print-area">
-    <p-table [value]="liquidaciones" [loading]="loading" [rowHover]="true"
-             [paginator]="true" [rows]="10" [rowsPerPageOptions]="[5,10,20,50]"
-             [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} registros"
-             styleClass="p-datatable-lg p-datatable-gridlines">
+  <!-- Contenedor Principal -->
+  <div class="bg-white dark:bg-[#2d2d2d] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex-1 flex flex-col">
+    <p-table 
+      [value]="liquidaciones" 
+      [loading]="loading"
+      [paginator]="true" 
+      [rows]="10"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} pagos"
+      [rowsPerPageOptions]="[10, 25, 50]"
+      styleClass="p-datatable-sm"
+      [rowHover]="true">
+      
       <ng-template pTemplate="header">
         <tr>
-          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider">Empleado</th>
-          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider text-right">Sueldo Fijo (S/)</th>
-          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider text-right">Ventas Totales (S/)</th>
-          <th class="bg-gray-50/50 dark:bg-[#252525] text-gray-600 dark:text-gray-400 font-bold uppercase text-xs tracking-wider text-right">Comisión a Pagar (S/)</th>
-          <th class="bg-gray-50/50 dark:bg-[#252525] text-red-500 dark:text-red-400 font-bold uppercase text-xs tracking-wider text-right">Descuentos/Adelantos (S/)</th>
-          <th class="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-black uppercase text-sm tracking-wider text-right border-l-2 border-emerald-200 dark:border-emerald-800">Total a Pagar (S/)</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 rounded-tl-xl border-b-0">Empleado</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Periodo</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Días Asist.</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Comisión</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Fijo Prop.</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Total a Pagar</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Estado</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 rounded-tr-xl border-b-0 text-center">Acciones (Admin)</th>
         </tr>
       </ng-template>
+
       <ng-template pTemplate="body" let-liq>
-        <tr>
-          <td class="font-bold text-gray-900 dark:text-gray-200">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-700 dark:text-indigo-400 font-black text-sm">
-                {{ liq.empleadoNombreCompleto?.substring(0, 2) | uppercase }}
-              </div>
-              {{ liq.empleadoNombreCompleto }}
+        <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+          <td class="p-4">
+            <span class="font-medium text-gray-900 dark:text-white">{{liq.empleadoNombreCompleto}}</span>
+          </td>
+          <td class="p-4 text-gray-600 dark:text-gray-400 text-sm">
+            {{liq.fechaInicio | date:'dd/MM'}} - {{liq.fechaFin | date:'dd/MM'}}
+          </td>
+          <td class="p-4 text-gray-600 dark:text-gray-400">
+            <span class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-md">{{liq.diasAsistidos || 0}} días</span>
+          </td>
+          <td class="p-4 text-emerald-600 dark:text-emerald-400 font-medium">
+            S/ {{liq.totalComision | number:'1.2-2'}}
+          </td>
+          <td class="p-4 text-blue-600 dark:text-blue-400 font-medium">
+            S/ {{liq.sueldoFijoProporcional | number:'1.2-2'}}
+          </td>
+          <td class="p-4">
+            <span class="text-lg font-bold text-gray-900 dark:text-white">S/ {{liq.totalPagar | number:'1.2-2'}}</span>
+          </td>
+          <td class="p-4">
+            <p-tag [value]="liq.estado" [severity]="getSeverity(liq.estado)" [rounded]="true"></p-tag>
+          </td>
+          <td class="p-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button *ngIf="liq.estado === 'RETENIDO'" 
+                      (click)="cambiarEstado(liq, 'PAGADO')"
+                      class="px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1">
+                <i class="pi pi-check-circle"></i> Aprobar Pago
+              </button>
+              
+              <button *ngIf="liq.estado === 'PAGADO'" 
+                      (click)="cambiarEstado(liq, 'RETENIDO')"
+                      class="px-3 py-1.5 bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 rounded-lg text-sm font-medium transition-colors border border-amber-200 dark:border-amber-500/20 flex items-center gap-1">
+                <i class="pi pi-lock"></i> Retener (Fondo)
+              </button>
             </div>
           </td>
-          <td class="text-right text-gray-600 dark:text-gray-400 font-medium">{{ liq.sueldoFijo | number:'1.2-2' }}</td>
-          <td class="text-right text-gray-500 dark:text-gray-400">{{ liq.totalVentas | number:'1.2-2' }}</td>
-          <td class="text-right text-blue-600 dark:text-blue-400 font-bold">{{ liq.totalComision | number:'1.2-2' }}</td>
-          <td class="text-right text-red-500 dark:text-red-400 font-medium">- {{ liq.descuentosAdelantos | number:'1.2-2' }}</td>
-          <td class="text-right font-black text-lg text-emerald-600 dark:text-emerald-400 bg-emerald-50/30 dark:bg-emerald-900/10 border-l-2 border-emerald-100 dark:border-emerald-900/50">
-            {{ liq.totalPagar | number:'1.2-2' }}
-          </td>
         </tr>
       </ng-template>
+
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="6" class="text-center p-8 bg-white dark:bg-[#1e1e1e]">
-            <div class="flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-              <i class="pi pi-wallet text-5xl mb-4 text-gray-300 dark:text-gray-600"></i>
-              <p class="text-lg font-medium">No hay liquidaciones para el periodo seleccionado</p>
+          <td colspan="8" class="p-8 text-center text-gray-500 dark:text-gray-400">
+            <div class="flex flex-col items-center gap-2">
+              <i class="pi pi-inbox text-4xl text-gray-300 dark:text-gray-600"></i>
+              <span>No hay liquidaciones registradas en el sistema.</span>
             </div>
           </td>
         </tr>
@@ -65,23 +99,4 @@
     </p-table>
   </div>
 </div>
-
-<style>
-@media print {
-  body * {
-    visibility: hidden;
-  }
-  #print-area, #print-area * {
-    visibility: visible;
-  }
-  #print-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-  }
-  .no-print {
-    display: none !important;
-  }
-}
-</style>
+<p-toast></p-toast>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,9 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { TableModule } from 'primeng/table';
+import { PaginatorModule } from 'primeng/paginator';
 import { RrhhService, Empleado } from '../../rrhh/services/rrhh.service';
+import { EmpresaService, EmpresaResponse } from '../../../core/services/empresa.service';
 
 export interface VentaItem {
   id: number;
@@ -33,7 +35,7 @@ export interface TicketItem extends VentaItem {
 @Component({
   selector: 'app-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule, ButtonModule, InputNumberModule, AutoCompleteModule, DialogModule, SelectButtonModule, InputTextModule, DropdownModule, TableModule],
+  imports: [CommonModule, FormsModule, ToastModule, ButtonModule, InputNumberModule, AutoCompleteModule, DialogModule, SelectButtonModule, InputTextModule, DropdownModule, TableModule, PaginatorModule],
   providers: [MessageService],
   templateUrl: './caja.component.html'
 })
@@ -42,6 +44,9 @@ export class CajaComponent implements OnInit {
   private catalogoService = inject(CatalogoService);
   private rrhhService = inject(RrhhService);
   private messageService = inject(MessageService);
+  private empresaService = inject(EmpresaService);
+
+  empresa = signal<EmpresaResponse | null>(null);
 
   sesionActiva: SesionCaja | null = null;
   loading: boolean = true;
@@ -61,13 +66,44 @@ export class CajaComponent implements OnInit {
 
   // Dialogo de Cobro
   cobroDialog: boolean = false;
+  ticketPendienteId: number | null = null; // ID del ticket si estamos cobrando un ticket en espera
   
+  // Lista de tickets en espera
+  ticketsPendientes: any[] = [];
+  
+  // Filtro y Paginación para Órdenes en Espera
+  filtroEspera: string = '';
+  paginaActualEspera: number = 0;
+  itemsPorPaginaEspera: number = 10;
+  opcionesItemsPorPagina = [5, 10, 15, 20];
+
+  get ticketsPendientesFiltrados() {
+    if (!this.filtroEspera.trim()) return this.ticketsPendientes;
+    const term = this.filtroEspera.toLowerCase();
+    return this.ticketsPendientes.filter(tp => 
+      tp.clienteNombreCompleto?.toLowerCase().includes(term) ||
+      tp.id?.toString().includes(term) ||
+      tp.detalles?.some((d: any) => d.nombreItem?.toLowerCase().includes(term))
+    );
+  }
+
+  get ticketsPendientesPaginados() {
+    const filtrados = this.ticketsPendientesFiltrados;
+    const start = this.paginaActualEspera * this.itemsPorPaginaEspera;
+    return filtrados.slice(start, start + this.itemsPorPaginaEspera);
+  }
+
+  onPageChangeEspera(event: any) {
+    this.paginaActualEspera = event.page;
+    this.itemsPorPaginaEspera = event.rows;
+  }
+
   // Dashboard de Caja
-  vistaActual: 'pos' | 'dashboard' = 'pos';
+  vistaActual: 'pos' | 'espera' | 'dashboard' = 'pos';
   ticketsDashboard: any[] = [];
   resumenDashboard: any = null;
 
-  cambiarVista(vista: 'pos' | 'dashboard') {
+  cambiarVista(vista: 'pos' | 'espera' | 'dashboard') {
     this.vistaActual = vista;
     if (vista === 'dashboard') {
       this.cargarDatosDashboard();
@@ -99,15 +135,31 @@ export class CajaComponent implements OnInit {
 
   // Dialogo de Éxito / Ticket
   ticketGeneradoDialog: boolean = false;
+  ticketGenerado: any = null;
+  ticketGeneradoId: number | null = null;
 
   ngOnInit() {
     this.verificarCaja();
     this.cargarEmpleados();
+    this.cargarEmpresa();
+  }
+
+  cargarEmpresa() {
+    this.empresaService.getEmpresaActiva().subscribe({
+      next: (res) => this.empresa.set(res.data),
+      error: () => this.empresa.set(null)
+    });
   }
 
   cargarEmpleados() {
     this.rrhhService.getEmpleados().subscribe(res => {
       this.empleados = res.filter(e => e.estado !== false);
+    });
+  }
+
+  cargarTicketsPendientes() {
+    this.cajaService.obtenerTicketsPendientes().subscribe({
+      next: (tickets) => this.ticketsPendientes = tickets
     });
   }
 
@@ -117,6 +169,7 @@ export class CajaComponent implements OnInit {
       next: (sesion) => {
         this.sesionActiva = sesion;
         this.cargarCatalogoParaVenta();
+        this.cargarTicketsPendientes();
         this.loading = false;
       },
       error: (err) => {
@@ -138,6 +191,7 @@ export class CajaComponent implements OnInit {
       next: (sesion) => {
         this.sesionActiva = sesion;
         this.cargarCatalogoParaVenta();
+        this.cargarTicketsPendientes();
         this.loading = false;
         this.messageService.add({ severity: 'success', summary: 'Caja Abierta', detail: 'Turno iniciado correctamente.' });
       },
@@ -234,6 +288,7 @@ export class CajaComponent implements OnInit {
 
   vaciarTicket() {
     this.ticket = [];
+    this.ticketPendienteId = null;
     this.calcularTotales();
   }
 
@@ -244,12 +299,42 @@ export class CajaComponent implements OnInit {
 
   abrirCobro() {
     if (this.ticket.length === 0) return;
+    // this.ticketPendienteId = null; // Do NOT reset this, we might be charging a loaded pending ticket
     this.montoRecibido = this.totalTicket;
     this.vuelto = 0;
     this.metodoPago = 'Efectivo';
     this.referenciaPago = '';
-    this.nombreCliente = '';
+    // No reseteamos nombreCliente por si viene de la orden
+    if (!this.ticketPendienteId) {
+      this.nombreCliente = '';
+    }
     this.servicioSelloId = null;
+    this.cobroDialog = true;
+  }
+
+  abrirCobroPendiente(ticketPendiente: any) {
+    this.ticketPendienteId = ticketPendiente.id;
+    this.totalTicket = ticketPendiente.total;
+    this.montoRecibido = this.totalTicket;
+    this.vuelto = 0;
+    this.metodoPago = 'Efectivo';
+    this.referenciaPago = '';
+    this.nombreCliente = ticketPendiente.clienteNombreCompleto;
+    this.servicioSelloId = null;
+    
+    // Cargar los detalles al ticket actual para validar empleados
+    this.ticket = ticketPendiente.detalles.map((d: any) => ({
+      id: d.servicioId || d.productoId,
+      nombre: d.servicioNombre || d.productoNombre,
+      precio: d.precioUnitario,
+      tipo: d.servicioId ? 'servicio' : 'producto',
+      cantidad: d.cantidad,
+      subtotal: d.subtotal,
+      empleadoId: d.empleadoId
+    }));
+    this.subtotalTicket = ticketPendiente.total;
+    this.descuentoTicket = 0;
+
     this.cobroDialog = true;
   }
 
@@ -261,7 +346,6 @@ export class CajaComponent implements OnInit {
     }
   }
 
-  ticketGenerado: any = null;
 
   get ticketNumero(): string {
     if (!this.ticketGenerado?.id) return '000001';
@@ -306,17 +390,34 @@ export class CajaComponent implements OnInit {
       servicioSelloId: this.servicioSelloId || undefined
     };
 
-    this.cajaService.emitirTicket(request).subscribe({
-      next: (res) => {
-        this.ticketGenerado = res;
-        this.messageService.add({ severity: 'success', summary: 'Venta Completada', detail: 'El pago se procesó correctamente.' });
-        this.cobroDialog = false;
-        this.ticketGeneradoDialog = true;
-      },
-      error: (err) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al procesar la venta.' });
-      }
-    });
+    if (this.ticketPendienteId) {
+      this.cajaService.pagarTicket(this.ticketPendienteId, request).subscribe({
+        next: (res) => {
+          this.ticketGenerado = res;
+          this.ticketGeneradoId = res.id;
+          this.messageService.add({ severity: 'success', summary: 'Venta Completada', detail: 'El pago se procesó correctamente.' });
+          this.cobroDialog = false;
+          this.ticketGeneradoDialog = true;
+          this.cargarTicketsPendientes();
+        },
+        error: (err) => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al procesar el pago.' });
+        }
+      });
+    } else {
+      this.cajaService.emitirTicket(request).subscribe({
+        next: (res) => {
+          this.ticketGenerado = res;
+          this.ticketGeneradoId = res.id;
+          this.messageService.add({ severity: 'success', summary: 'Venta Completada', detail: 'El pago se procesó correctamente.' });
+          this.cobroDialog = false;
+          this.ticketGeneradoDialog = true;
+        },
+        error: (err) => {
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al procesar la venta.' });
+        }
+      });
+    }
   }
 
   // Cierre de Caja
@@ -366,5 +467,11 @@ export class CajaComponent implements OnInit {
   cerrarVenta() {
     this.ticketGeneradoDialog = false;
     this.vaciarTicket();
+  }
+
+  obtenerNombreEmpleado(empleadoId?: number | null): string {
+    if (!empleadoId) return 'No Asignado';
+    const emp = this.empleados.find(e => e.id === empleadoId);
+    return emp ? emp.nombres + ' ' + emp.apellidos : 'Desconocido';
   }
 }

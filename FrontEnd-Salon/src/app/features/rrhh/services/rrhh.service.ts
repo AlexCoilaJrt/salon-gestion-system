@@ -18,6 +18,9 @@ export interface Especialidad {
   id: number;
   nombre: string;
   descripcion: string;
+  tipoPago?: 'FIJO' | 'PORCENTAJE';
+  montoFijo?: number;
+  porcentajeComision?: number;
   estado: boolean;
 }
 

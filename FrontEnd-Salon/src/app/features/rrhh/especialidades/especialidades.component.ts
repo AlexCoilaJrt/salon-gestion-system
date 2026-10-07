@@ -7,8 +7,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
-import { ToastModule } from 'primeng/toast';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DropdownModule } from 'primeng/dropdown';
+import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { RrhhService, Especialidad } from '../services/rrhh.service';
 
@@ -18,7 +19,7 @@ import { RrhhService, Especialidad } from '../services/rrhh.service';
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule,
     TableModule, ButtonModule, InputTextModule, TextareaModule, TagModule,
-    DialogModule, ToastModule, CheckboxModule
+    DialogModule, ToastModule, CheckboxModule, DropdownModule
   ],
   providers: [MessageService],
   templateUrl: './especialidades.component.html'
@@ -41,6 +42,9 @@ export class EspecialidadesComponent implements OnInit {
     this.especialidadForm = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
       descripcion: [''],
+      tipoPago: ['PORCENTAJE', Validators.required],
+      montoFijo: [null, Validators.min(0)],
+      porcentajeComision: [null, [Validators.min(0), Validators.max(100)]],
       estado: [true]
     });
   }
@@ -70,7 +74,7 @@ export class EspecialidadesComponent implements OnInit {
   openNew() {
     this.isEditMode = false;
     this.selectedId = null;
-    this.especialidadForm.reset({ estado: true });
+    this.especialidadForm.reset({ estado: true, tipoPago: 'PORCENTAJE' });
     this.displayDialog = true;
   }
 

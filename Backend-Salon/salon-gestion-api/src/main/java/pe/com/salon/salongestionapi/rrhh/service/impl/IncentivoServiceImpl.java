@@ -205,7 +205,7 @@ public class IncentivoServiceImpl implements IncentivoService {
             pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse response = new pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse();
             response.setEmpleadoId(empleado.getId());
             response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
-            response.setSueldoFijo(empleado.getSueldoFijo() != null ? empleado.getSueldoFijo() : BigDecimal.ZERO);
+            response.setSueldoFijoProporcional(BigDecimal.ZERO);
 
             // Ventas en el periodo
             BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
@@ -235,7 +235,7 @@ public class IncentivoServiceImpl implements IncentivoService {
             // TODO: Sumar descuentos y adelantos de egresos si aplica. Por ahora 0.
             response.setDescuentosAdelantos(BigDecimal.ZERO);
 
-            BigDecimal totalPagar = response.getSueldoFijo().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
+            BigDecimal totalPagar = response.getSueldoFijoProporcional().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
             response.setTotalPagar(totalPagar);
 
             liquidaciones.add(response);

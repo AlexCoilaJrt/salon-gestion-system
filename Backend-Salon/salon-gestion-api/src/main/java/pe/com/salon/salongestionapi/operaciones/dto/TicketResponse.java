@@ -11,6 +11,7 @@ import java.util.List;
 public class TicketResponse {
     private Long id;
     private LocalDateTime fechaEmision;
+    private pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket estado;
     private MetodoPago metodoPago;
     private BigDecimal total;
     private Long clienteId;

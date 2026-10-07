@@ -65,7 +65,6 @@ public class EmpleadoService {
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.AUSENTE);
         empleado.setEstado(request.getEstado() != null ? request.getEstado() : true);
-        empleado.setSueldoFijo(request.getSueldoFijo() != null ? request.getSueldoFijo() : java.math.BigDecimal.ZERO);
 
         if (request.getEspecialidadIds() != null && !request.getEspecialidadIds().isEmpty()) {
             java.util.List<Especialidad> especialidades = especialidadRepository.findAllById(request.getEspecialidadIds());
@@ -103,9 +102,6 @@ public class EmpleadoService {
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         if (request.getEstado() != null) {
             empleado.setEstado(request.getEstado());
-        }
-        if (request.getSueldoFijo() != null) {
-            empleado.setSueldoFijo(request.getSueldoFijo());
         }
 
         if (request.getEspecialidadIds() != null) {
@@ -151,7 +147,6 @@ public class EmpleadoService {
         response.setEdad(empleado.getEdad());
         response.setDisponibilidad(empleado.getDisponibilidad().name());
         response.setEstado(empleado.getEstado());
-        response.setSueldoFijo(empleado.getSueldoFijo());
         
         if (empleado.getTurno() != null) {
             response.setTurnoId(empleado.getTurno().getId());

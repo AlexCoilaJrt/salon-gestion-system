@@ -72,6 +72,14 @@ export class CajaService {
     return this.http.get<any[]>('http://localhost:8080/api/operaciones/tickets/caja-actual');
   }
 
+  obtenerTicketsPendientes(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:8080/api/operaciones/tickets/pendientes');
+  }
+
+  pagarTicket(id: number, request: TicketRequest): Observable<any> {
+    return this.http.put<any>(`http://localhost:8080/api/operaciones/tickets/${id}/pagar`, request);
+  }
+
   obtenerServiciosFrecuentes(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:8080/api/analitica/dashboard/servicios-demandados');
   }

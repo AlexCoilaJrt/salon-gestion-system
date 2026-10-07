@@ -16,6 +16,12 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+    @PostMapping("/generar-orden")
+    public ResponseEntity<TicketResponse> generarOrden(@Valid @RequestBody TicketRequest request) {
+        TicketResponse ordenGenerada = ticketService.generarOrden(request);
+        return new ResponseEntity<>(ordenGenerada, HttpStatus.CREATED);
+    }
+
     @PostMapping
     public ResponseEntity<TicketResponse> emitirTicket(@Valid @RequestBody TicketRequest request) {
         TicketResponse nuevoTicket = ticketService.emitirTicket(request);
@@ -35,5 +41,15 @@ public class TicketController {
     @PutMapping("/{id}/anular")
     public ResponseEntity<TicketResponse> anularTicket(@PathVariable Long id) {
         return ResponseEntity.ok(ticketService.anularTicket(id));
+    }
+
+    @GetMapping("/pendientes")
+    public ResponseEntity<java.util.List<TicketResponse>> obtenerTicketsPendientes() {
+        return ResponseEntity.ok(ticketService.obtenerTicketsPendientes());
+    }
+
+    @PutMapping("/{id}/pagar")
+    public ResponseEntity<TicketResponse> pagarTicket(@PathVariable Long id, @Valid @RequestBody TicketRequest request) {
+        return ResponseEntity.ok(ticketService.pagarTicket(id, request));
     }
 }

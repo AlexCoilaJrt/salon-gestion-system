@@ -88,57 +88,56 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Nombres <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="nombres" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Nombres <span class="text-red-500">*</span></label>
+        <input type="text" pInputText formControlName="nombres" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('nombres')?.invalid && empleadoForm.get('nombres')?.touched">Requerido (solo letras).</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Apellidos <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="apellidos" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Apellidos <span class="text-red-500">*</span></label>
+        <input type="text" pInputText formControlName="apellidos" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('apellidos')?.invalid && empleadoForm.get('apellidos')?.touched">Requerido (solo letras).</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">DNI <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="dni" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">DNI <span class="text-red-500">*</span></label>
+        <input type="text" pInputText formControlName="dni" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('dni')?.invalid && empleadoForm.get('dni')?.touched">Requerido (solo números, mín 8).</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Teléfono</label>
-        <input type="text" pInputText formControlName="telefono" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Teléfono</label>
+        <input type="text" pInputText formControlName="telefono" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('telefono')?.invalid && empleadoForm.get('telefono')?.touched">Solo números (mín 9).</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Email de Contacto <span class="text-red-500">*</span></label>
-        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Email de Contacto <span class="text-red-500">*</span></label>
+        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('email')?.invalid && empleadoForm.get('email')?.touched">Email inválido.</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Especialidades <span class="text-red-500">*</span></label>
-        <p-multiSelect [options]="especialidades" formControlName="especialidadIds" optionLabel="nombre" optionValue="id" placeholder="Selecciona..." [filter]="false" [showHeader]="false" styleClass="w-full border-none bg-[#f4f7fa]"></p-multiSelect>
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Especialidades <span class="text-red-500">*</span></label>
+        <p-multiSelect [options]="especialidades" formControlName="especialidadIds" optionLabel="nombre" optionValue="id" placeholder="Selecciona..." [filter]="false" [showHeader]="false" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white"></p-multiSelect>
         <small class="text-red-500" *ngIf="empleadoForm.get('especialidadIds')?.invalid && empleadoForm.get('especialidadIds')?.touched">Seleccione al menos una especialidad.</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Turno de Trabajo <span class="text-red-500">*</span></label>
-        <p-dropdown [options]="turnos" formControlName="turnoId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un Turno" styleClass="w-full border-none bg-[#f4f7fa]"></p-dropdown>
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Turno de Trabajo <span class="text-red-500">*</span></label>
+        <p-dropdown [options]="turnos" formControlName="turnoId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un Turno" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white dark:bg-gray-800 dark:text-white"></p-dropdown>
         <small class="text-red-500" *ngIf="empleadoForm.get('turnoId')?.invalid && empleadoForm.get('turnoId')?.touched">Debe seleccionar un turno.</small>
       </div>
-      
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700">Fecha de Nacimiento <span class="text-red-500">*</span></label>
-        <input type="date" pInputText formControlName="fechaNacimiento" [max]="today" class="w-full bg-[#f4f7fa] border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Nacimiento <span class="text-red-500">*</span></label>
+        <input type="date" pInputText formControlName="fechaNacimiento" [max]="today" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('fechaNacimiento')?.invalid && empleadoForm.get('fechaNacimiento')?.touched">Fecha inválida (debe ser pasada).</small>
       </div>
     </div>
 
     <div class="flex items-center pt-2">
       <p-checkbox formControlName="estado" [binary]="true" inputId="estadoEmpleado"></p-checkbox>
-      <label for="estadoEmpleado" class="ml-2 text-sm text-gray-700 font-medium">Empleado Activo</label>
+      <label for="estadoEmpleado" class="ml-2 text-sm text-gray-700 dark:text-gray-300 font-medium">Empleado Activo</label>
     </div>
 
     <div class="flex justify-end gap-3 mt-4">

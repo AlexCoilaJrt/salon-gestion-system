@@ -27,8 +27,12 @@ public class Ticket {
     private LocalDateTime fechaEmision;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "metodo_pago", nullable = false, length = 20)
+    @Column(name = "metodo_pago", nullable = true, length = 30)
     private MetodoPago metodoPago;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado", nullable = true, length = 20, columnDefinition = "varchar(20) default 'PENDIENTE_PAGO'")
+    private EstadoTicket estado = EstadoTicket.PENDIENTE_PAGO;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal total = BigDecimal.ZERO;
@@ -41,7 +45,7 @@ public class Ticket {
     private String nombreClienteNoRegistrado;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sesion_caja_id", nullable = false)
+    @JoinColumn(name = "sesion_caja_id", nullable = true)
     private SesionCaja sesionCaja;
 
     @Column(name = "activo", columnDefinition = "boolean default true")

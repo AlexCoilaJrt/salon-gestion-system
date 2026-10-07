@@ -1,0 +1,388 @@
+<p-toast position="top-right"></p-toast>
+
+<!-- =========================================================
+     LAYOUT: 2 paneles – Config (izq) + Vista Previa (der)
+     ========================================================= -->
+<div class="go-shell">
+
+  <!-- ── PANEL IZQUIERDO: CONFIGURACIÓN ── -->
+  <aside class="go-sidebar">
+
+    <!-- Header sidebar -->
+    <div class="sidebar-head">
+      <div class="sidebar-icon"><i class="pi pi-file-edit"></i></div>
+      <div>
+        <div class="sidebar-title">Configuración de Hoja</div>
+        <span class="sidebar-badge">v2.4 Láser/Térmica</span>
+      </div>
+    </div>
+
+    <!-- Categoría de Cartilla -->
+    <div class="config-field">
+      <label class="config-label">Categoría de Cartilla</label>
+      <p-dropdown
+        [options]="cartillasOptions()"
+        [(ngModel)]="cartillaSeleccionada"
+        optionLabel="label"
+        optionValue="value"
+        (onChange)="onCartillaChange($event.value)"
+        placeholder="Seleccionar categoría..."
+        styleClass="w-full go-dropdown">
+      </p-dropdown>
+    </div>
+
+    <!-- Servicios a Realizar -->
+    <div class="config-field" *ngIf="cartillaSeleccionada()">
+      <label class="config-label">Servicios a Realizar</label>
+      <p-multiSelect
+        [options]="todosLosItems()"
+        [ngModel]="seleccionados()"
+        (ngModelChange)="onServiciosChange($event)"
+        optionLabel="nombre"
+        placeholder="Seleccionar servicios..."
+        display="chip"
+        [filter]="false"
+        styleClass="w-full go-dropdown">
+      </p-multiSelect>
+    </div>
+
+    <!-- Cliente -->
+    <div class="config-field">
+      <label class="config-label">Cliente</label>
+      <p-dropdown
+        [options]="clientes()"
+        [(ngModel)]="selectedCliente"
+        optionLabel="nombreCompleto"
+        [showClear]="true"
+        [filter]="true"
+        filterBy="nombreCompleto"
+        placeholder="Buscar cliente..."
+        styleClass="w-full go-dropdown">
+      </p-dropdown>
+    </div>
+
+    <div class="config-field" *ngIf="!selectedCliente()">
+      <label class="config-label">O Nombre Manual</label>
+      <div class="go-input-group">
+        <i class="pi pi-pencil go-input-icon"></i>
+        <input pInputText class="go-input" [(ngModel)]="nombreClienteManual" placeholder="Ej: María Pérez" />
+      </div>
+    </div>
+
+    <!-- Mesa / Sillón -->
+    <div class="config-field">
+      <label class="config-label">Mesa / Sillón</label>
+      <div class="go-input-group">
+        <i class="pi pi-home go-input-icon"></i>
+        <input pInputText class="go-input" [(ngModel)]="mesaSillon" placeholder="Ej: Sillón 3" />
+      </div>
+    </div>
+
+    <!-- Formato + Copias -->
+    <div class="config-row">
+      <div class="config-field flex-1">
+        <label class="config-label">Formato Físico</label>
+        <div class="format-chip"><i class="pi pi-check-circle mr-1"></i>A5 Vertical</div>
+      </div>
+      <div class="config-field" style="width: 110px;">
+        <label class="config-label">N° Copias</label>
+        <div class="copies-control">
+          <button class="copies-btn" (click)="numCopias.set(Math.max(1, numCopias() - 1))">−</button>
+          <span class="copies-num">{{ numCopias() }}</span>
+          <button class="copies-btn" (click)="numCopias.set(Math.min(10, numCopias() + 1))">+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opciones de impresión -->
+    <div class="config-section-label">OPCIONES DE IMPRESIÓN</div>
+
+    <div class="config-option-row">
+      <div class="config-option-left">
+        <i class="pi pi-dollar config-option-icon"></i>
+        <span>Imprimir Precios Unitarios (P.U)</span>
+      </div>
+      <p-checkbox [(ngModel)]="mostrarPrecios" [binary]="true" styleClass="go-check"></p-checkbox>
+    </div>
+
+    <div class="config-option-row">
+      <div class="config-option-left">
+        <i class="pi pi-plus-circle config-option-icon"></i>
+        <span>Filas Libres para Adicionales</span>
+      </div>
+      <p-checkbox [(ngModel)]="incluirFilasExtra" [binary]="true" styleClass="go-check"></p-checkbox>
+    </div>
+
+    <div class="config-option-row" *ngIf="incluirFilasExtra()">
+      <span class="config-option-sub">Cantidad de filas extra:</span>
+      <div class="copies-control small">
+        <button class="copies-btn" (click)="numFilasExtra.set(Math.max(1, numFilasExtra() - 1))">−</button>
+        <span class="copies-num">{{ numFilasExtra() }}</span>
+        <button class="copies-btn" (click)="numFilasExtra.set(Math.min(5, numFilasExtra() + 1))">+</button>
+      </div>
+    </div>
+
+    <div class="config-option-row">
+      <div class="config-option-left">
+        <i class="pi pi-pencil config-option-icon"></i>
+        <span>Imprimir Firmas al Pie</span>
+      </div>
+      <p-checkbox [(ngModel)]="mostrarFirmas" [binary]="true" styleClass="go-check"></p-checkbox>
+    </div>
+
+    <div class="config-option-row">
+      <div class="config-option-left">
+        <i class="pi pi-barcode config-option-icon"></i>
+        <span>Imprimir Código de Barras</span>
+      </div>
+      <p-checkbox [(ngModel)]="mostrarCodigoBarras" [binary]="true" styleClass="go-check"></p-checkbox>
+    </div>
+
+    <!-- Info summary -->
+    <div class="info-chip" *ngIf="cartillaSeleccionada()">
+      <i class="pi pi-info-circle mr-2"></i>
+      <span>
+        <strong>{{ todosLosItems().length }} servicios</strong> cargados
+        <span *ngIf="seleccionados().length < todosLosItems().length">
+          &nbsp;({{ seleccionados().length }} seleccionados)
+        </span>
+        listos para la cartilla de hoy.
+      </span>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <button class="btn-print-main" (click)="imprimirCartilla()" [disabled]="!cartillaSeleccionada()">
+      <i class="pi pi-print mr-2"></i>Imprimir Cartilla A5
+    </button>
+
+    <button class="btn-send-caja" (click)="generarOrden()" [disabled]="seleccionados().length === 0 || isProcessing()">
+      <i class="pi pi-send mr-2"></i>
+      {{ isProcessing() ? 'Enviando...' : 'Enviar Orden a Caja' }}
+    </button>
+
+    <!-- Procedimiento -->
+    <div class="procedure-box">
+      <div class="procedure-title"><i class="pi pi-bookmark mr-1"></i>PROCEDIMIENTO OPERATIVO</div>
+      <ol class="procedure-list">
+        <li>Entregue la hoja grapada a la acrilista al iniciar el turno.</li>
+        <li>La clienta firma la conformidad al pie del sillón al terminar el servicio.</li>
+        <li>Caja liquida escaneando el código inferior para cerrar el ticket.</li>
+      </ol>
+    </div>
+
+  </aside>
+
+  <!-- ── PANEL DERECHO: VISTA PREVIA REAL ── -->
+  <main class="go-preview-area">
+
+    <div class="preview-topbar">
+      <div class="preview-indicator">
+        <span class="preview-dot"></span>
+        VISTA PREVIA REAL (A5 – 148 × 210 mm)
+      </div>
+      <div class="preview-zoom-actions">
+        <button class="zoom-btn" title="Imprimir esta cartilla" (click)="imprimirCartilla()" [disabled]="!cartillaSeleccionada()">
+          <i class="pi pi-print mr-1"></i>Imprimir
+        </button>
+      </div>
+    </div>
+
+    <!-- CARTILLA FÍSICA: PREVIEW -->
+    <div class="preview-paper-wrap" *ngIf="cartillaSeleccionada(); else noCartilla">
+      <div class="paper-a5">
+
+        <!-- CABECERA -->
+        <div class="p-header">
+          <div class="p-header-left">
+            <div class="p-salon-name">{{ empresa()?.nombreComercial || 'SPA DIANA' }}</div>
+            <div class="p-salon-sub">{{ empresa()?.razonSocial || 'ESTÉTICA & NAIL ATELIER PROFESIONAL' }}</div>
+            <div class="p-salon-addr">
+              <i class="pi pi-map-marker" style="font-size:7px"></i>
+              {{ empresa()?.direccion || 'Jr. Moquegua 656' }}
+              <ng-container *ngIf="empresa()?.telefono">&nbsp;|&nbsp; Cel: {{ empresa()?.telefono }}</ng-container>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+            <!-- Nº DE ORDEN -->
+            <div class="p-fecha-block" *ngIf="ticketGenerado()">
+              <div class="p-fecha-lbl">N° ORDEN</div>
+              <div class="p-fecha-boxes">
+                <div class="p-fbox" style="min-width:52px;">
+                  <span class="p-fbox-val" style="font-size:13px;">#{{ ticketGenerado()?.id }}</span>
+                </div>
+              </div>
+            </div>
+            <!-- FECHA -->
+            <div class="p-fecha-block">
+              <div class="p-fecha-lbl">FECHA</div>
+              <div class="p-fecha-boxes">
+                <div class="p-fbox"><span class="p-fbox-lbl">DÍA</span><span class="p-fbox-val">{{ fechaPeru.dia }}</span></div>
+                <div class="p-fbox"><span class="p-fbox-lbl">MES</span><span class="p-fbox-val">{{ fechaPeru.mes }}</span></div>
+                <div class="p-fbox"><span class="p-fbox-lbl">AÑO</span><span class="p-fbox-val">{{ fechaPeru.anio }}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BADGE -->
+        <div class="p-badge">HOJA DE RUTA &amp; CONTROL DE SERVICIOS</div>
+
+
+        <!-- CLIENTA / MESA -->
+        <div class="p-fields">
+          <div class="p-field">
+            <div class="p-field-lbl">CLIENTA:</div>
+            <div class="p-field-val">{{ clienteDisplay() }}</div>
+          </div>
+          <div class="p-field">
+            <div class="p-field-lbl">MESA / SILLÓN:</div>
+            <div class="p-field-val">{{ mesaSillon() }}</div>
+          </div>
+        </div>
+
+        <!-- TABLA SERVICIOS (sin subcategorías) -->
+        <table class="p-tabla" *ngIf="!cartillaSeleccionada()!.tieneSubCategorias">
+          <thead>
+            <tr>
+              <th class="tc" style="width:24px">N°</th>
+              <th>SERVICIOS</th>
+              <th class="tc" style="width:48px">P.U</th>
+              <th style="width:100px">{{ cartillaSeleccionada()!.nombre.toUpperCase() }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of cartillaSeleccionada()!.items; let i = index"
+                class="p-row" [class.p-row-off]="!item.seleccionado"
+                (click)="toggleItem(item)">
+              <td class="tc">
+                <span *ngIf="item.seleccionado">{{ i + 1 }}</span>
+                <span *ngIf="!item.seleccionado" class="row-cross">✕</span>
+              </td>
+              <td [class.p-row-strikethrough]="!item.seleccionado">{{ item.nombre }}</td>
+              <td class="tc" *ngIf="mostrarPrecios()">S/ {{ item.precio | number:'1.2-2' }}</td>
+              <td class="tc" *ngIf="!mostrarPrecios()"></td>
+              <td class="firma-col"></td>
+            </tr>
+            <!-- Filas extra -->
+            <tr *ngFor="let _ of [].constructor(incluirFilasExtra() ? numFilasExtra() : 0)" class="p-row-extra">
+              <td class="tc"></td>
+              <td class="p-row-extra-txt">Adicional...</td>
+              <td></td>
+              <td class="firma-col"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- TABLA CON SUBCATEGORÍAS -->
+        <ng-container *ngIf="cartillaSeleccionada()!.tieneSubCategorias">
+          <ng-container *ngFor="let sub of cartillaSeleccionada()!.subCategorias">
+            <div class="p-sub-lbl">{{ sub.nombre }}</div>
+            <table class="p-tabla">
+              <thead>
+                <tr>
+                  <th class="tc" style="width:24px">N°</th>
+                  <th>Servicios</th>
+                  <th class="tc" style="width:48px">P.U</th>
+                  <th style="width:100px">{{ cartillaSeleccionada()!.nombre }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of sub.items; let i = index"
+                    class="p-row" [class.p-row-off]="!item.seleccionado"
+                    (click)="toggleItem(item)">
+                  <td class="tc">
+                    <span *ngIf="item.seleccionado">{{ i + 1 }}</span>
+                    <span *ngIf="!item.seleccionado" class="row-cross">✕</span>
+                  </td>
+                  <td [class.p-row-strikethrough]="!item.seleccionado">{{ item.nombre }}</td>
+                  <td class="tc" *ngIf="mostrarPrecios()">S/ {{ item.precio | number:'1.2-2' }}</td>
+                  <td class="tc" *ngIf="!mostrarPrecios()"></td>
+                  <td class="firma-col"></td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
+        </ng-container>
+
+        <div class="p-footer-grid">
+          <div class="p-obs">
+            <div class="p-obs-lbl">OBSERVACIONES / DETALLES DE CORTE:</div>
+            <div class="p-obs-disclaimer">* Válido únicamente con sello de caja y firma de conformidad de la clienta.</div>
+          </div>
+          <div class="p-totals">
+            <div class="p-total-row"><span>SUBTOTAL:</span><span class="p-total-line">S/ {{ subtotal() | number:'1.2-2' }}</span></div>
+            <div class="p-total-row"><span>DSCTO / CUPÓN:</span><span class="p-total-line">S/ 0.00</span></div>
+            <div class="p-total-row p-total-main"><span>TOTAL A PAGAR:</span><span class="p-total-line">S/ {{ subtotal() | number:'1.2-2' }}</span></div>
+          </div>
+        </div>
+
+        <!-- FIRMAS -->
+        <div class="p-sigs" *ngIf="mostrarFirmas()">
+          <div class="p-sig">
+            <div class="p-sig-line"></div>
+            <div class="p-sig-lbl">FIRMA DE LA CLIENTA</div>
+            <div class="p-sig-sub">(Conformidad de Trabajo Realizado)</div>
+          </div>
+          <div class="p-sig">
+            <div class="p-sig-line"></div>
+            <div class="p-sig-lbl">SELLO Y FIRMA DE RECEPCIÓN</div>
+            <div class="p-sig-sub">(Caja / Cierre Turno Tarde)</div>
+          </div>
+        </div>
+
+        <!-- BARRA BARCODE -->
+        <div class="p-barcode-area" *ngIf="mostrarCodigoBarras()">
+          <div>
+            <div class="p-barcode-lines">▐▌█▐▌▐█▌▐▐█▌▐▌█▐▌▐█</div>
+            <div class="p-barcode-text">*CART-{{ codigoCartilla() }}*</div>
+          </div>
+          <div>
+            <div class="p-gracias">¡Gracias por su preferencia!</div>
+            <div class="p-gracias-sub">Diana Morales · Spa &amp; Salón</div>
+          </div>
+        </div>
+
+      </div><!-- /paper-a5 -->
+    </div>
+
+    <ng-template #noCartilla>
+      <div class="no-cartilla-msg">
+        <i class="pi pi-file-excel text-5xl mb-3"></i>
+        <p>Selecciona una categoría en el panel izquierdo para ver la vista previa.</p>
+      </div>
+    </ng-template>
+
+    <div class="preview-disclaimer">
+      Diseñado para impresión monocromática nítida en impresoras matriciales, térmicas o láser.
+    </div>
+  </main>
+
+</div>
+
+<!-- MODAL TICKET ENVIADO A CAJA -->
+<p-dialog header="✅ Orden Enviada a Caja" [(visible)]="ticketGenerado" [modal]="true"
+  [style]="{width:'420px'}" [closable]="false">
+  <div *ngIf="ticketGenerado()" class="ticket-modal-body">
+    <div class="tm-salon">SPA DIANA</div>
+    <div class="tm-num">ORDEN N° #{{ ticketGenerado().id }}</div>
+    <div class="tm-info">
+      <div><strong>Fecha:</strong> {{ ticketGenerado().fechaEmision | date:'dd/MM/yyyy HH:mm' }}</div>
+      <div><strong>Cliente:</strong> {{ ticketGenerado().clienteNombreCompleto }}</div>
+      <div><strong>Estado:</strong> <span class="tm-badge-pending">PENDIENTE DE PAGO</span></div>
+    </div>
+    <div class="tm-items">
+      <div class="tm-items-hdr"><span>Cant.</span><span>Servicio</span></div>
+      <div *ngFor="let det of ticketGenerado().detalles" class="tm-item">
+        <span class="tm-cant">{{ det.cantidad }}×</span>
+        <span>{{ det.servicioNombre || det.productoNombre }}</span>
+      </div>
+    </div>
+    <div class="tm-aviso"><i class="pi pi-arrow-right mr-2"></i>Acércate a caja con este número de orden para realizar el pago.</div>
+  </div>
+  <ng-template pTemplate="footer">
+    <div class="flex gap-2 justify-content-end">
+      <button pButton label="Imprimir Ticket" icon="pi pi-print" (click)="imprimirTicket()" class="tm-btn-print"></button>
+      <button pButton label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarModal()"></button>
+    </div>
+  </ng-template>
+</p-dialog>

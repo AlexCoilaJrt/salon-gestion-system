@@ -61,15 +61,92 @@
               (click)="cambiarVista('dashboard')">
         <i class="pi pi-chart-bar mr-2"></i>Movimientos del Turno
       </button>
+      <button class="pb-3 px-2 font-bold transition-all border-b-2 relative"
+              [ngClass]="vistaActual === 'espera' ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500 hover:text-gray-700'"
+              (click)="cambiarVista('espera')">
+        <i class="pi pi-clock mr-2"></i>Órdenes en Espera
+        <span *ngIf="ticketsPendientes.length > 0" class="absolute -top-2 -right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+          {{ticketsPendientes.length}}
+        </span>
+      </button>
+    </div>
+
+    <!-- ESTADO: ÓRDENES EN ESPERA -->
+    <div *ngIf="vistaActual === 'espera'" class="flex-1 flex flex-col h-full bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-6">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h3 class="text-xl font-black text-gray-800 dark:text-white flex items-center gap-3">
+          <i class="pi pi-clock text-orange-500 text-2xl"></i>
+          Órdenes en Espera de Pago
+          <span class="bg-orange-100 text-orange-600 dark:bg-orange-900/50 dark:text-orange-400 text-sm py-1 px-3 rounded-full font-bold">
+            {{ticketsPendientesFiltrados.length}} órdenes
+          </span>
+        </h3>
+
+        <div class="relative w-full sm:w-80">
+          <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" [(ngModel)]="filtroEspera" (ngModelChange)="paginaActualEspera = 0"
+                 placeholder="Buscar por cliente, N° orden o servicio..."
+                 class="w-full pl-10 pr-4 py-2 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e232b] text-gray-800 dark:text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition-all">
+        </div>
+      </div>
+
+      <div *ngIf="ticketsPendientesFiltrados.length === 0" class="flex-1 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 p-12">
+        <i class="pi pi-search text-6xl mb-4 text-gray-300 dark:text-gray-600"></i>
+        <h4 class="text-xl font-bold mb-2">No se encontraron órdenes</h4>
+        <p>No hay órdenes que coincidan con la búsqueda actual.</p>
+      </div>
+
+      <div *ngIf="ticketsPendientesFiltrados.length > 0" class="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-2">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-max">
+          <div *ngFor="let tp of ticketsPendientesPaginados" (click)="abrirCobroPendiente(tp)" 
+               class="bg-orange-50/50 dark:bg-orange-900/10 border-2 border-orange-100 dark:border-orange-900/50 rounded-2xl p-4 cursor-pointer hover:border-orange-500 hover:shadow-lg hover:-translate-y-1 transition-all group flex flex-col h-[160px]">
+            
+            <div class="flex justify-between items-start mb-2">
+              <div class="font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight flex-1 pr-2">{{ tp.clienteNombreCompleto }}</div>
+              <span class="text-xs text-orange-600 dark:text-orange-400 font-black bg-orange-100 dark:bg-orange-900 px-2 py-1 rounded-md shrink-0 border border-orange-200 dark:border-orange-800 shadow-sm">
+                #{{ tp.id | number:'4.0-0' }}
+              </span>
+            </div>
+            
+            <div class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2 mb-auto">
+              <i class="pi pi-list text-xs"></i>
+              {{ tp.detalles.length }} servicio(s)
+            </div>
+            
+            <div class="mt-4 pt-3 border-t border-orange-200/50 dark:border-orange-800/50 flex justify-between items-end">
+              <span class="text-xs font-semibold text-gray-400 dark:text-gray-500 flex items-center gap-1">
+                <i class="pi pi-history"></i> {{ tp.fechaEmision | date:'shortTime' }}
+              </span>
+              <span class="font-black text-lg text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform origin-right">
+                S/ {{ tp.total | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="ticketsPendientesFiltrados.length > 0" class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+        <p-paginator 
+          [rows]="itemsPorPaginaEspera" 
+          [totalRecords]="ticketsPendientesFiltrados.length" 
+          [rowsPerPageOptions]="opcionesItemsPorPagina"
+          [first]="paginaActualEspera * itemsPorPaginaEspera"
+          (onPageChange)="onPageChangeEspera($event)"
+          [showCurrentPageReport]="true"
+          currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} órdenes">
+        </p-paginator>
+      </div>
     </div>
 
     <!-- ESTADO: CAJA ABIERTA (PUNTO DE VENTA) -->
     <div *ngIf="vistaActual === 'pos'" class="flex-1 flex gap-6 min-h-0">
     
     <!-- LADO IZQUIERDO: PRODUCTOS Y SERVICIOS (El "Mix" Híbrido) -->
-    <div class="flex-1 flex flex-col bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
-      <!-- Buscador Inteligente -->
-      <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+    <div class="flex-1 flex flex-col gap-4">
+
+      <div class="flex-1 flex flex-col bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <!-- Buscador Inteligente -->
+        <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
         <p-autoComplete 
             [(ngModel)]="itemSeleccionado" 
             [suggestions]="resultadosBusqueda" 
@@ -113,7 +190,8 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> <!-- Cierra bg-white rounded-2xl overflow-hidden -->
+    </div> <!-- Cierra flex-1 flex flex-col gap-4 (Wrapper) -->
 
     <!-- LADO DERECHO: TICKET / BOLETA -->
     <div class="w-96 flex flex-col bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
@@ -193,73 +271,106 @@
   </div>
 
   <!-- Modal de Cobro -->
-  <p-dialog header="Procesar Pago" [(visible)]="cobroDialog" [modal]="true" [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
-    <div class="flex flex-col gap-5 pt-2">
-      <!-- Resumen del cobro -->
-      <div class="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center">
-        <span class="text-gray-500 text-sm uppercase font-bold tracking-wider mb-1">Total a Pagar</span>
-        <span class="text-4xl font-black text-[#bca028]">S/ {{totalTicket | number:'1.2-2'}}</span>
-      </div>
-
-      <!-- Nombre del Cliente (Opcional) -->
-      <div class="field">
-        <label class="font-bold block mb-2 text-gray-800 dark:text-gray-200">Cliente (Opcional)</label>
-        <span class="p-input-icon-left w-full">
-            <i class="pi pi-user"></i>
-            <input type="text" pInputText [(ngModel)]="nombreCliente" placeholder="Público General" class="w-full p-inputtext-lg" />
-        </span>
-      </div>
-
-      <!-- Selector de Fidelización (Solo si hay cliente y hay >1 servicios) -->
-      <div class="field" *ngIf="nombreCliente && serviciosEnTicket.length > 1">
-        <label class="font-bold block mb-2 text-[#bca028]">Sello de Fidelización</label>
-        <p-dropdown 
-          [options]="serviciosEnTicket" 
-          [(ngModel)]="servicioSelloId" 
-          optionLabel="nombre" 
-          optionValue="id" 
-          placeholder="Automático (Servicio más caro)" 
-          [showClear]="true"
-          styleClass="w-full">
-          <ng-template pTemplate="selectedItem" let-selectedOption>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-star-fill text-[#bca028]"></i>
-              <div>{{selectedOption.nombre}}</div>
+  <p-dialog header="Procesar Pago" [(visible)]="cobroDialog" [modal]="true" [style]="{width: '850px', 'max-width': '95vw'}" [contentStyle]="{'overflow-y': 'auto', 'overflow-x': 'hidden'}" [draggable]="false" [resizable]="false">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 items-start">
+      
+      <!-- COLUMNA IZQUIERDA: Servicios y Fidelización -->
+      <div class="flex flex-col gap-5">
+        <!-- Asignación de Especialistas -->
+        <div *ngIf="ticketPendienteId && ticket.length > 0" class="flex flex-col bg-white dark:bg-gray-800 rounded-2xl p-5 border border-gray-100 dark:border-gray-700 shadow-sm">
+          <label class="font-bold block mb-4 text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-gray-700 pb-2 text-lg">Asignar Especialistas</label>
+          <div class="flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-2" style="max-height: 320px;">
+            <div *ngFor="let item of ticket" class="flex flex-col gap-2 p-3 bg-gray-50 dark:bg-[#1e232b] rounded-xl border border-gray-100 dark:border-gray-700/50 hover:border-orange-500/30 transition-colors">
+              <div class="flex justify-between items-start">
+                <div class="font-bold text-sm text-gray-800 dark:text-white line-clamp-2 pr-2">{{item.nombre}}</div>
+                <div class="text-sm font-black text-[#bca028] whitespace-nowrap">S/ {{item.precio | number:'1.2-2'}}</div>
+              </div>
+              <div class="w-full mt-1" *ngIf="item.tipo === 'servicio'">
+                <p-dropdown 
+                  [options]="empleados" 
+                  [(ngModel)]="item.empleadoId" 
+                  optionLabel="nombres" 
+                  optionValue="id" 
+                  placeholder="Asignar a..." 
+                  styleClass="w-full text-sm p-dropdown-sm"
+                  appendTo="body">
+                </p-dropdown>
+              </div>
             </div>
-          </ng-template>
-        </p-dropdown>
-        <small class="text-gray-500 block mt-1">El cliente elige a qué servicio acumular el sello hoy.</small>
-      </div>
+          </div>
+        </div>
 
-      <!-- Método de Pago -->
-      <div class="field">
-        <label class="font-bold block mb-3 text-gray-800 dark:text-gray-200">Método de Pago</label>
-        <p-selectButton [options]="metodosPago" [(ngModel)]="metodoPago" optionLabel="label" optionValue="value" styleClass="w-full">
-            <ng-template let-item pTemplate>
-                <div class="flex flex-col items-center justify-center p-2 gap-2">
-                    <i class="pi" [ngClass]="item.icon" style="font-size: 1.2rem"></i>
-                    <span class="text-xs font-semibold">{{item.label}}</span>
-                </div>
+        <!-- Selector de Fidelización -->
+        <div *ngIf="nombreCliente && serviciosEnTicket.length > 1" class="bg-orange-50/50 dark:bg-orange-900/10 p-5 rounded-2xl border border-orange-100 dark:border-orange-900/50">
+          <label class="font-bold block mb-2 text-[#bca028]">Sello de Fidelización</label>
+          <p-dropdown 
+            [options]="serviciosEnTicket" 
+            [(ngModel)]="servicioSelloId" 
+            optionLabel="nombre" 
+            optionValue="id" 
+            placeholder="Automático (Servicio más caro)" 
+            [showClear]="true"
+            styleClass="w-full"
+            appendTo="body">
+            <ng-template pTemplate="selectedItem" let-selectedOption>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-star-fill text-[#bca028]"></i>
+                <div class="text-sm">{{selectedOption.nombre}}</div>
+              </div>
             </ng-template>
-        </p-selectButton>
-      </div>
-
-      <!-- Calculadora de Vuelto (Solo Efectivo) -->
-      <div class="field" *ngIf="metodoPago === 'Efectivo'">
-        <label class="font-bold block mb-2 text-gray-800 dark:text-gray-200">Monto Recibido (S/)</label>
-        <p-inputNumber [(ngModel)]="montoRecibido" (ngModelChange)="calcularVuelto()" mode="currency" currency="PEN" locale="es-PE" styleClass="w-full p-inputtext-lg" [min]="0" class="text-xl"></p-inputNumber>
-        
-        <div class="mt-4 flex justify-between items-center p-3 rounded-lg" [ngClass]="vuelto > 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400' : 'bg-gray-50 dark:bg-gray-800 text-gray-500'">
-            <span class="font-bold">Vuelto a entregar:</span>
-            <span class="font-black text-xl">S/ {{vuelto | number:'1.2-2'}}</span>
+          </p-dropdown>
+          <small class="text-gray-500 block mt-2 leading-tight">El cliente elige a qué servicio acumular el sello hoy.</small>
         </div>
       </div>
 
-      <!-- Referencia (Solo Yape/Plin) -->
-      <div class="field" *ngIf="metodoPago === 'Transferencia'">
-        <label class="font-bold block mb-2 text-gray-800 dark:text-gray-200">Número de Operación / Referencia *</label>
-        <input type="text" pInputText [(ngModel)]="referenciaPago" placeholder="Ej: 458921" class="w-full p-inputtext-lg text-lg" />
-        <small class="text-gray-500 block mt-1">Obligatorio para verificar la transferencia.</small>
+      <!-- COLUMNA DERECHA: Pagos y Cliente -->
+      <div class="flex flex-col gap-5">
+        <!-- Resumen del cobro -->
+        <div class="bg-gray-900 p-6 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group">
+          <div class="absolute inset-0 bg-gradient-to-br from-[#bca028]/20 to-transparent opacity-50"></div>
+          <span class="text-gray-400 text-xs uppercase font-bold tracking-[0.2em] mb-2 z-10">Total a Cobrar</span>
+          <span class="text-5xl font-black text-[#bca028] z-10">S/ {{totalTicket | number:'1.2-2'}}</span>
+        </div>
+
+        <!-- Nombre del Cliente -->
+        <div>
+          <label class="font-bold block mb-2 text-sm text-gray-800 dark:text-gray-300">Cliente Asociado</label>
+          <div class="relative w-full">
+            <i class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" [(ngModel)]="nombreCliente" placeholder="Público General" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e232b] text-gray-800 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all" />
+          </div>
+        </div>
+
+        <!-- Método de Pago -->
+        <div>
+          <label class="font-bold block mb-2 text-sm text-gray-800 dark:text-gray-300">Método de Pago</label>
+          <p-selectButton [options]="metodosPago" [(ngModel)]="metodoPago" optionLabel="label" optionValue="value" styleClass="w-full">
+              <ng-template let-item pTemplate>
+                  <div class="flex items-center justify-center p-2 gap-2 w-full">
+                      <i class="pi" [ngClass]="item.icon"></i>
+                      <span class="font-bold">{{item.label}}</span>
+                  </div>
+              </ng-template>
+          </p-selectButton>
+        </div>
+
+        <!-- Calculadora de Vuelto (Solo Efectivo) -->
+        <div *ngIf="metodoPago === 'Efectivo'" class="bg-gray-50 dark:bg-[#1a1d24] p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <label class="font-bold block mb-2 text-sm text-gray-800 dark:text-gray-300">Monto Recibido (S/)</label>
+          <p-inputNumber [(ngModel)]="montoRecibido" (ngModelChange)="calcularVuelto()" mode="currency" currency="PEN" locale="es-PE" styleClass="w-full" class="text-xl"></p-inputNumber>
+          
+          <div class="mt-4 flex justify-between items-center p-3 rounded-lg border" [ngClass]="vuelto > 0 ? 'bg-green-50/50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50 text-green-700 dark:text-green-400' : 'bg-transparent border-gray-200 dark:border-gray-700 text-gray-500'">
+              <span class="font-bold text-sm">Vuelto a entregar:</span>
+              <span class="font-black text-xl">S/ {{vuelto | number:'1.2-2'}}</span>
+          </div>
+        </div>
+
+        <!-- Referencia (Solo Yape/Plin) -->
+        <div *ngIf="metodoPago === 'Transferencia'" class="bg-gray-50 dark:bg-[#1a1d24] p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+          <label class="font-bold block mb-2 text-sm text-gray-800 dark:text-gray-300">Número de Operación / Referencia *</label>
+          <input type="text" pInputText [(ngModel)]="referenciaPago" placeholder="Ej: 458921" class="w-full text-lg font-mono tracking-wider" />
+          <small class="text-orange-500 block mt-2 font-semibold">Requerido para validar la transferencia.</small>
+        </div>
       </div>
     </div>
 
@@ -410,69 +521,90 @@
   </div> <!-- Cierra p-6 h-full flex flex-col -->
 </div> <!-- Cierra print:hidden -->
 
-<!-- TICKET DE IMPRESION TÉRMICA (80mm) -->
-<div id="ticket-impresion" class="hidden print:block w-[80mm] mx-auto bg-white text-black font-mono p-4 text-[12px] leading-tight">
-  <!-- Cabecera -->
-  <div class="text-center mb-4">
-    <h1 class="text-xl font-bold uppercase mb-1">SPA DIANA</h1>
-    <p>RUC: 20123456789</p>
-    <p>Av. Principal 123, Ciudad</p>
-    <p>Tel: 987 654 321</p>
-    <div class="border-b border-dashed border-gray-500 my-2"></div>
-    <h2 class="font-bold text-[14px]">TICKET DE VENTA</h2>
-    <p class="font-bold mb-1 text-[13px]">Nro: {{ ticketNumero }}</p>
-    <div class="border-b border-dashed border-gray-500 my-2"></div>
+<!-- TICKET / CARTILLA A5 PARA IMPRIMIR -->
+<div class="hidden print:block paper-a5">
+  <div class="p-header">
+    <div class="p-header-left">
+      <div class="p-salon-name">{{ empresa()?.nombreComercial || 'SPA DIANA' }}</div>
+      <div class="p-salon-sub">{{ empresa()?.razonSocial || 'ESTÉTICA & NAIL ATELIER PROFESIONAL' }}</div>
+      <div class="p-salon-addr">
+        <i class="pi pi-map-marker" style="font-size:7px"></i>
+        {{ empresa()?.direccion || 'Jr. Moquegua 656' }}
+        <ng-container *ngIf="empresa()?.telefono">&nbsp;|&nbsp; Cel: {{ empresa()?.telefono }}</ng-container>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+      <!-- Nº DE ORDEN -->
+      <div class="p-fecha-block" *ngIf="ticketGeneradoId || ticketPendienteId">
+        <div class="p-fecha-lbl">N° ORDEN</div>
+        <div class="p-fecha-boxes">
+          <div class="p-fbox" style="min-width:52px;">
+            <span class="p-fbox-val" style="font-size:13px;">#{{ (ticketGeneradoId || ticketPendienteId) | number:'4.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+      <!-- FECHA -->
+      <div class="p-fecha-block">
+        <div class="p-fecha-lbl">FECHA</div>
+        <div class="p-fecha-boxes">
+          <div class="p-fbox"><span class="p-fbox-lbl">DÍA</span><span class="p-fbox-val">{{ fechaActual | date:'dd' }}</span></div>
+          <div class="p-fbox"><span class="p-fbox-lbl">MES</span><span class="p-fbox-val">{{ fechaActual | date:'MM' }}</span></div>
+          <div class="p-fbox"><span class="p-fbox-lbl">AÑO</span><span class="p-fbox-val">{{ fechaActual | date:'yyyy' }}</span></div>
+        </div>
+      </div>
+    </div>
   </div>
-  
-  <!-- Datos Generales -->
-  <div class="mb-4">
-    <p><span class="font-bold">Fecha:</span> {{ fechaActual | date:'dd/MM/yyyy HH:mm' }}</p>
-    <p><span class="font-bold">Cliente:</span> {{ nombreCliente || 'Público General' }}</p>
-    <p><span class="font-bold">Cajero:</span> {{ sesionActiva?.usuarioAperturaNombre || 'Administrador' }}</p>
-  </div>
-  
-  <div class="border-b border-dashed border-gray-500 my-2"></div>
 
-  <!-- Detalle -->
-  <table class="w-full text-left mb-4">
+  <div class="p-badge" style="background-color: #2b2b2b !important; color: white !important;">COMPROBANTE DE PAGO</div>
+
+  <div class="p-fields">
+    <div class="p-field">
+      <div class="p-field-lbl">CLIENTE:</div>
+      <div class="p-field-val">{{ nombreCliente || 'Público General' }}</div>
+    </div>
+    <div class="p-field">
+      <div class="p-field-lbl">MÉTODO PAGO:</div>
+      <div class="p-field-val">{{ metodoPago }}</div>
+    </div>
+  </div>
+
+  <table class="p-tabla" style="margin-top: 15px;">
     <thead>
-      <tr class="border-b border-gray-500">
-        <th class="py-1 w-8">CANT</th>
-        <th class="py-1">DESCRIPCIÓN</th>
-        <th class="py-1 text-right">TOTAL</th>
+      <tr>
+        <th class="tc" style="width:24px">CANT</th>
+        <th>DESCRIPCIÓN DE SERVICIOS / PRODUCTOS</th>
+        <th>ESPECIALISTA ASIGNADO</th>
+        <th class="tc" style="width:80px">TOTAL</th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let item of ticket" class="border-b border-gray-300 border-dashed">
-        <td class="py-1 align-top text-center">{{ item.cantidad }}</td>
-        <td class="py-1 pr-1 uppercase text-[10px]">{{ item.nombre }}</td>
-        <td class="py-1 text-right align-top whitespace-nowrap">S/ {{ item.subtotal | number:'1.2-2' }}</td>
+      <tr *ngFor="let item of ticket; let i = index">
+        <td class="tc">{{ item.cantidad }}</td>
+        <td>{{ item.nombre }}</td>
+        <td>{{ obtenerNombreEmpleado(item.empleadoId) }}</td>
+        <td class="tc">S/ {{ item.subtotal | number:'1.2-2' }}</td>
+      </tr>
+      <tr *ngIf="ticket.length === 0">
+        <td colspan="4" class="tc" style="color: #999; font-style: italic; padding: 20px;">Sin detalles</td>
       </tr>
     </tbody>
   </table>
-  
-  <div class="border-b border-dashed border-gray-500 my-2"></div>
-  
-  <!-- Totales -->
-  <div class="flex justify-between mb-1">
-    <span>SUBTOTAL:</span>
-    <span>S/ {{ subtotalTicket | number:'1.2-2' }}</span>
-  </div>
-  <div class="flex justify-between mb-1" *ngIf="descuentoTicket > 0">
-    <span>DESCUENTO:</span>
-    <span>- S/ {{ descuentoTicket | number:'1.2-2' }}</span>
-  </div>
-  <div class="flex justify-between font-black text-[16px] mt-2 border-t border-gray-500 pt-1">
-    <span>TOTAL:</span>
-    <span>S/ {{ totalTicket | number:'1.2-2' }}</span>
-  </div>
-  
-  <div class="border-b border-dashed border-gray-500 my-2 mt-4"></div>
-  
-  <!-- Pie de página -->
-  <div class="text-center mt-4">
-    <p class="font-bold uppercase mb-2">MÉTODO: {{ metodoPago }}</p>
-    <p class="mb-1">¡Gracias por su preferencia!</p>
-    <p class="text-[9px] text-gray-600 mt-4">Software de Gestión Antigravity</p>
+
+  <!-- TOTALES -->
+  <div style="display: flex; justify-content: flex-end; margin-top: 15px; width: 100%;">
+    <table style="width: 250px; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 14px;">
+      <tr>
+        <td style="text-align: right; font-weight: bold; padding: 4px 8px;">SUBTOTAL:</td>
+        <td style="text-align: right; padding: 4px 8px;">S/ {{ subtotalTicket | number:'1.2-2' }}</td>
+      </tr>
+      <tr *ngIf="descuentoTicket > 0">
+        <td style="text-align: right; font-weight: bold; padding: 4px 8px;">DESCUENTO:</td>
+        <td style="text-align: right; padding: 4px 8px;">- S/ {{ descuentoTicket | number:'1.2-2' }}</td>
+      </tr>
+      <tr>
+        <td style="text-align: right; font-weight: 900; font-size: 16px; padding: 8px; border-top: 2px solid #000;">TOTAL PAGADO:</td>
+        <td style="text-align: right; font-weight: 900; font-size: 16px; padding: 8px; border-top: 2px solid #000;">S/ {{ totalTicket | number:'1.2-2' }}</td>
+      </tr>
+    </table>
   </div>
 </div>

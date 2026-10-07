@@ -57,7 +57,7 @@ public class SesionCajaService {
         BigDecimal totalEfectivo = BigDecimal.ZERO;
         
         for (Ticket t : tickets) {
-            if (Boolean.TRUE.equals(t.getActivo()) && t.getMetodoPago() == MetodoPago.EFECTIVO) {
+            if (Boolean.TRUE.equals(t.getActivo()) && t.getEstado() == pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO && t.getMetodoPago() == MetodoPago.EFECTIVO) {
                 totalEfectivo = totalEfectivo.add(t.getTotal());
             }
         }
@@ -94,7 +94,7 @@ public class SesionCajaService {
         BigDecimal totalTransferencia = BigDecimal.ZERO;
 
         for (Ticket t : tickets) {
-            if (Boolean.TRUE.equals(t.getActivo())) {
+            if (Boolean.TRUE.equals(t.getActivo()) && t.getEstado() == pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO) {
                 if (t.getMetodoPago() == MetodoPago.EFECTIVO) {
                     totalEfectivo = totalEfectivo.add(t.getTotal());
                 } else {
@@ -115,7 +115,7 @@ public class SesionCajaService {
         resumen.setTotalVentasTransferencia(totalTransferencia);
         resumen.setTotalEgresosEfectivo(totalEgresos); 
         resumen.setTotalEsperadoEfectivo(sesionAbierta.getMontoInicial().add(totalEfectivo).subtract(totalEgresos));
-        resumen.setCantidadTickets((int) tickets.stream().filter(t -> Boolean.TRUE.equals(t.getActivo())).count());
+        resumen.setCantidadTickets((int) tickets.stream().filter(t -> Boolean.TRUE.equals(t.getActivo()) && t.getEstado() == pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO).count());
 
         return resumen;
     }

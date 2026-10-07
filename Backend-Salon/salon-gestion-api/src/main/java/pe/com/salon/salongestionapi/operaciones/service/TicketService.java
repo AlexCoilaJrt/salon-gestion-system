@@ -45,6 +45,79 @@ public class TicketService {
     private static final int PUNTOS_POR_SOL = 1;
 
     @Transactional
+    public TicketResponse generarOrden(TicketRequest request) {
+        // 1. Buscar al cliente (Opcional - con Fallback para Base de Datos)
+        Cliente cliente = null;
+        if (request.getClienteId() != null) {
+            cliente = clienteRepository.findById(request.getClienteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + request.getClienteId()));
+        } else {
+            // Creamos o buscamos un cliente genérico porque la BD exige un cliente_id
+            cliente = clienteRepository.findById(1L).orElseGet(() -> {
+                Cliente fallback = new Cliente();
+                fallback.setNombres("Público");
+                fallback.setApellidos("General");
+                return clienteRepository.save(fallback);
+            });
+        }
+
+        SesionCaja sesionActiva = sesionCajaRepository.findByEstadoTrue()
+                .orElseThrow(() -> new RuntimeException("No se puede generar cartilla porque no hay una caja abierta en el sistema. Debe abrir la caja primero."));
+
+        // 2. Preparar cabecera de la Orden
+        Ticket ticket = new Ticket();
+        ticket.setFechaEmision(LocalDateTime.now());
+        ticket.setEstado(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO);
+        ticket.setMetodoPago(pe.com.salon.salongestionapi.operaciones.entity.MetodoPago.POR_DEFINIR);
+        ticket.setSesionCaja(sesionActiva);
+        ticket.setCliente(cliente);
+        ticket.setNombreClienteNoRegistrado(request.getNombreClienteNoRegistrado());
+
+        BigDecimal totalVenta = BigDecimal.ZERO;
+
+        // 3. Procesar Detalles
+        for (TicketDetalleRequest detReq : request.getDetalles()) {
+            TicketDetalle detalle = new TicketDetalle();
+            detalle.setCantidad(detReq.getCantidad());
+            BigDecimal precioUnitario = BigDecimal.ZERO;
+
+            if (detReq.getServicioId() != null) {
+                Servicio servicio = servicioRepository.findById(detReq.getServicioId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado con id: " + detReq.getServicioId()));
+                detalle.setServicio(servicio);
+                precioUnitario = servicio.getPrecioBase();
+            } else if (detReq.getProductoId() != null) {
+                Producto producto = productoRepository.findById(detReq.getProductoId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + detReq.getProductoId()));
+                detalle.setProducto(producto);
+                precioUnitario = producto.getPrecioVenta();
+                // NO descontamos stock aún porque es solo una orden pendiente
+            } else {
+                throw new RuntimeException("Cada detalle debe tener un servicioId o un productoId");
+            }
+
+            // El empleado puede ser null en esta etapa
+            if (detReq.getEmpleadoId() != null) {
+                Empleado empleado = empleadoRepository.findById(detReq.getEmpleadoId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + detReq.getEmpleadoId()));
+                detalle.setEmpleado(empleado);
+            }
+
+            detalle.setPrecioUnitario(precioUnitario);
+            BigDecimal subtotal = precioUnitario.multiply(BigDecimal.valueOf(detReq.getCantidad()));
+            detalle.setSubtotal(subtotal);
+            totalVenta = totalVenta.add(subtotal);
+
+            ticket.addDetalle(detalle);
+        }
+
+        ticket.setTotal(totalVenta);
+        Ticket guardado = ticketRepository.save(ticket);
+        
+        return mapToResponse(guardado);
+    }
+
+    @Transactional
     public TicketResponse emitirTicket(TicketRequest request) {
         // 1. Validar que la caja esté abierta
         SesionCaja sesionActiva = sesionCajaRepository.findByEstadoTrue()
@@ -192,6 +265,81 @@ public class TicketService {
                 .collect(Collectors.toList());
     }
 
+    public List<TicketResponse> obtenerTicketsPendientes() {
+        return ticketRepository.findByEstadoOrderByFechaEmisionDesc(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public TicketResponse pagarTicket(Long id, TicketRequest request) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket no encontrado con id: " + id));
+
+        if (ticket.getEstado() != pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO) {
+            throw new RuntimeException("El ticket ya está pagado o anulado.");
+        }
+
+        SesionCaja sesionActiva = sesionCajaRepository.findByEstadoTrue()
+                .orElseThrow(() -> new RuntimeException("No se puede pagar ticket porque no hay una caja abierta"));
+
+        ticket.setMetodoPago(request.getMetodoPago());
+        ticket.setSesionCaja(sesionActiva);
+        ticket.setEstado(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO);
+        
+        // Asignar empleados desde el request a los detalles existentes
+        for (int i = 0; i < ticket.getDetalles().size(); i++) {
+            TicketDetalle detalle = ticket.getDetalles().get(i);
+            if (i < request.getDetalles().size() && request.getDetalles().get(i).getEmpleadoId() != null) {
+                Long empId = request.getDetalles().get(i).getEmpleadoId();
+                Empleado empleado = empleadoRepository.findById(empId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + empId));
+                detalle.setEmpleado(empleado);
+            }
+        }
+
+        Ticket guardado = ticketRepository.save(ticket);
+        
+        // Lógica de fidelización al confirmar el pago
+        Cliente cliente = guardado.getCliente();
+        if (cliente != null && !cliente.getId().equals(1L)) {
+            int puntosGanados = guardado.getTotal().intValue() * PUNTOS_POR_SOL;
+            cliente.setPuntosFidelizacion(cliente.getPuntosFidelizacion() + puntosGanados);
+            cliente.setFechaUltimaVisita(LocalDate.now());
+            clienteRepository.save(cliente);
+
+            Long servicioPrioridadId = request.getServicioSelloId();
+            List<TicketDetalle> detallesFiltrados = guardado.getDetalles().stream()
+                .filter(d -> d.getServicio() != null)
+                .collect(Collectors.toList());
+
+            if (servicioPrioridadId != null) {
+                detallesFiltrados.sort((d1, d2) -> {
+                    if (d1.getServicio().getId().equals(servicioPrioridadId)) return -1;
+                    if (d2.getServicio().getId().equals(servicioPrioridadId)) return 1;
+                    return d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()); 
+                });
+            } else {
+                detallesFiltrados.sort((d1, d2) -> d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()));
+            }
+
+            for (TicketDetalle d : detallesFiltrados) {
+                boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
+                if (selloAgregado) {
+                    break;
+                }
+            }
+
+            if (request.getPremiosFidelizacionIds() != null && !request.getPremiosFidelizacionIds().isEmpty()) {
+                for (Long cartillaId : request.getPremiosFidelizacionIds()) {
+                    fidelizacionService.canjearPremio(cliente.getId(), cartillaId);
+                }
+            }
+        }
+        
+        return mapToResponse(guardado);
+    }
+
     @Transactional
     public TicketResponse anularTicket(Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
@@ -228,6 +376,7 @@ public class TicketService {
         TicketResponse res = new TicketResponse();
         res.setId(ticket.getId());
         res.setFechaEmision(ticket.getFechaEmision());
+        res.setEstado(ticket.getEstado());
         res.setMetodoPago(ticket.getMetodoPago());
         res.setTotal(ticket.getTotal());
         
@@ -237,7 +386,9 @@ public class TicketService {
         } else {
             res.setClienteNombreCompleto(ticket.getNombreClienteNoRegistrado() != null && !ticket.getNombreClienteNoRegistrado().isBlank() ? ticket.getNombreClienteNoRegistrado() : "Público General");
         }
-        res.setSesionCajaId(ticket.getSesionCaja().getId());
+        if (ticket.getSesionCaja() != null) {
+            res.setSesionCajaId(ticket.getSesionCaja().getId());
+        }
         res.setActivo(ticket.getActivo());
 
         List<TicketDetalleResponse> detallesRes = ticket.getDetalles().stream().map(d -> {

@@ -43,6 +43,10 @@ export class TicketService {
     return this.http.post<TicketResponse>(this.apiUrl, request);
   }
 
+  generarOrden(request: any): Observable<TicketResponse> {
+    return this.http.post<TicketResponse>(`${this.apiUrl}/generar-orden`, request);
+  }
+
   anularTicket(id: number): Observable<TicketResponse> {
     return this.http.put<TicketResponse>(`${this.apiUrl}/${id}/anular`, {});
   }

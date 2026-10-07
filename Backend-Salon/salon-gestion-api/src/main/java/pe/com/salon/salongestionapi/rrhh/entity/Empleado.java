@@ -61,8 +61,7 @@ public class Empleado {
     @JoinColumn(name = "turno_id")
     private Turno turno;
 
-    @Column(name = "sueldo_fijo", precision = 10, scale = 2)
-    private java.math.BigDecimal sueldoFijo;
+  
 
     // Método utilitario para no guardar la edad en base de datos (ya que cambia cada año)
     @Transient

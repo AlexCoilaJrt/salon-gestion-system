@@ -24,6 +24,15 @@ public class Especialidad {
     @Column(length = 200)
     private String descripcion;
 
+    @Column(length = 20)
+    private String tipoPago; // "FIJO" o "PORCENTAJE"
+
+    @Column(name = "monto_fijo", precision = 10, scale = 2)
+    private java.math.BigDecimal montoFijo;
+
+    @Column(name = "porcentaje_comision", precision = 5, scale = 2)
+    private java.math.BigDecimal porcentajeComision;
+
     @Column(nullable = false)
     private Boolean estado = true;
 }

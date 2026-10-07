@@ -18,4 +18,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     java.util.List<Ticket> findBySesionCajaId(Long sesionCajaId);
 
     java.util.List<Ticket> findAllByOrderByFechaEmisionDesc();
+    
+    java.util.List<Ticket> findByEstadoOrderByFechaEmisionDesc(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket estado);
 }

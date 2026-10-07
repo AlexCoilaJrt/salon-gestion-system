@@ -11,7 +11,6 @@ import java.util.List;
 @Data
 public class TicketRequest {
 
-    @NotNull(message = "El método de pago es obligatorio")
     private MetodoPago metodoPago;
 
     private Long clienteId;

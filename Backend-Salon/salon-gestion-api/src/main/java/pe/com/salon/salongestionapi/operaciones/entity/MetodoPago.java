@@ -5,5 +5,6 @@ public enum MetodoPago {
     TARJETA,
     YAPE,
     PLIN,
-    TRANSFERENCIA
+    TRANSFERENCIA,
+    POR_DEFINIR
 }
