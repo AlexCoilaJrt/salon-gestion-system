@@ -13,6 +13,7 @@ import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.rrhh.repository.LiquidacionRrhhRepository;
 import pe.com.salon.salongestionapi.rrhh.service.LiquidacionService;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 

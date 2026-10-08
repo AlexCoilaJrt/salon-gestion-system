@@ -3,6 +3,7 @@ package pe.com.salon.salongestionapi.rrhh.dto;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
 public class MonitorComisionResponse {
@@ -18,6 +19,20 @@ public class MonitorComisionResponse {
     
     private BigDecimal ventasHoy;
     private BigDecimal comisionesGanadasHoy;
+    
+    private List<DetalleServicio> detallesServicios;
+
+    @Data
+    public static class DetalleServicio {
+        private String servicioNombre;
+        private String categoriaNombre;
+        private String especialidadAplicada;
+        private String tipoPago;
+        private BigDecimal porcentajeAplicado;
+        private BigDecimal precioCobrado;
+        private BigDecimal comisionGanada;
+        private LocalDateTime fechaHora;
+    }
 
     @Data
     public static class IncentivoAplicado {

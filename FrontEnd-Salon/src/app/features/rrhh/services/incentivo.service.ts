@@ -34,6 +34,18 @@ export interface MonitorComision {
   totalComisionMontoFijo: number;
   ventasHoy?: number;
   comisionesGanadasHoy?: number;
+  detallesServicios?: DetalleServicio[];
+}
+
+export interface DetalleServicio {
+  servicioNombre: string;
+  categoriaNombre: string;
+  especialidadAplicada: string;
+  tipoPago: string;
+  porcentajeAplicado: number;
+  precioCobrado: number;
+  comisionGanada: number;
+  fechaHora: string;
 }
 
 @Injectable({

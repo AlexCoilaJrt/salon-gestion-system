@@ -18,6 +18,7 @@ import pe.com.salon.salongestionapi.rrhh.service.IncentivoService;
 import pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse;
 import pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse.IncentivoAplicado;
 import pe.com.salon.salongestionapi.operaciones.entity.TicketDetalle;
+import pe.com.salon.salongestionapi.finanzas.service.MotorComisionService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ public class IncentivoServiceImpl implements IncentivoService {
     private final AsistenciaRepository asistenciaRepository;
     private final ComisionRepository comisionRepository;
     private final pe.com.salon.salongestionapi.operaciones.repository.TicketDetalleRepository ticketDetalleRepository;
+    private final MotorComisionService motorComisionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -178,11 +180,62 @@ public class IncentivoServiceImpl implements IncentivoService {
             response.setVentasHoy(ventasHoy != null ? ventasHoy : BigDecimal.ZERO);
             
             List<TicketDetalle> detallesHoy = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioDia, finDia);
-            long cantidadServiciosHoy = detallesHoy.size();
+            List<MonitorComisionResponse.DetalleServicio> detalleServicios = new ArrayList<>();
+            BigDecimal comisionGanadaTotal = BigDecimal.ZERO;
+            
+            for(TicketDetalle detalle : detallesHoy) {
+                Long especialidadId = null;
+                String servicioNombre = "Producto / Otro";
+                String categoriaNombre = "-";
+                String especialidadAplicada = "-";
+                
+                if (detalle.getServicio() != null) {
+                    servicioNombre = detalle.getServicio().getNombre();
+                    if (detalle.getServicio().getCategoria() != null) {
+                        categoriaNombre = detalle.getServicio().getCategoria().getNombre();
+                    }
+                    if (detalle.getServicio().getEspecialidadRequerida() != null) {
+                        especialidadId = detalle.getServicio().getEspecialidadRequerida().getId();
+                        especialidadAplicada = detalle.getServicio().getEspecialidadRequerida().getNombre();
+                    }
+                }
+                
+                BigDecimal comisionVenta = motorComisionService.calcularComision(
+                    detalle.getServicio(), 
+                    empleado.getId(), 
+                    especialidadId, 
+                    detalle.getSubtotal(), 
+                    LocalDate.now()
+                );
+                
+                // Aplicar incentivos adicionales globales (Bonos fijos o % extra) de RRHH
+                // NOTA: Para no alterar la matemática pura de MotorComision, el MotorComision devuelve el % + Bono Fin de semana.
+                // Aquí sumamos cualquier incentivo adicional global (si aplica)
+                BigDecimal gananciaFinalLinea = comisionVenta.add(
+                    detalle.getSubtotal().multiply(totalPorc).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
+                ).add(totalMonto); // Simplificación: totalMonto se añade por servicio.
+                
+                comisionGanadaTotal = comisionGanadaTotal.add(gananciaFinalLinea);
+                
+                MonitorComisionResponse.DetalleServicio ds = new MonitorComisionResponse.DetalleServicio();
+                ds.setServicioNombre(servicioNombre);
+                ds.setCategoriaNombre(categoriaNombre);
+                ds.setEspecialidadAplicada(especialidadAplicada);
+                // Tipo de pago será inferido o calculado en el front o aquí. 
+                // Asumimos que si gananciaFinalLinea es 0 y especialidad es "Preparador", fue Sueldo Fijo.
+                ds.setTipoPago(gananciaFinalLinea.compareTo(BigDecimal.ZERO) > 0 ? "Comisión" : "Sueldo Fijo");
+                ds.setPorcentajeAplicado(BigDecimal.ZERO); // Podríamos calcular (ganancia / subtotal) * 100
+                if (detalle.getSubtotal().compareTo(BigDecimal.ZERO) > 0) {
+                    ds.setPorcentajeAplicado(gananciaFinalLinea.multiply(new BigDecimal("100")).divide(detalle.getSubtotal(), 2, java.math.RoundingMode.HALF_UP));
+                }
+                ds.setPrecioCobrado(detalle.getSubtotal());
+                ds.setComisionGanada(gananciaFinalLinea);
+                ds.setFechaHora(LocalDateTime.now()); // ticket no tiene hora exacta en este modelo, usamos now
+                detalleServicios.add(ds);
+            }
 
-            BigDecimal comisionPorcentualGanada = response.getVentasHoy().multiply(totalPorc).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP);
-            BigDecimal comisionGanadaTotal = comisionPorcentualGanada.add(totalMonto.multiply(new BigDecimal(cantidadServiciosHoy)));
             response.setComisionesGanadasHoy(comisionGanadaTotal);
+            response.setDetallesServicios(detalleServicios);
             
             monitorList.add(response);
         }

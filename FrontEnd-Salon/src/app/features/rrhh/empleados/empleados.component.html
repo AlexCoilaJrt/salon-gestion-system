@@ -89,14 +89,14 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Nombres <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="nombres" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
-        <small class="text-red-500" *ngIf="empleadoForm.get('nombres')?.invalid && empleadoForm.get('nombres')?.touched">Requerido (solo letras).</small>
+        <input type="text" pInputText formControlName="nombres" [maxlength]="60" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
+        <small class="text-red-500" *ngIf="empleadoForm.get('nombres')?.invalid && empleadoForm.get('nombres')?.touched">Requerido.</small>
       </div>
 
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Apellidos <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="apellidos" pKeyFilter="alpha" [maxlength]="60" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
-        <small class="text-red-500" *ngIf="empleadoForm.get('apellidos')?.invalid && empleadoForm.get('apellidos')?.touched">Requerido (solo letras).</small>
+        <input type="text" pInputText formControlName="apellidos" [maxlength]="60" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
+        <small class="text-red-500" *ngIf="empleadoForm.get('apellidos')?.invalid && empleadoForm.get('apellidos')?.touched">Requerido.</small>
       </div>
 
       <div class="flex flex-col gap-2">

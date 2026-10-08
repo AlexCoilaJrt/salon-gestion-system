@@ -54,6 +54,7 @@ public class MotorComisionService {
     private final TicketDetalleRepository ticketDetalleRepository;
     private final AsistenciaRepository asistenciaRepository;
     private final ConfiguracionService configuracionService;
+    private final pe.com.salon.salongestionapi.rrhh.repository.EspecialidadRepository especialidadRepository;
 
     // -------------------------------------------------------------------------
     // Método principal: calcular comisión para una línea de TicketDetalle
@@ -123,6 +124,26 @@ public class MotorComisionService {
      */
     private BigDecimal resolverPorcentajeServicio(
             Servicio servicio, Long empleadoId, Long especialidadId, LocalDate fechaVenta) {
+
+        // Nivel 0: Regla desde la entidad Especialidad (Fijo vs Porcentaje)
+        if (especialidadId != null) {
+            pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp = especialidadRepository.findById(especialidadId).orElse(null);
+            if (esp != null) {
+                if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
+                    return BigDecimal.ZERO; // Especialidades de sueldo fijo NO ganan comisión
+                }
+                
+                if (("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago()))
+                        && esp.getPorcentajeComision() != null 
+                        && esp.getPorcentajeComision().compareTo(BigDecimal.ZERO) > 0) {
+                    
+                    // Si el servicio NO tiene override directo, gana el porcentaje de la especialidad
+                    if (servicio.getComisionPorcentaje() == null || servicio.getComisionPorcentaje().compareTo(BigDecimal.ZERO) <= 0) {
+                        return esp.getPorcentajeComision();
+                    }
+                }
+            }
+        }
 
         // Nivel 1: comisión propia del Servicio (override directo)
         if (servicio.getComisionPorcentaje() != null
