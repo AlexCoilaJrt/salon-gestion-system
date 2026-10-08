@@ -33,6 +33,9 @@ public class EspecialidadService {
         Especialidad especialidad = new Especialidad();
         especialidad.setNombre(request.getNombre());
         especialidad.setDescripcion(request.getDescripcion());
+        especialidad.setTipoPago(request.getTipoPago());
+        especialidad.setMontoFijo(request.getMontoFijo());
+        especialidad.setPorcentajeComision(request.getPorcentajeComision());
         especialidad.setEstado(request.getEstado() != null ? request.getEstado() : true);
 
         Especialidad guardada = especialidadRepository.save(especialidad);
@@ -45,6 +48,9 @@ public class EspecialidadService {
 
         especialidad.setNombre(request.getNombre());
         especialidad.setDescripcion(request.getDescripcion());
+        especialidad.setTipoPago(request.getTipoPago());
+        especialidad.setMontoFijo(request.getMontoFijo());
+        especialidad.setPorcentajeComision(request.getPorcentajeComision());
         if (request.getEstado() != null) {
             especialidad.setEstado(request.getEstado());
         }
@@ -66,6 +72,9 @@ public class EspecialidadService {
         response.setId(especialidad.getId());
         response.setNombre(especialidad.getNombre());
         response.setDescripcion(especialidad.getDescripcion());
+        response.setTipoPago(especialidad.getTipoPago());
+        response.setMontoFijo(especialidad.getMontoFijo());
+        response.setPorcentajeComision(especialidad.getPorcentajeComision());
         response.setEstado(especialidad.getEstado());
         return response;
     }

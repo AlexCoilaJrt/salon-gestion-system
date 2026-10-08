@@ -132,7 +132,11 @@ public class DataSeeder implements CommandLineRunner {
         Role roleBarbero = createRoleIfNotFound("BARBERO", "Especialista del Salón", portalSalon, barberoPerms);
 
         // 4. Crear Usuarios por Defecto
-        createUserIfNotFound("admin@salon.com", "admin123", Set.of(roleAdmin));
+        Usuario admin = createUserIfNotFound("admin@salon.com", "admin123", Set.of(roleAdmin));
+        admin.setPassword(passwordEncoder.encode("admin123"));
+        admin.setEstado(true);
+        usuarioRepository.save(admin);
+        
         createUserIfNotFound("caja@salon.com", "caja123", Set.of(roleCajero));
         createUserIfNotFound("juan@salon.com", "juan123", Set.of(roleBarbero));
 

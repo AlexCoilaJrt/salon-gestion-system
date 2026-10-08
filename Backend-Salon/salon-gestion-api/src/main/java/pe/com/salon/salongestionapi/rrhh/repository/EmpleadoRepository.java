@@ -13,6 +13,8 @@ import java.util.Optional;
 @Repository
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
     Optional<Empleado> findByDni(String dni);
+    boolean existsByDni(String dni);
+    boolean existsByEmail(String email);
     java.util.List<Empleado> findByEstadoTrue();
 
     @Query(value = "SELECT e FROM Empleado e WHERE " +

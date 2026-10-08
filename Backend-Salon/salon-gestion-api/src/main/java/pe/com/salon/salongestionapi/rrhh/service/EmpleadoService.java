@@ -14,6 +14,7 @@ import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.rrhh.repository.EspecialidadRepository;
 import pe.com.salon.salongestionapi.shared.PageResponse;
 import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
+import pe.com.salon.salongestionapi.exception.BadRequestException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -56,6 +57,13 @@ public class EmpleadoService {
     }
 
     public EmpleadoResponse crearEmpleado(EmpleadoRequest request) {
+        if (request.getEmail() != null && empleadoRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("El correo electrónico ya está registrado: " + request.getEmail());
+        }
+        if (request.getDni() != null && empleadoRepository.existsByDni(request.getDni())) {
+            throw new BadRequestException("El DNI ya está registrado: " + request.getDni());
+        }
+
         Empleado empleado = new Empleado();
         empleado.setNombres(request.getNombres());
         empleado.setApellidos(request.getApellidos());
@@ -93,6 +101,16 @@ public class EmpleadoService {
     public EmpleadoResponse actualizarEmpleado(Long id, EmpleadoRequest request) {
         Empleado empleado = empleadoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + id));
+
+        if (request.getEmail() != null && !request.getEmail().equals(empleado.getEmail()) 
+            && empleadoRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("El correo electrónico ya está registrado por otro empleado: " + request.getEmail());
+        }
+        
+        if (request.getDni() != null && !request.getDni().equals(empleado.getDni()) 
+            && empleadoRepository.existsByDni(request.getDni())) {
+            throw new BadRequestException("El DNI ya está registrado por otro empleado: " + request.getDni());
+        }
 
         empleado.setNombres(request.getNombres());
         empleado.setApellidos(request.getApellidos());

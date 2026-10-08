@@ -55,6 +55,7 @@ public class MotorComisionService {
     private final AsistenciaRepository asistenciaRepository;
     private final ConfiguracionService configuracionService;
     private final pe.com.salon.salongestionapi.rrhh.repository.EspecialidadRepository especialidadRepository;
+    private final pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository empleadoRepository;
 
     // -------------------------------------------------------------------------
     // Método principal: calcular comisión para una línea de TicketDetalle
@@ -142,6 +143,23 @@ public class MotorComisionService {
                         return esp.getPorcentajeComision();
                     }
                 }
+            }
+        }
+
+        // Validar si el Empleado es estrictamente de Sueldo Fijo
+        pe.com.salon.salongestionapi.rrhh.entity.Empleado emp = empleadoRepository.findById(empleadoId).orElse(null);
+        if (emp != null && emp.getEspecialidades() != null && !emp.getEspecialidades().isEmpty()) {
+            boolean tienePorcentaje = false;
+            boolean tieneFijo = false;
+            for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : emp.getEspecialidades()) {
+                if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
+                    tieneFijo = true;
+                } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
+                    tienePorcentaje = true;
+                }
+            }
+            if (tieneFijo && !tienePorcentaje) {
+                return BigDecimal.ZERO; // Si el empleado solo tiene especialidades FIJAS, no gana comisión por servicios.
             }
         }
 

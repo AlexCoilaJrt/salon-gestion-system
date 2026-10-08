@@ -134,13 +134,19 @@ public class IncentivoServiceImpl implements IncentivoService {
             // Determinar Comisión Base
             BigDecimal basePorc = BigDecimal.ZERO;
             BigDecimal baseMonto = BigDecimal.ZERO;
-            List<Comision> comisionesEmpleado = comisionRepository.findByEmpleadoId(empleado.getId());
-            for (Comision c : comisionesEmpleado) {
-                if (c.getEstado()) {
-                    if (c.getTipoComision() == TipoComision.PORCENTAJE) {
-                        basePorc = basePorc.add(c.getValor());
-                    } else {
-                        baseMonto = baseMonto.add(c.getValor());
+            
+            if (empleado.getEspecialidades() != null) {
+                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
+                    if (esp.getEstado()) {
+                        if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
+                            if (esp.getMontoFijo() != null) {
+                                baseMonto = baseMonto.add(esp.getMontoFijo());
+                            }
+                        } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
+                            if (esp.getPorcentajeComision() != null) {
+                                basePorc = basePorc.add(esp.getPorcentajeComision());
+                            }
+                        }
                     }
                 }
             }
@@ -208,12 +214,16 @@ public class IncentivoServiceImpl implements IncentivoService {
                     LocalDate.now()
                 );
                 
-                // Aplicar incentivos adicionales globales (Bonos fijos o % extra) de RRHH
-                // NOTA: Para no alterar la matemática pura de MotorComision, el MotorComision devuelve el % + Bono Fin de semana.
-                // Aquí sumamos cualquier incentivo adicional global (si aplica)
-                BigDecimal gananciaFinalLinea = comisionVenta.add(
-                    detalle.getSubtotal().multiply(totalPorc).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
-                ).add(totalMonto); // Simplificación: totalMonto se añade por servicio.
+                // El Motor de Comisiones YA procesó el Porcentaje de la especialidad o servicio.
+                // SOLO sumamos incentivos extras o globales aplicados sobre el total (ej: Bono Navideño Global).
+                BigDecimal porcentajeExtra = totalPorc.subtract(basePorc); 
+                BigDecimal gananciaFinalLinea = comisionVenta;
+                if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
+                    gananciaFinalLinea = gananciaFinalLinea.add(
+                        detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
+                    );
+                }
+                gananciaFinalLinea = gananciaFinalLinea.add(totalMonto.subtract(baseMonto)); 
                 
                 comisionGanadaTotal = comisionGanadaTotal.add(gananciaFinalLinea);
                 
@@ -221,9 +231,9 @@ public class IncentivoServiceImpl implements IncentivoService {
                 ds.setServicioNombre(servicioNombre);
                 ds.setCategoriaNombre(categoriaNombre);
                 ds.setEspecialidadAplicada(especialidadAplicada);
-                // Tipo de pago será inferido o calculado en el front o aquí. 
-                // Asumimos que si gananciaFinalLinea es 0 y especialidad es "Preparador", fue Sueldo Fijo.
-                ds.setTipoPago(gananciaFinalLinea.compareTo(BigDecimal.ZERO) > 0 ? "Comisión" : "Sueldo Fijo");
+                // El Tipo Pago en el sub-servicio refleja si realmente ganó comisión por él.
+                boolean esSoloFijo = basePorc.compareTo(BigDecimal.ZERO) == 0 && baseMonto.compareTo(BigDecimal.ZERO) > 0;
+                ds.setTipoPago(esSoloFijo || gananciaFinalLinea.compareTo(BigDecimal.ZERO) == 0 ? "Sueldo Fijo" : "Comisión");
                 ds.setPorcentajeAplicado(BigDecimal.ZERO); // Podríamos calcular (ganancia / subtotal) * 100
                 if (detalle.getSubtotal().compareTo(BigDecimal.ZERO) > 0) {
                     ds.setPorcentajeAplicado(gananciaFinalLinea.multiply(new BigDecimal("100")).divide(detalle.getSubtotal(), 2, java.math.RoundingMode.HALF_UP));

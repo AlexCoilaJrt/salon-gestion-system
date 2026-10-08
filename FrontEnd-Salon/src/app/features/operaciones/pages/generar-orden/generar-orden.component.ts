@@ -102,7 +102,7 @@ export class GenerarOrdenComponent implements OnInit {
       : c.items;
   });
 
-  seleccionados = computed(() => this.todosLosItems().filter(i => i.seleccionado));
+  seleccionados = signal<CartillaItem[]>([]);
 
   subtotal = computed(() => this.seleccionados().reduce((acc, item) => acc + (item.precio * item.cantidad), 0));
 
@@ -173,27 +173,35 @@ export class GenerarOrdenComponent implements OnInit {
   }
 
   private toItem(s: Servicio): CartillaItem {
-    return { servicioId: s.id!, nombre: s.nombre, precio: s.precioBase, seleccionado: true, cantidad: 1 };
+    return { servicioId: s.id!, nombre: s.nombre, precio: s.precioBase, seleccionado: false, cantidad: 1 };
   }
 
   toggleItem(item: CartillaItem): void {
     item.seleccionado = !item.seleccionado;
-    this.cartillas.update(c => [...c]);
+    const allSelected = this.todosLosItems().filter(i => i.seleccionado);
+    this.seleccionados.set(allSelected);
   }
 
   onCartillaChange(c: Cartilla): void {
     this.cartillaSeleccionada.set(c);
     this.codigoCartilla.set(this.generarCodigoAleatorio());
+    this.seleccionados.set([]);
+    
+    // Reset all items to false
+    const all = c.tieneSubCategorias ? c.subCategorias.flatMap(s => s.items) : c.items;
+    all.forEach(i => i.seleccionado = false);
   }
 
   onServiciosChange(selected: CartillaItem[]): void {
     const all = this.todosLosItems();
     all.forEach(item => item.seleccionado = false);
-    selected.forEach(item => {
-      const match = all.find(x => x.servicioId === item.servicioId);
-      if (match) match.seleccionado = true;
-    });
-    this.cartillas.update(c => [...c]);
+    if (selected) {
+      selected.forEach(item => {
+        const match = all.find(x => x.servicioId === item.servicioId);
+        if (match) match.seleccionado = true;
+      });
+    }
+    this.seleccionados.set(selected || []);
   }
 
   // --- Imprimir cartilla individual en ventana nueva ---

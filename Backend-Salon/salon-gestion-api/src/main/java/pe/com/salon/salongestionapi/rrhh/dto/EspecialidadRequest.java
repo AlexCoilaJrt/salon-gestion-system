@@ -14,5 +14,9 @@ public class EspecialidadRequest {
     @Size(max = 200, message = "La descripción no puede superar los 200 caracteres")
     private String descripcion;
 
+    private String tipoPago;
+    private java.math.BigDecimal montoFijo;
+    private java.math.BigDecimal porcentajeComision;
+
     private Boolean estado;
 }
