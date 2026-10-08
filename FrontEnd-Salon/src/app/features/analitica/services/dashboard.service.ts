@@ -28,6 +28,19 @@ export interface ServicioDemandaDTO {
     totalIngresado: number;
 }
 
+export interface ReporteVentaDetalleDTO {
+    ticketId: number;
+    fechaHora: string;
+    clienteNombre: string;
+    empleadoNombre: string;
+    tipoItem: string;
+    itemNombre: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+    estadoTicket: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -53,5 +66,12 @@ export class DashboardService {
     if (mes) params = params.set('mes', mes);
     if (anio) params = params.set('anio', anio);
     return this.http.get<ServicioDemandaDTO[]>(`${API_URL}/servicios-demandados`, { params });
+  }
+
+  getReporteVentas(fechaInicio: string, fechaFin: string): Observable<ReporteVentaDetalleDTO[]> {
+    let params = new HttpParams()
+      .set('fechaInicio', fechaInicio)
+      .set('fechaFin', fechaFin);
+    return this.http.get<ReporteVentaDetalleDTO[]>(`${API_URL}/reporte-ventas`, { params });
   }
 }

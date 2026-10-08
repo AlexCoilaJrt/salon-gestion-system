@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { CalendarModule } from 'primeng/calendar';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 import { LiquidacionesService, LiquidacionResponse } from './liquidaciones.service';
 import { IncentivoService } from '../services/incentivo.service';
@@ -13,7 +14,7 @@ import { IncentivoService } from '../services/incentivo.service';
 @Component({
   selector: 'app-liquidaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule, TooltipModule],
   providers: [MessageService],
   templateUrl: './liquidaciones.component.html'
 })
@@ -64,7 +65,7 @@ export class LiquidacionesComponent implements OnInit {
         data.forEach(item => {
           item.fechaInicio = inicioStr;
           item.fechaFin = finStr;
-          item.estado = 'RETENIDO'; // Estado por defecto para las nuevas
+          item.estado = 'PENDIENTE'; // Estado por defecto para las nuevas
           
           // Verificamos si ya existe
           const existente = this.liquidaciones.find(l => l.empleadoId === item.empleadoId && l.fechaInicio === inicioStr && l.fechaFin === finStr);
@@ -79,10 +80,16 @@ export class LiquidacionesComponent implements OnInit {
                sueldoFijoProporcional: item.sueldoFijoProporcional || 0,
                descuentos: item.descuentosAdelantos || 0,
                totalAPagar: item.totalPagar,
-               estado: 'RETENIDO',
+               estado: 'PENDIENTE',
                diasAsistidos: item.diasAsistidos || 0
-             }).subscribe(nueva => {
-               this.liquidaciones.push(nueva);
+             }).subscribe({
+               next: (nueva) => {
+                 this.liquidaciones.push(nueva);
+               },
+               error: (err) => {
+                 console.error('Error al guardar liquidación:', err);
+                 this.messageService.add({severity:'error', summary:'Error Backend', detail:'Fallo al registrar un pago. Revisa si el backend fue reiniciado.'});
+               }
              });
           }
         });
@@ -122,6 +129,34 @@ export class LiquidacionesComponent implements OnInit {
   }
 
   getSeverity(estado: string): string {
-    return estado === 'PAGADO' ? 'success' : 'warning';
+    return estado === 'PAGADO' ? 'success' : (estado === 'PENDIENTE' ? 'warning' : 'danger');
+  }
+
+  puedePagar(liq: LiquidacionResponse): boolean {
+    if (!liq.fechaFin) return true;
+    const parts = liq.fechaFin.split('-');
+    if (parts.length !== 3) return true;
+    const fechaFin = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    fechaFin.setDate(fechaFin.getDate() + 5); // 5 días de seguridad
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    fechaFin.setHours(0, 0, 0, 0);
+    
+    return hoy >= fechaFin;
+  }
+
+  getMensajeBloqueo(liq: LiquidacionResponse): string {
+    if (!liq.fechaFin) return '';
+    const parts = liq.fechaFin.split('-');
+    if (parts.length !== 3) return '';
+    const fechaFin = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    fechaFin.setDate(fechaFin.getDate() + 5);
+    
+    const dd = String(fechaFin.getDate()).padStart(2, '0');
+    const mm = String(fechaFin.getMonth() + 1).padStart(2, '0');
+    const yyyy = fechaFin.getFullYear();
+    
+    return `Se habilitará el ${dd}/${mm}/${yyyy} (5 días de seguridad)`;
   }
 }

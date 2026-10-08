@@ -182,6 +182,11 @@ export class CategoriasComponent implements OnInit {
   }
 
   saveCategoria() {
+    // Si dejaron escrito algo en "Creación rápida" pero no le dieron al +, lo agregamos automáticamente
+    if (this.nuevaSubcategoriaTemp && this.nuevaSubcategoriaTemp.trim()) {
+      this.addSubcategoria();
+    }
+
     if (this.categoria.nombre.trim()) {
       if (this.isSubcategoria && !this.categoriaPadreSeleccionada) {
         this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Debe seleccionar una categoría padre.' });

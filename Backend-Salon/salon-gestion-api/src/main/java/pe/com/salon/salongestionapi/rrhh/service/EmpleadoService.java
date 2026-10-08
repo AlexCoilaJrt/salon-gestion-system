@@ -71,6 +71,8 @@ public class EmpleadoService {
         empleado.setEmail(request.getEmail());
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
+        empleado.setFechaIngreso(request.getFechaIngreso());
+        empleado.setSueldoFijo(request.getSueldoFijo());
         empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.AUSENTE);
         empleado.setEstado(request.getEstado() != null ? request.getEstado() : true);
 
@@ -118,6 +120,8 @@ public class EmpleadoService {
         empleado.setEmail(request.getEmail());
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
+        empleado.setFechaIngreso(request.getFechaIngreso());
+        empleado.setSueldoFijo(request.getSueldoFijo());
         if (request.getEstado() != null) {
             empleado.setEstado(request.getEstado());
         }
@@ -162,6 +166,8 @@ public class EmpleadoService {
         response.setEmail(empleado.getEmail());
         response.setTelefono(empleado.getTelefono());
         response.setFechaNacimiento(empleado.getFechaNacimiento());
+        response.setFechaIngreso(empleado.getFechaIngreso());
+        response.setSueldoFijo(empleado.getSueldoFijo());
         response.setEdad(empleado.getEdad());
         response.setDisponibilidad(empleado.getDisponibilidad().name());
         response.setEstado(empleado.getEstado());

@@ -42,6 +42,12 @@ public class Empleado {
     @Column(name = "fecha_nacimiento")
     private LocalDate fechaNacimiento;
 
+    @Column(name = "fecha_ingreso")
+    private LocalDate fechaIngreso;
+
+    @Column(name = "sueldo_fijo")
+    private java.math.BigDecimal sueldoFijo;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "disponibilidad", nullable = false)
     private EstadoDisponibilidad disponibilidad = EstadoDisponibilidad.AUSENTE;

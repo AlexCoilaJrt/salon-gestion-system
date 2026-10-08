@@ -263,41 +263,108 @@ public class IncentivoServiceImpl implements IncentivoService {
 
         LocalDateTime inicioPeriodo = fechaInicio.atStartOfDay();
         LocalDateTime finPeriodo = fechaFin.atTime(23, 59, 59);
+        List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
 
         for (Empleado empleado : empleadosActivos) {
             pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse response = new pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse();
             response.setEmpleadoId(empleado.getId());
             response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
-            response.setSueldoFijoProporcional(BigDecimal.ZERO);
 
-            // Ventas en el periodo
-            BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
-            response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
-
-            List<TicketDetalle> detalles = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioPeriodo, finPeriodo);
-            long cantidadServicios = detalles.size();
-
-            // Comision (usando comision base para reporte histórico)
-            BigDecimal basePorc = BigDecimal.ZERO;
-            BigDecimal baseMonto = BigDecimal.ZERO;
-            List<Comision> comisionesEmpleado = comisionRepository.findByEmpleadoId(empleado.getId());
-            for (Comision c : comisionesEmpleado) {
-                if (c.getEstado()) {
-                    if (c.getTipoComision() == TipoComision.PORCENTAJE) {
-                        basePorc = basePorc.add(c.getValor());
-                    } else {
-                        baseMonto = baseMonto.add(c.getValor());
+            // 1. Calcular Sueldo Fijo Proporcional
+            BigDecimal sueldoFijo = empleado.getSueldoFijo() != null ? empleado.getSueldoFijo() : BigDecimal.ZERO;
+            
+            // Fallback: Si el sueldo fijo está en 0 en la entidad Empleado, buscar en Especialidades
+            if (sueldoFijo.compareTo(BigDecimal.ZERO) == 0 && empleado.getEspecialidades() != null) {
+                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
+                    if (esp.getEstado() && ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago()))) {
+                        if (esp.getMontoFijo() != null) {
+                            sueldoFijo = sueldoFijo.add(esp.getMontoFijo());
+                        }
                     }
                 }
             }
 
-            BigDecimal comisionMontoFijoTotal = baseMonto.multiply(new BigDecimal(cantidadServicios));
-            BigDecimal comisionTotal = response.getTotalVentas().multiply(basePorc).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP).add(comisionMontoFijoTotal);
-            response.setTotalComision(comisionTotal);
+            LocalDate fechaIngreso = empleado.getFechaIngreso();
+            BigDecimal sueldoFijoProporcional = sueldoFijo;
+            long diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
 
-            // TODO: Sumar descuentos y adelantos de egresos si aplica. Por ahora 0.
+            if (fechaIngreso != null) {
+                if (fechaIngreso.isAfter(fechaFin)) {
+                    diasTrabajados = 0;
+                    sueldoFijoProporcional = BigDecimal.ZERO;
+                } else if (fechaIngreso.isAfter(fechaInicio)) {
+                    diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaIngreso, fechaFin) + 1;
+                    long diasEnPeriodo = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
+                    if (diasEnPeriodo > 0 && sueldoFijo.compareTo(BigDecimal.ZERO) > 0) {
+                        sueldoFijoProporcional = sueldoFijo.multiply(new BigDecimal(diasTrabajados))
+                                .divide(new BigDecimal(diasEnPeriodo), 2, java.math.RoundingMode.HALF_UP);
+                    }
+                }
+            }
+            
+            response.setDiasAsistidos((int) diasTrabajados);
+            response.setSueldoFijoProporcional(sueldoFijoProporcional);
+
+            // 2. Ventas en el periodo
+            BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
+            response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
+
+            // 3. Comisiones exactas por servicio
+            List<TicketDetalle> detalles = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioPeriodo, finPeriodo);
+            BigDecimal comisionGanadaTotal = BigDecimal.ZERO;
+            
+            // Re-evaluar incentivos globales (mismo algoritmo que getMonitorComisiones)
+            BigDecimal basePorc = BigDecimal.ZERO;
+            if (empleado.getEspecialidades() != null) {
+                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
+                    if (esp.getEstado() && ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago()))) {
+                        if (esp.getPorcentajeComision() != null) basePorc = basePorc.add(esp.getPorcentajeComision());
+                    }
+                }
+            }
+            
+            BigDecimal porcentajeExtra = BigDecimal.ZERO;
+            BigDecimal montoFijoExtra = BigDecimal.ZERO;
+            // Para ser exactos, los incentivos extra aplican si asistió. 
+            // Como esto es mensual, sumamos incentivos que aplicaban. Simplificamos usando los incentivos actuales.
+            for (IncentivoComision inc : incentivosActivos) {
+                if (inc.getTipoIncentivo() == TipoComision.PORCENTAJE) {
+                    porcentajeExtra = porcentajeExtra.add(inc.getValor());
+                } else {
+                    montoFijoExtra = montoFijoExtra.add(inc.getValor());
+                }
+            }
+
+            for(TicketDetalle detalle : detalles) {
+                Long especialidadId = null;
+                if (detalle.getServicio() != null && detalle.getServicio().getEspecialidadRequerida() != null) {
+                    especialidadId = detalle.getServicio().getEspecialidadRequerida().getId();
+                }
+                
+                LocalDate fechaServicio = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null) ? detalle.getTicket().getFechaEmision().toLocalDate() : LocalDate.now();
+                BigDecimal comisionVenta = motorComisionService.calcularComision(
+                    detalle.getServicio(), 
+                    empleado.getId(), 
+                    especialidadId, 
+                    detalle.getSubtotal(), 
+                    fechaServicio
+                );
+                
+                BigDecimal gananciaLinea = comisionVenta;
+                if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
+                    gananciaLinea = gananciaLinea.add(
+                        detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
+                    );
+                }
+                gananciaLinea = gananciaLinea.add(montoFijoExtra);
+                
+                comisionGanadaTotal = comisionGanadaTotal.add(gananciaLinea);
+            }
+            
+            response.setTotalComision(comisionGanadaTotal);
+
+            // 4. Descuentos y Total
             response.setDescuentosAdelantos(BigDecimal.ZERO);
-
             BigDecimal totalPagar = response.getSueldoFijoProporcional().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
             response.setTotalPagar(totalPagar);
 

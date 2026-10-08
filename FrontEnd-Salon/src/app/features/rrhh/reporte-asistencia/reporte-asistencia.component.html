@@ -39,11 +39,11 @@
     </ng-template>
     <ng-template pTemplate="body" let-reg>
       <tr>
-        <td class="font-medium text-gray-700">{{reg.fecha | date:'dd/MM/yyyy'}}</td>
-        <td class="font-bold text-gray-900">{{reg.empleadoNombreCompleto}}</td>
-        <td class="text-green-600 font-medium">{{ reg.horaEntrada ? ('1970-01-01T' + reg.horaEntrada | date:'shortTime') : '--:--' }}</td>
-        <td class="text-red-600 font-medium">{{ reg.horaSalida ? ('1970-01-01T' + reg.horaSalida | date:'shortTime') : '--:--' }}</td>
-        <td class="font-bold text-gray-700">{{ reg.horasTrabajadas || '-' }}</td>
+        <td class="font-medium text-gray-700 dark:text-gray-300">{{reg.fecha | date:'dd/MM/yyyy'}}</td>
+        <td class="font-bold text-gray-900 dark:text-gray-100">{{reg.empleadoNombreCompleto}}</td>
+        <td class="text-green-600 dark:text-green-400 font-medium">{{ reg.horaEntrada ? ('1970-01-01T' + reg.horaEntrada | date:'shortTime') : '--:--' }}</td>
+        <td class="text-red-600 dark:text-red-400 font-medium">{{ reg.horaSalida ? ('1970-01-01T' + reg.horaSalida | date:'shortTime') : '--:--' }}</td>
+        <td class="font-bold text-gray-700 dark:text-gray-300">{{ reg.horasTrabajadas || '-' }}</td>
         <td>
           <span *ngIf="reg.tardanzaMinutos > 0" class="text-red-500 font-bold">{{reg.tardanzaMinutos}} min</span>
           <span *ngIf="reg.tardanzaMinutos === 0" class="text-gray-400">-</span>
@@ -57,7 +57,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="6" class="text-center p-6 text-gray-500">No hay registros en este rango de fechas.</td>
+        <td colspan="7" class="text-center p-6 text-gray-500 dark:text-gray-400">No hay registros en este rango de fechas.</td>
       </tr>
     </ng-template>
   </p-table>
@@ -84,7 +84,7 @@
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="5" class="text-center p-6 text-gray-500">No hay datos consolidados.</td>
+        <td colspan="5" class="text-center p-6 text-gray-500 dark:text-gray-400">No hay datos consolidados.</td>
       </tr>
     </ng-template>
   </p-table>

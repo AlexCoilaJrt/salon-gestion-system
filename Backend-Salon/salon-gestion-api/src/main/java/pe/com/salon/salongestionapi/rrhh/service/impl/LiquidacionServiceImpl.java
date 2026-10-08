@@ -6,6 +6,9 @@ import org.springframework.transaction.annotation.Transactional;
 import pe.com.salon.salongestionapi.exception.ResourceNotFoundException;
 import pe.com.salon.salongestionapi.rrhh.dto.LiquidacionRequest;
 import pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse;
+import org.springframework.context.event.EventListener;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.jdbc.core.JdbcTemplate;
 import pe.com.salon.salongestionapi.rrhh.entity.Empleado;
 import pe.com.salon.salongestionapi.rrhh.entity.EstadoLiquidacion;
 import pe.com.salon.salongestionapi.rrhh.entity.Liquidacion;
@@ -23,6 +26,16 @@ public class LiquidacionServiceImpl implements LiquidacionService {
 
     private final LiquidacionRrhhRepository liquidacionRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final JdbcTemplate jdbcTemplate;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void onApplicationReady() {
+        try {
+            jdbcTemplate.execute("ALTER TABLE liquidaciones_rrhh DROP CONSTRAINT liquidaciones_rrhh_estado_check");
+        } catch (Exception e) {
+            // Ignorar si la restricción no existe
+        }
+    }
 
     @Override
     @Transactional

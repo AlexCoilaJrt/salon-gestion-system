@@ -18,10 +18,8 @@ public class EgresoController {
     private final EgresoService egresoService;
 
     @PostMapping
-    public ResponseEntity<EgresoDTO> registrarEgreso(
-            @RequestAttribute("userId") Long userId,
-            @RequestBody EgresoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(egresoService.registrarEgreso(userId, request));
+    public ResponseEntity<EgresoDTO> registrarEgreso(@RequestBody EgresoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(egresoService.registrarEgreso(request));
     }
 
     @GetMapping("/caja-actual")

@@ -75,7 +75,7 @@
 
       <div class="field mb-4">
         <label for="categoria" class="font-semibold block mb-2 dark:text-gray-200">Categoría *</label>
-        <p-treeSelect id="categoria" [options]="categoriasTree" [(ngModel)]="categoriaSeleccionada" placeholder="Selecciona una categoría" appendTo="body" [style]="{'width':'100%'}" [ngClass]="{'ng-invalid ng-dirty': submitted && !categoriaSeleccionada}"></p-treeSelect>
+        <p-treeSelect id="categoria" [options]="categoriasTree" [(ngModel)]="categoriaSeleccionada" placeholder="Selecciona una categoría" appendTo="body" [style]="{'width':'100%'}" [ngClass]="{'ng-invalid ng-dirty': submitted && !categoriaSeleccionada}" [filter]="true" filterPlaceholder="Buscar categoría..."></p-treeSelect>
         <small class="p-error block mt-1" *ngIf="submitted && !categoriaSeleccionada">La categoría es requerida.</small>
       </div>
 

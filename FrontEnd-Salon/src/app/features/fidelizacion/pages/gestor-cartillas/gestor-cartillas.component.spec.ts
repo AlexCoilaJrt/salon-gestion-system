@@ -10,7 +10,7 @@ describe('GestorCartillasComponent', () => {
     await TestBed.configureTestingModule({
       imports: [GestorCartillasComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(GestorCartillasComponent);
     component = fixture.componentInstance;

@@ -114,4 +114,50 @@ public class DashboardQueryService {
                         && Boolean.TRUE.equals(c.getEstado()))
                 .collect(Collectors.toList());
     }
+
+    // ------------ NUEVO REPORTE: Movimientos detallados ------------
+    public List<ReporteVentaDetalleDTO> obtenerReporteVentasDetalle(String fechaInicioStr, String fechaFinStr) {
+        LocalDateTime inicio = LocalDate.parse(fechaInicioStr).atStartOfDay();
+        LocalDateTime fin = LocalDate.parse(fechaFinStr).atTime(LocalTime.MAX);
+
+        return ticketDetalleRepository.findDetallesPorRangoFechas(inicio, fin).stream().map(td -> {
+            ReporteVentaDetalleDTO dto = new ReporteVentaDetalleDTO();
+            dto.setTicketId(td.getTicket().getId());
+            dto.setFechaHora(td.getTicket().getFechaEmision());
+            
+            if (td.getTicket().getCliente() != null) {
+                dto.setClienteNombre(td.getTicket().getCliente().getNombres() + " " + td.getTicket().getCliente().getApellidos());
+            } else {
+                dto.setClienteNombre("Público General");
+            }
+            
+            if (td.getEmpleado() != null) {
+                dto.setEmpleadoNombre(td.getEmpleado().getNombres() + " " + td.getEmpleado().getApellidos());
+            } else {
+                dto.setEmpleadoNombre("Sin asignar");
+            }
+            
+            dto.setCantidad(td.getCantidad());
+            dto.setPrecioUnitario(td.getPrecioUnitario());
+            dto.setSubtotal(td.getSubtotal());
+            dto.setEstadoTicket(Boolean.TRUE.equals(td.getTicket().getActivo()) ? "EMITIDO" : "ANULADO");
+            
+            if (td.getServicio() != null) {
+                dto.setTipoItem("SERVICIO");
+                dto.setItemNombre(td.getServicio().getNombre());
+            } else if (td.getProducto() != null) {
+                dto.setItemNombre(td.getProducto().getNombre());
+                if (Boolean.TRUE.equals(td.getProducto().getUsoInterno())) {
+                    dto.setTipoItem("INSUMO_INTERNO");
+                } else {
+                    dto.setTipoItem("PRODUCTO_RETAIL");
+                }
+            } else {
+                dto.setTipoItem("DESCONOCIDO");
+                dto.setItemNombre("Ítem Desconocido");
+            }
+            
+            return dto;
+        }).collect(Collectors.toList());
+    }
 }

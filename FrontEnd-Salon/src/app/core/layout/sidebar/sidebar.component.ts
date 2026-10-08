@@ -62,8 +62,7 @@ export class SidebarComponent implements OnInit {
       title: 'OPERACIONES',
       items: [
         { label: 'Agenda y Citas', icon: 'pi pi-calendar', route: '/agenda', requiredPermissions: ['VER_AGENDA_Y_CITAS'] },
-        { label: 'Generar Cartilla', icon: 'pi pi-file-edit', route: '/generar-orden', requiredPermissions: ['VER_PUNTO_DE_VENTA_POS'] },
-        { label: 'Punto de Venta POS', icon: 'pi pi-calculator', route: '/pos', requiredPermissions: ['VER_PUNTO_DE_VENTA_POS'] }
+        { label: 'Generar Cartilla', icon: 'pi pi-file-edit', route: '/generar-orden', requiredPermissions: ['VER_PUNTO_DE_VENTA_POS'] }
       ]
     },
     {
@@ -102,6 +101,7 @@ export class SidebarComponent implements OnInit {
       title: 'ANALÍTICA & SEGURIDAD',
       items: [
         { label: 'Reportes de Rendimiento', icon: 'pi pi-chart-bar', route: '/reportes', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
+        { label: 'Reporte de Ventas', icon: 'pi pi-list', route: '/reportes-ventas', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
         { label: 'Usuarios', icon: 'pi pi-users', route: '/usuarios', requiredPermissions: ['VER_USUARIOS'] },
         { label: 'Roles y Permisos', icon: 'pi pi-shield', route: '/roles', requiredPermissions: ['VER_ROLES_Y_PERMISOS'] }
       ]

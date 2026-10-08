@@ -39,6 +39,7 @@
           <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Días Asist.</th>
           <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Comisión</th>
           <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Fijo Prop.</th>
+          <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Descuentos</th>
           <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Total a Pagar</th>
           <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 border-b-0">Estado</th>
           <th class="bg-[#f4f7fa] dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold p-4 rounded-tr-xl border-b-0 text-center">Acciones (Admin)</th>
@@ -62,6 +63,9 @@
           <td class="p-4 text-blue-600 dark:text-blue-400 font-medium">
             S/ {{liq.sueldoFijoProporcional | number:'1.2-2'}}
           </td>
+          <td class="p-4 text-red-500 dark:text-red-400 font-medium">
+            - S/ {{liq.descuentosAdelantos | number:'1.2-2'}}
+          </td>
           <td class="p-4">
             <span class="text-lg font-bold text-gray-900 dark:text-white">S/ {{liq.totalPagar | number:'1.2-2'}}</span>
           </td>
@@ -70,16 +74,20 @@
           </td>
           <td class="p-4 text-center">
             <div class="flex items-center justify-center gap-2">
-              <button *ngIf="liq.estado === 'RETENIDO'" 
+              <button *ngIf="liq.estado === 'PENDIENTE' || liq.estado === 'RETENIDO'" 
                       (click)="cambiarEstado(liq, 'PAGADO')"
+                      [disabled]="!puedePagar(liq)"
+                      [pTooltip]="!puedePagar(liq) ? getMensajeBloqueo(liq) : ''"
+                      tooltipPosition="top"
+                      [ngClass]="{'opacity-50 cursor-not-allowed': !puedePagar(liq)}"
                       class="px-3 py-1.5 bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 rounded-lg text-sm font-medium transition-colors border border-emerald-200 dark:border-emerald-500/20 flex items-center gap-1">
-                <i class="pi pi-check-circle"></i> Aprobar Pago
+                <i class="pi" [ngClass]="!puedePagar(liq) ? 'pi-lock' : 'pi-check-circle'"></i> {{ !puedePagar(liq) ? 'Bloqueado' : 'Aprobar Pago' }}
               </button>
               
               <button *ngIf="liq.estado === 'PAGADO'" 
-                      (click)="cambiarEstado(liq, 'RETENIDO')"
+                      (click)="cambiarEstado(liq, 'PENDIENTE')"
                       class="px-3 py-1.5 bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-500/20 rounded-lg text-sm font-medium transition-colors border border-amber-200 dark:border-amber-500/20 flex items-center gap-1">
-                <i class="pi pi-lock"></i> Retener (Fondo)
+                <i class="pi pi-undo"></i> Revertir a Pendiente
               </button>
             </div>
           </td>

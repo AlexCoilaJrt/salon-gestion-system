@@ -15,6 +15,7 @@ import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Service
 @RequiredArgsConstructor
@@ -24,12 +25,13 @@ public class EgresoService {
     private final SesionCajaRepository sesionCajaRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public EgresoDTO registrarEgreso(Long usuarioId, EgresoRequest request) {
+    public EgresoDTO registrarEgreso(EgresoRequest request) {
         SesionCaja sesionAbierta = sesionCajaRepository.findByEstadoTrue()
                 .orElseThrow(() -> new ResourceNotFoundException("No hay ninguna caja abierta."));
 
-        Usuario usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + usuarioId));
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Usuario usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con username: " + username));
 
         Egreso egreso = new Egreso();
         egreso.setMonto(request.getMonto());

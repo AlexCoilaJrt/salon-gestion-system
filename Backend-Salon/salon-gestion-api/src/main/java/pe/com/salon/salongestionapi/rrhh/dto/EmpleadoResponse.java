@@ -11,6 +11,7 @@ public class EmpleadoResponse {
     private String email;
     private String telefono;
     private java.time.LocalDate fechaNacimiento;
+    private java.time.LocalDate fechaIngreso;
     private Integer edad;
     private String disponibilidad;
     private java.util.List<String> especialidadesNombres;

@@ -83,7 +83,8 @@ export class ServiciosComponent implements OnInit {
           label: cat.nombre,
           data: cat,
           children: [],
-          expanded: true
+          expanded: false,
+          icon: 'pi pi-folder'
         });
       }
     });
@@ -91,6 +92,7 @@ export class ServiciosComponent implements OnInit {
     this.categorias.forEach(cat => {
       if (cat.id) {
         const node = map.get(cat.id)!;
+        
         if (cat.padreId && map.has(cat.padreId)) {
           map.get(cat.padreId)!.children!.push(node);
         } else {
@@ -184,7 +186,7 @@ export class ServiciosComponent implements OnInit {
 
   saveServicio() {
     this.submitted = true;
-    this.servicio.categoriaId = this.categoriaSeleccionada ? this.categoriaSeleccionada.data.id : 0;
+    this.servicio.categoriaId = (this.categoriaSeleccionada && this.categoriaSeleccionada.data) ? this.categoriaSeleccionada.data.id : 0;
     
     if (this.servicio.nombre.trim() && this.servicio.precioBase >= 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
       if (this.isEdit && this.servicio.id) {

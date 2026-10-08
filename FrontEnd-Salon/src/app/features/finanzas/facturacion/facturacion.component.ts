@@ -12,13 +12,16 @@ import { TagModule } from 'primeng/tag';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
 
 @Component({
   selector: 'app-facturacion',
   standalone: true,
   imports: [
     CommonModule, FormsModule, ToastModule, ButtonModule, DialogModule, 
-    TableModule, InputTextModule, TagModule, ConfirmDialogModule, TooltipModule
+    TableModule, InputTextModule, TagModule, ConfirmDialogModule, TooltipModule,
+    IconFieldModule, InputIconModule
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './facturacion.component.html'

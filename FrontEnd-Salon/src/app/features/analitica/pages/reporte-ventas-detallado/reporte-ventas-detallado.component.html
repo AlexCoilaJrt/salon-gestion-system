@@ -1,0 +1,88 @@
+<div class="h-full flex flex-col">
+  <div class="mb-4 flex justify-between items-center">
+    <div>
+      <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Reporte Detallado de Ventas e Inventario</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Exporta y analiza cada línea de venta (servicios, productos y uso de insumos).</p>
+    </div>
+  </div>
+
+  <div class="flex-1 bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col">
+    <!-- Toolbar -->
+    <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20 flex flex-wrap gap-4 items-end">
+      
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Fecha Inicio</label>
+        <p-calendar [(ngModel)]="fechaInicio" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Fecha Fin</label>
+        <p-calendar [(ngModel)]="fechaFin" dateFormat="dd/mm/yy" [showIcon]="true"></p-calendar>
+      </div>
+
+      <button pButton icon="pi pi-search" label="Filtrar" class="bg-[#bca028] hover:bg-[#9d841f] text-white border-none shadow-md" (click)="cargarReporte()"></button>
+
+      <div class="flex-1"></div>
+
+      <p-iconField iconPosition="left" class="w-full md:w-80">
+        <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
+        <input pInputText type="text" [(ngModel)]="searchTerm" (input)="dt.filterGlobal(searchTerm, 'contains')" placeholder="Buscar por cliente, empleado o ítem..." class="w-full" />
+      </p-iconField>
+
+      <button pButton icon="pi pi-file-excel" label="Exportar" class="p-button-success" (click)="dt.exportCSV()"></button>
+    </div>
+
+    <!-- Table -->
+    <div class="flex-1 p-0 overflow-auto">
+      <p-table #dt [value]="reporte" [columns]="cols" [loading]="loading" styleClass="p-datatable-sm p-datatable-gridlines p-datatable-striped" 
+               [paginator]="true" [rows]="20" [rowsPerPageOptions]="[20,50,100]" 
+               [globalFilterFields]="['ticketId','clienteNombre','empleadoNombre','itemNombre','tipoItem']"
+               [exportFilename]="'Reporte_Ventas_Inventario'" responsiveLayout="scroll">
+        <ng-template pTemplate="header">
+          <tr class="bg-gray-50 dark:bg-gray-800">
+            <th pSortableColumn="fechaHora">Fecha y Hora <p-sortIcon field="fechaHora"></p-sortIcon></th>
+            <th pSortableColumn="ticketId">N° Ticket <p-sortIcon field="ticketId"></p-sortIcon></th>
+            <th pSortableColumn="tipoItem">Tipo <p-sortIcon field="tipoItem"></p-sortIcon></th>
+            <th pSortableColumn="itemNombre">Ítem (Servicio/Producto) <p-sortIcon field="itemNombre"></p-sortIcon></th>
+            <th pSortableColumn="empleadoNombre">Realizado por <p-sortIcon field="empleadoNombre"></p-sortIcon></th>
+            <th pSortableColumn="clienteNombre">Cliente <p-sortIcon field="clienteNombre"></p-sortIcon></th>
+            <th class="text-right">Cant.</th>
+            <th class="text-right">Precio Unit.</th>
+            <th class="text-right" pSortableColumn="subtotal">Subtotal <p-sortIcon field="subtotal"></p-sortIcon></th>
+            <th class="text-center">Estado</th>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-row>
+          <tr [ngClass]="{'bg-red-50 dark:bg-red-900/10 text-red-400': row.estadoTicket === 'ANULADO'}">
+            <td>{{row.fechaHora | date:'dd/MM/yyyy HH:mm'}}</td>
+            <td class="font-bold">#{{row.ticketId | number:'3.0-0'}}</td>
+            <td>
+              <p-tag [severity]="row.tipoItem === 'SERVICIO' ? 'info' : (row.tipoItem === 'PRODUCTO_RETAIL' ? 'success' : 'warning')" 
+                     [value]="row.tipoItem"></p-tag>
+            </td>
+            <td class="font-medium">{{row.itemNombre}}</td>
+            <td>{{row.empleadoNombre}}</td>
+            <td>{{row.clienteNombre}}</td>
+            <td class="text-right">{{row.cantidad}}</td>
+            <td class="text-right">S/ {{row.precioUnitario | number:'1.2-2'}}</td>
+            <td class="text-right font-bold" [ngClass]="row.estadoTicket === 'ANULADO' ? 'line-through' : 'text-gray-800 dark:text-gray-200'">
+              S/ {{row.subtotal | number:'1.2-2'}}
+            </td>
+            <td class="text-center">
+              <span *ngIf="row.estadoTicket === 'EMITIDO'" class="text-green-600 font-bold"><i class="pi pi-check-circle"></i></span>
+              <span *ngIf="row.estadoTicket === 'ANULADO'" class="text-red-500 font-bold" title="Venta Anulada"><i class="pi pi-times-circle"></i></span>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+          <tr>
+            <td colspan="10" class="text-center p-8 text-gray-500">
+              <i class="pi pi-search text-4xl mb-4 block"></i>
+              No se encontraron registros de ventas en este rango de fechas.
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</div>

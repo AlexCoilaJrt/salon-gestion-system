@@ -36,7 +36,8 @@ export const routes: Routes = [
       { path: 'caja', loadComponent: () => import('./features/finanzas/caja/caja.component').then(m => m.CajaComponent) },
       { path: 'egresos', loadComponent: () => import('./features/finanzas/egresos/egresos.component').then(m => m.EgresosComponent) },
       { path: 'facturacion', loadComponent: () => import('./features/finanzas/facturacion/facturacion.component').then(m => m.FacturacionComponent) },
-      { path: 'reportes', loadComponent: () => import('./features/analitica/pages/reportes-rendimiento/reportes-rendimiento.component').then(m => m.ReportesRendimientoComponent) }
+      { path: 'reportes', loadComponent: () => import('./features/analitica/pages/reportes-rendimiento/reportes-rendimiento.component').then(m => m.ReportesRendimientoComponent) },
+      { path: 'reportes-ventas', loadComponent: () => import('./features/analitica/pages/reporte-ventas-detallado/reporte-ventas-detallado.component').then(m => m.ReporteVentasDetalladoComponent) }
     ]
   },
   { path: 'kiosko', loadComponent: () => import('./features/rrhh/asistencia/asistencia.component').then(m => m.AsistenciaComponent) },

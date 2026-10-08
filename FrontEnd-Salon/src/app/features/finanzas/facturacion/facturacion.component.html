@@ -1,8 +1,8 @@
 <p-toast></p-toast>
 <p-confirmDialog [style]="{width: '450px'}"></p-confirmDialog>
 
-<div class="h-full flex flex-col p-6 print:hidden">
-  <div class="mb-6 flex justify-between items-center">
+<div class="h-full flex flex-col print:hidden">
+  <div class="mb-4 flex justify-between items-center">
     <div>
       <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Historial de Facturación</h2>
       <p class="text-gray-600 dark:text-gray-400 mt-1">Busca, imprime o anula tickets y comprobantes emitidos.</p>
@@ -13,10 +13,10 @@
     <!-- Toolbar de filtros -->
     <div class="p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
       <div class="flex gap-4">
-        <span class="p-input-icon-left w-full md:w-96">
-          <i class="pi pi-search"></i>
+        <p-iconField iconPosition="left" class="w-full md:w-96">
+          <p-inputIcon styleClass="pi pi-search"></p-inputIcon>
           <input pInputText type="text" [(ngModel)]="searchTerm" placeholder="Buscar por cliente o N° Ticket..." (input)="dt.filterGlobal(searchTerm, 'contains')" class="w-full" />
-        </span>
+        </p-iconField>
       </div>
     </div>
 

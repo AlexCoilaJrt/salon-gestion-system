@@ -68,4 +68,11 @@ public class DashboardController {
         if (mes == null) mes = LocalDate.now().getMonthValue();
         return ResponseEntity.ok(dashboardQueryService.obtenerCumpleaniosDelMes(mes));
     }
+
+    @GetMapping("/reporte-ventas")
+    public ResponseEntity<List<ReporteVentaDetalleDTO>> obtenerReporteVentasDetalle(
+            @RequestParam("fechaInicio") String fechaInicio,
+            @RequestParam("fechaFin") String fechaFin) {
+        return ResponseEntity.ok(dashboardQueryService.obtenerReporteVentasDetalle(fechaInicio, fechaFin));
+    }
 }

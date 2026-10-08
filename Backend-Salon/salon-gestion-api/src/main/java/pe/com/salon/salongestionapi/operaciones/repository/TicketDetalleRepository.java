@@ -80,4 +80,16 @@ public interface TicketDetalleRepository extends JpaRepository<TicketDetalle, Lo
             @Param("empleadoId") Long empleadoId,
             @Param("fechaInicio") LocalDateTime fechaInicio,
             @Param("fechaFin") LocalDateTime fechaFin);
+
+    @Query("SELECT td FROM TicketDetalle td " +
+           "JOIN FETCH td.ticket t " +
+           "LEFT JOIN FETCH t.cliente c " +
+           "LEFT JOIN FETCH td.empleado e " +
+           "LEFT JOIN FETCH td.servicio s " +
+           "LEFT JOIN FETCH td.producto p " +
+           "WHERE t.fechaEmision >= :fechaInicio AND t.fechaEmision <= :fechaFin " +
+           "ORDER BY t.fechaEmision DESC")
+    List<TicketDetalle> findDetallesPorRangoFechas(
+            @Param("fechaInicio") LocalDateTime fechaInicio,
+            @Param("fechaFin") LocalDateTime fechaFin);
 }
