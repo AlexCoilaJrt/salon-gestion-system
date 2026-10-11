@@ -32,6 +32,7 @@ export interface Empleado {
   email?: string;
   telefono?: string;
   fechaNacimiento?: string; // yyyy-MM-dd
+  fechaIngreso?: string; // yyyy-MM-dd
   disponibilidad?: string;
   estado?: boolean;
   edad?: number;
