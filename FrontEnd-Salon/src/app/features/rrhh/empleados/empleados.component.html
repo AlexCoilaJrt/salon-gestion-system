@@ -103,14 +103,16 @@
 
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">DNI <span class="text-red-500">*</span></label>
-        <input type="text" pInputText formControlName="dni" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
-        <small class="text-red-500" *ngIf="empleadoForm.get('dni')?.invalid && empleadoForm.get('dni')?.touched">Requerido (solo números, mín 8).</small>
+        <input type="text" pInputText formControlName="dni" pKeyFilter="int" [maxlength]="8" (input)="onDniInput($event)" placeholder="Ej: 70809010" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
+        <small class="text-red-500" *ngIf="empleadoForm.get('dni')?.errors?.['required'] && empleadoForm.get('dni')?.touched">El DNI es obligatorio.</small>
+        <small class="text-red-500" *ngIf="empleadoForm.get('dni')?.errors?.['pattern'] && empleadoForm.get('dni')?.touched">El DNI debe tener exactamente 8 dígitos numéricos.</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono</label>
-        <input type="text" pInputText formControlName="telefono" pKeyFilter="int" [maxlength]="15" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
-        <small class="text-red-500" *ngIf="empleadoForm.get('telefono')?.invalid && empleadoForm.get('telefono')?.touched">Solo números (mín 9).</small>
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Teléfono <span class="text-red-500">*</span></label>
+        <input type="text" pInputText formControlName="telefono" pKeyFilter="int" [maxlength]="9" (input)="onTelefonoInput($event)" placeholder="Ej: 987654321" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
+        <small class="text-red-500" *ngIf="empleadoForm.get('telefono')?.errors?.['required'] && empleadoForm.get('telefono')?.touched">El teléfono es obligatorio.</small>
+        <small class="text-red-500" *ngIf="empleadoForm.get('telefono')?.errors?.['pattern'] && empleadoForm.get('telefono')?.touched">El teléfono debe tener exactamente 9 dígitos numéricos.</small>
       </div>
 
       <div class="flex flex-col gap-2">

@@ -15,7 +15,7 @@ public class EmpleadoRequest {
     private String apellidos;
 
     @NotBlank(message = "El DNI/Documento es obligatorio")
-    @Pattern(regexp = "^[0-9]{8,15}$", message = "El documento debe contener solo números (entre 8 y 15 dígitos)")
+    @Pattern(regexp = "^[0-9]{8}$", message = "El DNI debe contener exactamente 8 dígitos numéricos")
     private String dni;
 
     @NotBlank(message = "El email es obligatorio")
@@ -24,7 +24,7 @@ public class EmpleadoRequest {
     private String email;
 
     @NotBlank(message = "El teléfono es obligatorio")
-    @Pattern(regexp = "^[0-9]{9,15}$", message = "El teléfono debe contener solo números (entre 9 y 15 dígitos)")
+    @Pattern(regexp = "^[0-9]{9}$", message = "El teléfono debe contener exactamente 9 dígitos numéricos")
     private String telefono;
 
     @NotNull(message = "La fecha de nacimiento es obligatoria")

@@ -46,7 +46,7 @@ export class AsistenciaComponent {
   }
 
   appendNumber(num: string) {
-    if (this.dniInput.length < 15) {
+    if (this.dniInput.length < 8) {
       this.dniInput += num;
     }
   }
@@ -62,10 +62,10 @@ export class AsistenciaComponent {
   }
 
   marcarAsistencia(accion: string) {
-    if (!this.dniInput || this.dniInput.length < 8) {
+    if (!this.dniInput || this.dniInput.length !== 8) {
       Swal.fire({
         title: 'DNI Inválido',
-        text: 'Por favor, ingresa un DNI válido de al menos 8 dígitos.',
+        text: 'Por favor, ingresa un DNI válido de 8 dígitos.',
         icon: 'warning',
         confirmButtonColor: '#bca028'
       });

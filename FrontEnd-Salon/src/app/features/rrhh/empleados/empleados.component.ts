@@ -55,9 +55,9 @@ export class EmpleadosComponent implements OnInit {
     this.empleadoForm = this.fb.group({
       nombres: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
       apellidos: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
-      dni: ['', [Validators.required, Validators.pattern('^[0-9]{8,15}$')]],
+      dni: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
-      telefono: ['', [Validators.required, Validators.pattern('^[0-9]{9,15}$')]],
+      telefono: ['', [Validators.required, Validators.pattern('^[0-9]{9}$')]],
       fechaNacimiento: ['', Validators.required],
       especialidadIds: [[], Validators.required],
       turnoId: [null, Validators.required],
@@ -137,6 +137,26 @@ export class EmpleadosComponent implements OnInit {
       estado: empleado.estado
     });
     this.displayDialog = true;
+  }
+
+  onDniInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input) return;
+    const clean = input.value.replace(/\D/g, '').slice(0, 8);
+    if (input.value !== clean) {
+      input.value = clean;
+    }
+    this.empleadoForm.get('dni')?.setValue(clean, { emitEvent: false });
+  }
+
+  onTelefonoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input) return;
+    const clean = input.value.replace(/\D/g, '').slice(0, 9);
+    if (input.value !== clean) {
+      input.value = clean;
+    }
+    this.empleadoForm.get('telefono')?.setValue(clean, { emitEvent: false });
   }
 
   saveEmpleado() {
