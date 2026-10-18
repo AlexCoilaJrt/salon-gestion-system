@@ -1,13 +1,13 @@
-<aside [ngClass]="layoutService.isSidebarCollapsed() ? 'w-[84px]' : 'w-[270px]'"
+<aside [ngClass]="isCollapsed ? 'w-[280px] md:w-[84px]' : 'w-[280px] md:w-[270px]'"
        class="h-full bg-white dark:bg-[#1e1e1e] border-r border-gray-200 dark:border-gray-800 flex flex-col shadow-sm transition-all duration-300 z-20 relative select-none">
   
   <!-- Logo Area Limpio y Elegante (Fondo Blanco Puro) -->
-  <div class="h-[70px] flex items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] transition-all duration-300"
-       [ngClass]="layoutService.isSidebarCollapsed() ? 'justify-center px-2' : 'px-5'">
+  <div class="h-[70px] flex items-center justify-between border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-[#1e1e1e] transition-all duration-300 px-4"
+       [ngClass]="isCollapsed ? 'md:justify-center md:px-2' : 'px-5'">
     
-    <div class="flex items-center gap-3.5 overflow-hidden cursor-pointer group"
-         (click)="layoutService.isSidebarCollapsed() ? layoutService.toggleSidebar() : null"
-         [title]="layoutService.isSidebarCollapsed() ? 'Clic para expandir menú' : ''">
+    <div class="flex items-center gap-3.5 overflow-hidden cursor-pointer group flex-1 min-w-0"
+         (click)="isCollapsed ? layoutService.toggleSidebar() : null"
+         [title]="isCollapsed ? 'Clic para expandir menú' : ''">
       
       <!-- Logo Circular Limpio -->
       <div class="w-11 h-11 rounded-full bg-white dark:bg-[#252525] p-0.5 shadow-sm border border-gray-200/80 dark:border-gray-700 flex items-center justify-center shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
@@ -23,7 +23,7 @@
       </div>
 
       <!-- Nombre de Marca Limpio (Solo en modo expandido) -->
-      <div *ngIf="!layoutService.isSidebarCollapsed()" class="transition-opacity duration-200 overflow-hidden min-w-0">
+      <div *ngIf="!isCollapsed" class="transition-opacity duration-200 overflow-hidden min-w-0 flex-1">
         <h1 class="font-extrabold text-[15px] text-gray-900 dark:text-white leading-tight truncate tracking-tight group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
           {{ empresaData()?.nombreComercial || 'SPA DIANA' }}
         </h1>
@@ -32,18 +32,24 @@
         </p>
       </div>
     </div>
+
+    <!-- Botón Cerrar para móvil -->
+    <button (click)="layoutService.closeMobileSidebar()"
+            class="md:hidden w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#2d2d2d] flex items-center justify-center shrink-0 ml-1">
+      <i class="pi pi-times text-base"></i>
+    </button>
   </div>
 
   <!-- Menú de Navegación -->
   <div class="flex-1 overflow-y-auto py-3 custom-scrollbar"
-       [ngClass]="layoutService.isSidebarCollapsed() ? 'px-1.5' : 'px-4'">
+       [ngClass]="isCollapsed ? 'px-1.5' : 'px-4'">
     
     <div *ngFor="let category of filteredMenuCategories(); let i = index" class="mb-2">
       
       <!-- ========================================== -->
       <!-- MODO EXPANDIDO: ACORDEÓN CON TEXTO COMPLETO -->
       <!-- ========================================== -->
-      <ng-container *ngIf="!layoutService.isSidebarCollapsed()">
+      <ng-container *ngIf="!isCollapsed">
         <div class="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#252525] rounded-lg transition-colors group" 
              (click)="toggleCategory(i)">
           <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider m-0 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
@@ -59,6 +65,7 @@
           <ul class="flex flex-col gap-1 mt-1 mb-2">
             <li *ngFor="let item of category.items">
               <a [routerLink]="item.route"
+                 (click)="onMenuItemClick()"
                  routerLinkActive="bg-[#bca028] text-white shadow-md shadow-[#bca028]/25 font-semibold"
                  [routerLinkActiveOptions]="{exact: true}"
                  #rla="routerLinkActive"
@@ -76,7 +83,7 @@
       <!-- ========================================== -->
       <!-- MODO PLEGADO: ICONO + MICRO-ETIQUETA CLARA -->
       <!-- ========================================== -->
-      <ng-container *ngIf="layoutService.isSidebarCollapsed()">
+      <ng-container *ngIf="isCollapsed">
         <!-- Separador e indicador de categoría -->
         <div class="py-1 flex flex-col items-center">
           <div *ngIf="i > 0" class="w-8 h-[1px] bg-gray-200 dark:bg-gray-800 mb-1"></div>
@@ -88,6 +95,7 @@
         <ul class="flex flex-col gap-1 items-center">
           <li *ngFor="let item of category.items" class="w-full flex justify-center">
             <a [routerLink]="item.route"
+               (click)="onMenuItemClick()"
                routerLinkActive="bg-[#bca028] text-white shadow-md shadow-[#bca028]/25 font-bold"
                [routerLinkActiveOptions]="{exact: true}"
                #rlaCol="routerLinkActive"
@@ -112,14 +120,14 @@
     </div>
   </div>
 
-  <!-- Pie de Sidebar: Botón Plegar / Expandir -->
-  <div class="p-2 border-t border-gray-100 dark:border-gray-800 flex transition-all duration-300"
-       [ngClass]="layoutService.isSidebarCollapsed() ? 'justify-center' : 'justify-end'">
+  <!-- Pie de Sidebar: Botón Plegar / Expandir (Solo visible en Desktop) -->
+  <div class="hidden md:flex p-2 border-t border-gray-100 dark:border-gray-800 transition-all duration-300"
+       [ngClass]="isCollapsed ? 'justify-center' : 'justify-end'">
     <button (click)="layoutService.toggleSidebar()"
-            [title]="layoutService.isSidebarCollapsed() ? 'Expandir barra lateral' : 'Plegar barra lateral'"
+            [title]="isCollapsed ? 'Expandir barra lateral' : 'Plegar barra lateral'"
             class="flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-[#2d2d2d] transition-colors">
-      <i [class]="layoutService.isSidebarCollapsed() ? 'pi pi-angle-double-right text-base' : 'pi pi-angle-double-left text-base'"></i>
-      <span *ngIf="!layoutService.isSidebarCollapsed()">Plegar menú</span>
+      <i [class]="isCollapsed ? 'pi pi-angle-double-right text-base' : 'pi pi-angle-double-left text-base'"></i>
+      <span *ngIf="!isCollapsed">Plegar menú</span>
     </button>
   </div>
 

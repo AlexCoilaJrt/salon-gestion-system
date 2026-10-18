@@ -28,6 +28,14 @@ export class HeaderComponent implements OnInit {
   public layoutService = inject(LayoutService);
   private authService = inject(AuthService);
   private router = inject(Router);
+
+  toggleSidebar(): void {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      this.layoutService.toggleMobileSidebar();
+    } else {
+      this.layoutService.toggleSidebar();
+    }
+  }
   private fb = inject(FormBuilder);
   private empresaService = inject(EmpresaService);
   private catalogoService = inject(CatalogoService);

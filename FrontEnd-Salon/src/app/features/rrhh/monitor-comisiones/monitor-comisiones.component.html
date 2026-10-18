@@ -1,102 +1,104 @@
-<div class="card p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-  <div class="flex justify-between items-center mb-6">
+<div class="card p-4 sm:p-6 bg-white dark:bg-[#1e1e1e] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-6">
     <div>
-      <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100">Monitor de Comisiones en Vivo</h2>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Visualiza la comisión que ganaría cada empleado si cierra una venta en este momento exacto.</p>
+      <h2 class="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-100">Monitor de Comisiones en Vivo</h2>
+      <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Visualiza la comisión que ganaría cada empleado si cierra una venta en este momento exacto.</p>
     </div>
-    <button pButton icon="pi pi-refresh" label="Actualizar" class="p-button-outlined" (click)="loadMonitor()"></button>
+    <button pButton icon="pi pi-refresh" label="Actualizar" class="w-full sm:w-auto p-button-outlined shrink-0" (click)="loadMonitor()"></button>
   </div>
 
-  <p-treeTable [value]="nodes" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-treetable-sm">
-    <ng-template pTemplate="header">
-      <tr>
-        <th style="width: 25%">Empleado / Servicio</th>
-        <th>Estado / Categoría</th>
-        <th>Comisión Base / Tipo Pago</th>
-        <th>Incentivos / Precio Cobrado</th>
-        <th>Comisión (Ahora) / Fórmula %</th>
-        <th class="text-right">Ventas Hoy (S/)</th>
-        <th class="text-right font-bold text-[#bca028]">Ganancia Hoy (S/)</th>
-      </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
-      <tr [ngClass]="{'bg-gray-50 dark:bg-gray-900 font-bold': rowData.isRoot, 'text-sm': !rowData.isRoot}">
-        <td>
-          <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
-          <span *ngIf="rowData.isRoot" class="font-bold text-gray-800 dark:text-gray-200 ml-2">
-            {{rowData.nombre}}
-          </span>
-          <span *ngIf="!rowData.isRoot" class="ml-2 font-medium">
-            <i class="pi pi-check-circle mr-1 text-green-500"></i>
-            {{rowData.nombre}} <span class="text-xs text-gray-400">({{rowData.fechaHora | date:'HH:mm'}})</span>
-          </span>
-        </td>
-        
-        <td>
-          <span *ngIf="rowData.isRoot">
-            <p-tag [severity]="rowData.asistenciaActiva ? 'success' : 'warning'" [value]="rowData.asistenciaActiva ? 'Trabajando' : 'Sin Marcar'"></p-tag>
-          </span>
-          <span *ngIf="!rowData.isRoot">
-            {{rowData.categoriaNombre}}
-            <span *ngIf="rowData.especialidadAplicada && rowData.especialidadAplicada !== '-'" class="ml-1 text-xs text-gray-400">({{rowData.especialidadAplicada}})</span>
-          </span>
-        </td>
+  <div class="overflow-x-auto w-full">
+    <p-treeTable [value]="nodes" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-treetable-sm min-w-[850px]">
+      <ng-template pTemplate="header">
+        <tr>
+          <th style="min-width: 200px">Empleado / Servicio</th>
+          <th style="min-width: 140px">Estado / Categoría</th>
+          <th style="min-width: 150px">Comisión Base / Tipo Pago</th>
+          <th style="min-width: 160px">Incentivos / Precio Cobrado</th>
+          <th style="min-width: 160px">Comisión (Ahora) / Fórmula %</th>
+          <th style="min-width: 120px" class="text-right">Ventas Hoy (S/)</th>
+          <th style="min-width: 140px" class="text-right font-bold text-[#bca028]">Ganancia Hoy (S/)</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+        <tr [ngClass]="{'bg-gray-50 dark:bg-gray-900 font-bold': rowData.isRoot, 'text-sm': !rowData.isRoot}">
+          <td>
+            <p-treeTableToggler [rowNode]="rowNode"></p-treeTableToggler>
+            <span *ngIf="rowData.isRoot" class="font-bold text-gray-800 dark:text-gray-200 ml-2">
+              {{rowData.nombre}}
+            </span>
+            <span *ngIf="!rowData.isRoot" class="ml-2 font-medium">
+              <i class="pi pi-check-circle mr-1 text-green-500"></i>
+              {{rowData.nombre}} <span class="text-xs text-gray-400">({{rowData.fechaHora | date:'HH:mm'}})</span>
+            </span>
+          </td>
+          
+          <td>
+            <span *ngIf="rowData.isRoot">
+              <p-tag [severity]="rowData.asistenciaActiva ? 'success' : 'warning'" [value]="rowData.asistenciaActiva ? 'Trabajando' : 'Sin Marcar'"></p-tag>
+            </span>
+            <span *ngIf="!rowData.isRoot">
+              {{rowData.categoriaNombre}}
+              <span *ngIf="rowData.especialidadAplicada && rowData.especialidadAplicada !== '-'" class="ml-1 text-xs text-gray-400">({{rowData.especialidadAplicada}})</span>
+            </span>
+          </td>
 
-        <td>
-          <span *ngIf="rowData.isRoot" class="text-gray-600">
-            <span *ngIf="rowData.basePorcentaje > 0">{{rowData.basePorcentaje}}%</span>
-            <span *ngIf="rowData.baseMontoFijo > 0" [class.ml-2]="rowData.basePorcentaje > 0">S/ {{rowData.baseMontoFijo}}</span>
-            <span *ngIf="rowData.basePorcentaje == 0 && rowData.baseMontoFijo == 0">-</span>
-          </span>
-          <span *ngIf="!rowData.isRoot">
-            <p-tag [value]="rowData.tipoPago" [severity]="rowData.tipoPago === 'Sueldo Fijo' ? 'secondary' : 'info'"></p-tag>
-          </span>
-        </td>
+          <td>
+            <span *ngIf="rowData.isRoot" class="text-gray-600">
+              <span *ngIf="rowData.basePorcentaje > 0">{{rowData.basePorcentaje}}%</span>
+              <span *ngIf="rowData.baseMontoFijo > 0" [class.ml-2]="rowData.basePorcentaje > 0">S/ {{rowData.baseMontoFijo}}</span>
+              <span *ngIf="rowData.basePorcentaje == 0 && rowData.baseMontoFijo == 0">-</span>
+            </span>
+            <span *ngIf="!rowData.isRoot">
+              <p-tag [value]="rowData.tipoPago" [severity]="rowData.tipoPago === 'Sueldo Fijo' ? 'secondary' : 'info'"></p-tag>
+            </span>
+          </td>
 
-        <td>
-          <div *ngIf="rowData.isRoot">
-             <span *ngIf="!rowData.asistenciaActiva || rowData.incentivosAplicados.length === 0" class="text-xs text-gray-400">Ninguno</span>
-             <div class="flex flex-col gap-1 items-start" *ngIf="rowData.asistenciaActiva && rowData.incentivosAplicados.length > 0">
-               <p-tag *ngFor="let inc of rowData.incentivosAplicados" severity="info" [value]="'+' + inc.valor + (inc.tipo === 'PORCENTAJE' ? '%' : ' S/') + ' (' + inc.nombre + ')'"></p-tag>
-             </div>
-          </div>
-          <span *ngIf="!rowData.isRoot" class="text-gray-600">
-            S/ {{rowData.precioCobrado | number:'1.2-2'}}
-          </span>
-        </td>
+          <td>
+            <div *ngIf="rowData.isRoot">
+               <span *ngIf="!rowData.asistenciaActiva || rowData.incentivosAplicados.length === 0" class="text-xs text-gray-400">Ninguno</span>
+               <div class="flex flex-col gap-1 items-start" *ngIf="rowData.asistenciaActiva && rowData.incentivosAplicados.length > 0">
+                 <p-tag *ngFor="let inc of rowData.incentivosAplicados" severity="info" [value]="'+' + inc.valor + (inc.tipo === 'PORCENTAJE' ? '%' : ' S/') + ' (' + inc.nombre + ')'"></p-tag>
+               </div>
+            </div>
+            <span *ngIf="!rowData.isRoot" class="text-gray-600">
+              S/ {{rowData.precioCobrado | number:'1.2-2'}}
+            </span>
+          </td>
 
-        <td [ngClass]="{'bg-red-50/50 dark:bg-red-900/10': rowData.isRoot}">
-          <span *ngIf="rowData.isRoot" class="font-bold text-[#bca028] text-lg">
-            <span *ngIf="rowData.totalComisionPorcentaje > 0">{{rowData.totalComisionPorcentaje}}%</span>
-            <span *ngIf="rowData.totalComisionMontoFijo > 0" [class.ml-2]="rowData.totalComisionPorcentaje > 0">+ S/ {{rowData.totalComisionMontoFijo}}</span>
-            <span *ngIf="rowData.totalComisionPorcentaje == 0 && rowData.totalComisionMontoFijo == 0">0</span>
-          </span>
-          <span *ngIf="!rowData.isRoot" class="text-gray-500 text-xs">
-            <span *ngIf="rowData.tipoPago === 'Sueldo Fijo'">0%</span>
-            <span *ngIf="rowData.tipoPago !== 'Sueldo Fijo'">{{rowData.porcentajeAplicado | number:'1.0-2'}}%</span>
-          </span>
-        </td>
+          <td [ngClass]="{'bg-red-50/50 dark:bg-red-900/10': rowData.isRoot}">
+            <span *ngIf="rowData.isRoot" class="font-bold text-[#bca028] text-lg">
+              <span *ngIf="rowData.totalComisionPorcentaje > 0">{{rowData.totalComisionPorcentaje}}%</span>
+              <span *ngIf="rowData.totalComisionMontoFijo > 0" [class.ml-2]="rowData.totalComisionPorcentaje > 0">+ S/ {{rowData.totalComisionMontoFijo}}</span>
+              <span *ngIf="rowData.totalComisionPorcentaje == 0 && rowData.totalComisionMontoFijo == 0">0</span>
+            </span>
+            <span *ngIf="!rowData.isRoot" class="text-gray-500 text-xs">
+              <span *ngIf="rowData.tipoPago === 'Sueldo Fijo'">0%</span>
+              <span *ngIf="rowData.tipoPago !== 'Sueldo Fijo'">{{rowData.porcentajeAplicado | number:'1.0-2'}}%</span>
+            </span>
+          </td>
 
-        <td class="text-right">
-          <span *ngIf="rowData.isRoot" class="font-bold text-gray-800 dark:text-gray-200">
-            S/ {{rowData.ventasHoy | number:'1.2-2'}}
-          </span>
-        </td>
+          <td class="text-right">
+            <span *ngIf="rowData.isRoot" class="font-bold text-gray-800 dark:text-gray-200">
+              S/ {{rowData.ventasHoy | number:'1.2-2'}}
+            </span>
+          </td>
 
-        <td class="text-right" [ngClass]="{'bg-[#fefce8] dark:bg-[#bca028]/10': rowData.isRoot}">
-          <span class="font-bold text-[#bca028]" [ngClass]="{'text-xl': rowData.isRoot}">
-            S/ {{rowData.comisionesGanadasHoy | number:'1.2-2'}}
-          </span>
-        </td>
-      </tr>
-    </ng-template>
-    
-    <ng-template pTemplate="emptymessage">
-      <tr>
-        <td colspan="7" class="text-center p-8 text-gray-500">
-          No hay empleados registrados o activos en este momento.
-        </td>
-      </tr>
-    </ng-template>
-  </p-treeTable>
+          <td class="text-right" [ngClass]="{'bg-[#fefce8] dark:bg-[#bca028]/10': rowData.isRoot}">
+            <span class="font-bold text-[#bca028]" [ngClass]="{'text-xl': rowData.isRoot}">
+              S/ {{rowData.comisionesGanadasHoy | number:'1.2-2'}}
+            </span>
+          </td>
+        </tr>
+      </ng-template>
+      
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center p-8 text-gray-500">
+            No hay empleados registrados o activos en este momento.
+          </td>
+        </tr>
+      </ng-template>
+    </p-treeTable>
+  </div>
 </div>

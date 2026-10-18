@@ -270,3 +270,41 @@ body.p-overflow-hidden {
 .p-gracias     { font-size: 7pt; font-style: italic; font-weight: 700; color: #333; text-align: right; }
 .p-gracias-sub { font-size: 5.5pt; color: #888; text-align: right; }
 
+/* ==============================================================
+   MEJORAS RESPONSIVE PARA DISPOSITIVOS MÓVILES (CELULARES / TABLETS)
+   ============================================================== */
+
+@media (max-width: 768px) {
+  /* Contenedores de tarjeta en móvil: padding reducido para aprovechar el 100% del ancho */
+  .card {
+    padding: 1rem !important;
+    border-radius: 0.75rem !important;
+  }
+
+  /* Todas las tablas de PrimeNG habilitan scroll horizontal suave sin solapar textos */
+  .p-datatable, .p-treetable {
+    .p-datatable-wrapper, .p-treetable-wrapper {
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      width: 100% !important;
+    }
+
+    table {
+      min-width: 650px !important; /* Mantiene un ancho legible para que el texto no se amontone */
+    }
+
+    th, td {
+      white-space: nowrap !important;
+      padding: 0.6rem 0.75rem !important;
+      font-size: 0.825rem !important;
+    }
+  }
+
+  /* Modales / Dialogs de PrimeNG ocupan el 94% de la pantalla en celular */
+  .p-dialog {
+    width: 94vw !important;
+    max-width: 96vw !important;
+    margin: 0 auto !important;
+  }
+}
+

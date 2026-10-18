@@ -1,16 +1,16 @@
-<header class="h-[70px] bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 md:px-8 shadow-sm z-10 relative transition-colors duration-300">
+<header class="h-[70px] bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-3 sm:px-6 md:px-8 shadow-sm z-10 relative transition-colors duration-300">
   
   <!-- Contenedor Izquierdo: Botón Hamburguesa 3 Rayitas + Buscador -->
-  <div class="flex items-center gap-3 flex-1 max-w-xl">
+  <div class="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl min-w-0">
     <!-- Botón 3 Rayitas para Plegar / Desplegar Menú Lateral -->
-    <button (click)="layoutService.toggleSidebar()"
+    <button (click)="toggleSidebar()"
             [title]="layoutService.isSidebarCollapsed() ? 'Desplegar barra lateral' : 'Plegar barra lateral'"
             class="w-10 h-10 rounded-xl bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300 shrink-0">
       <i class="pi pi-bars text-lg"></i>
     </button>
 
-    <!-- Buscador -->
-    <div class="relative w-full">
+    <!-- Buscador (Oculto en móviles para no aplastar los botones de perfil) -->
+    <div class="relative w-full hidden md:block">
       <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
       <input type="text" 
              placeholder="Buscar cita, cliente, ticket o código de barras..." 
@@ -19,7 +19,7 @@
   </div>
 
   <!-- Acciones y Perfil -->
-  <div class="flex items-center gap-5">
+  <div class="flex items-center gap-2 sm:gap-4 md:gap-5 shrink-0">
     
     <!-- Botón Modo Oscuro / Claro -->
     <button (click)="toggleDarkMode()" class="w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">

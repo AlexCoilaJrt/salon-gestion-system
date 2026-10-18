@@ -36,6 +36,17 @@ export class SidebarComponent implements OnInit {
   empresaData = signal<EmpresaResponse | null>(null);
   filteredMenuCategories = signal<MenuCategory[]>([]);
 
+  get isCollapsed(): boolean {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      return false; // En celular siempre mostrar el menú completo dentro del drawer deslizante
+    }
+    return this.layoutService.isSidebarCollapsed();
+  }
+
+  onMenuItemClick() {
+    this.layoutService.closeMobileSidebar();
+  }
+
   ngOnInit() {
     this.empresaService.empresa$.subscribe(empresa => {
       if (empresa) {

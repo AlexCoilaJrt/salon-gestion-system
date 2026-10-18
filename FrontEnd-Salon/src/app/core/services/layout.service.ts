@@ -9,6 +9,9 @@ export class LayoutService {
     typeof localStorage !== 'undefined' && localStorage.getItem('sidebar_collapsed') === 'true'
   );
 
+  // Estado del menú lateral en dispositivos móviles (abierto / cerrado)
+  isMobileSidebarOpen = signal<boolean>(false);
+
   toggleSidebar(): void {
     this.isSidebarCollapsed.update(collapsed => {
       const nuevoEstado = !collapsed;
@@ -24,5 +27,17 @@ export class LayoutService {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('sidebar_collapsed', String(collapsed));
     }
+  }
+
+  toggleMobileSidebar(): void {
+    this.isMobileSidebarOpen.update(open => !open);
+  }
+
+  closeMobileSidebar(): void {
+    this.isMobileSidebarOpen.set(false);
+  }
+
+  openMobileSidebar(): void {
+    this.isMobileSidebarOpen.set(true);
   }
 }
