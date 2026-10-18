@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Iniciando Sistema de Gestion de Salon
 color 0A
 
@@ -33,7 +34,7 @@ docker image inspect alexcoila/salon-backend:latest > nul 2>&1
 if errorlevel 1 (
     echo [1/5] Primera instalacion detectada!
     echo       Descargando las imagenes oficiales desde Docker Hub...
-    echo       (Esto solo se hace una vez y toma ~1 minuto)...
+    echo       Descarga inicial requerida solo la primera vez.
     echo.
     docker compose pull
     echo.
@@ -55,8 +56,8 @@ if errorlevel 1 (
 :: 5. Esperar inicializacion de servicios (PostgreSQL + Spring Boot)
 echo.
 echo [3/5] Inicializando servicios y Base de Datos...
-echo       (Esperando unos segundos a que el Backend este listo)...
-timeout /t 10 /nobreak > nul
+echo       Esperando unos segundos a que el Backend este listo...
+powershell -NoProfile -Command "Start-Sleep -Seconds 10"
 
 :: 6. Generar respaldo automatico de la Base de Datos
 echo [4/5] Generando copia de seguridad automatica de la base de datos...
@@ -83,7 +84,7 @@ if exist "%ARCHIVO_AUTO%" (
 :: 7. Abrir el navegador
 echo.
 echo [5/5] Abriendo el sistema en tu navegador...
-timeout /t 2 /nobreak > nul
+powershell -NoProfile -Command "Start-Sleep -Seconds 2"
 start http://localhost
 
 echo.

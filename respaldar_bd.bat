@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Respaldo Manual de Base de Datos - Sistema Salon
 color 0B
 

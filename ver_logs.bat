@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Logs del Sistema de Gestion de Salon
 
 echo ==============================================================

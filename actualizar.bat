@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Actualizando Sistema de Gestion de Salon
 color 0B
 

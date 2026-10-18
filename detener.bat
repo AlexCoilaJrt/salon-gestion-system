@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 title Deteniendo Sistema de Gestion de Salon
 
 echo ==============================================================
