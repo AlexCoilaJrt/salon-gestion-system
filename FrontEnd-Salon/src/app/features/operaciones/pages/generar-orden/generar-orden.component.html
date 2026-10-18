@@ -151,13 +151,13 @@
     </div>
 
     <!-- BOTONES DE ACCIÓN -->
-    <button class="btn-print-main" (click)="imprimirCartilla()" [disabled]="!cartillaSeleccionada()">
-      <i class="pi pi-print mr-2"></i>Imprimir Cartilla A5
+    <button class="btn-send-caja" (click)="generarOrden()" [disabled]="seleccionados().length === 0 || isProcessing()">
+      <i [class]="isProcessing() ? 'pi pi-spin pi-spinner mr-2' : 'pi pi-send mr-2'"></i>
+      {{ isProcessing() ? 'Enviando...' : 'Enviar Orden a Caja' }}
     </button>
 
-    <button class="btn-send-caja" (click)="generarOrden()" [disabled]="seleccionados().length === 0 || isProcessing()">
-      <i class="pi pi-send mr-2"></i>
-      {{ isProcessing() ? 'Enviando...' : 'Enviar Orden a Caja' }}
+    <button class="btn-print-main" (click)="imprimirCartilla()" [disabled]="!cartillaSeleccionada()">
+      <i class="pi pi-print mr-2"></i>Imprimir Cartilla A5
     </button>
 
     <!-- Procedimiento -->

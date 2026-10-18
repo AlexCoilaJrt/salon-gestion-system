@@ -256,11 +256,11 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 }
 
 // Main buttons
-.btn-print-main {
+.btn-send-caja {
   width: 100%;
-  padding: 0.8rem;
+  padding: 0.85rem;
   background: $primary;
-  color: white;
+  color: #ffffff;
   font-family: $font;
   font-size: 0.88rem;
   font-weight: 700;
@@ -268,29 +268,49 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(188, 160, 40, 0.35);
+
   &:hover:not(:disabled) {
     background: #9d841f;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(188, 160, 40, 0.35);
+    box-shadow: 0 6px 20px rgba(188, 160, 40, 0.45);
   }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
 }
-.btn-send-caja {
+
+.btn-print-main {
   width: 100%;
-  padding: 0.65rem;
+  padding: 0.72rem;
   background: var(--go-surface-card);
   color: $on-surface;
   font-family: $font;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
   border: 1px solid $outline;
   border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s;
-  display: flex; align-items: center; justify-content: center;
-  &:hover:not(:disabled) { background: $surface-low; border-color: $primary-light; color: $primary; }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
+    background: $surface-low;
+    border-color: $primary;
+    color: $primary;
+  }
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
 }
 
 // Procedure box
@@ -688,6 +708,34 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   color: white !important;
   border-radius: 999px !important;
   font-weight: 700 !important;
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESPONSIVE SCREEN
+// ══════════════════════════════════════════════════════════════
+@media (max-width: 900px) {
+  .go-shell {
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto;
+  }
+  .go-sidebar {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    border-right: none;
+    border-bottom: 1px solid $outline;
+    padding: 1rem 0.85rem;
+  }
+  .go-preview-area {
+    padding: 1rem 0.5rem;
+    width: 100%;
+    overflow-x: auto;
+  }
+  .preview-paper-wrap {
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
 }
 
 // ══════════════════════════════════════════════════════════════
