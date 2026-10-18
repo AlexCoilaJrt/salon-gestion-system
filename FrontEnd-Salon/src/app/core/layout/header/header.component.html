@@ -1,15 +1,22 @@
 <header class="h-[70px] bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-3 sm:px-6 md:px-8 shadow-sm z-10 relative transition-colors duration-300">
   
-  <!-- Contenedor Izquierdo: Botón Hamburguesa 3 Rayitas + Buscador -->
-  <div class="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl min-w-0">
+  <!-- Contenedor Izquierdo: Botón Hamburguesa 3 Rayitas + Nombre de Empresa (Móvil) + Buscador (Desktop) -->
+  <div class="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0 max-w-xl">
     <!-- Botón 3 Rayitas para Plegar / Desplegar Menú Lateral -->
     <button (click)="toggleSidebar()"
             [title]="layoutService.isSidebarCollapsed() ? 'Desplegar barra lateral' : 'Plegar barra lateral'"
-            class="w-10 h-10 rounded-xl bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300 shrink-0">
+            class="w-10 h-10 rounded-xl bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-700 dark:text-gray-200 shrink-0 border border-gray-200/50 dark:border-gray-700/50">
       <i class="pi pi-bars text-lg"></i>
     </button>
 
-    <!-- Buscador (Oculto en móviles para no aplastar los botones de perfil) -->
+    <!-- Marca / Nombre comercial visible en móvil para separar los botones y dar identidad -->
+    <div class="flex items-center gap-1.5 md:hidden overflow-hidden min-w-0">
+      <span class="font-extrabold text-[13.5px] tracking-tight text-gray-900 dark:text-white truncate">
+        {{ empresaData()?.nombreComercial || 'SPA DIANA' }}
+      </span>
+    </div>
+
+    <!-- Buscador (Solo Desktop) -->
     <div class="relative w-full hidden md:block">
       <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
       <input type="text" 
@@ -18,22 +25,26 @@
     </div>
   </div>
 
-  <!-- Acciones y Perfil -->
-  <div class="flex items-center gap-2 sm:gap-4 md:gap-5 shrink-0">
+  <!-- Acciones y Perfil (Derecha) -->
+  <div class="flex items-center gap-1.5 sm:gap-2.5 md:gap-4 shrink-0">
     
     <!-- Botón Modo Oscuro / Claro -->
-    <button (click)="toggleDarkMode()" class="w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
-      <i class="pi text-lg" [class.pi-sun]="isDarkMode()" [class.pi-moon]="!isDarkMode()"></i>
+    <button (click)="toggleDarkMode()" 
+            [title]="isDarkMode() ? 'Modo Claro' : 'Modo Oscuro'"
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 shrink-0">
+      <i class="pi text-base sm:text-lg" [class.pi-sun]="isDarkMode()" [class.pi-moon]="!isDarkMode()"></i>
     </button>
 
-    <!-- Notificaciones -->
-    <button (click)="notifOverlay.toggle($event)" class="relative w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
-      <i class="pi pi-bell text-lg"></i>
+    <!-- Notificaciones (Alertas de Inventario) -->
+    <button (click)="notifOverlay.toggle($event)" 
+            title="Alertas de Inventario"
+            class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 shrink-0">
+      <i class="pi pi-bell text-base sm:text-lg"></i>
       @if (alertasStock().length > 0) {
-        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
+        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
       }
     </button>
-    <p-overlayPanel #notifOverlay styleClass="w-80 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800 p-0 overflow-hidden">
+    <p-overlayPanel #notifOverlay [style]="{'max-width': '92vw', 'width': '340px'}" appendTo="body" styleClass="shadow-2xl rounded-2xl border border-gray-100 dark:border-gray-800 p-0 overflow-hidden">
       <ng-template pTemplate="content">
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-2 px-1">
           <span class="font-bold text-gray-800 dark:text-gray-100">Alertas de Inventario</span>
@@ -49,8 +60,8 @@
                 <div class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/10 flex items-center justify-center text-red-500 shrink-0 mt-0.5 border border-red-100 dark:border-red-900/30">
                   <i class="pi pi-box text-sm"></i>
                 </div>
-                <div class="flex flex-col">
-                  <span class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">{{ prod.nombre }}</span>
+                <div class="flex flex-col min-w-0 flex-1">
+                  <span class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{{ prod.nombre }}</span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">Stock actual: <span class="text-red-500 font-bold">{{ prod.stockActual }}</span> (Mín: {{ prod.stockMinimo }})</span>
                 </div>
               </div>
@@ -72,13 +83,15 @@
     </p-overlayPanel>
     
     <!-- Cumpleaños -->
-    <button (click)="cumpleOverlay.toggle($event)" class="relative w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
-      <i class="pi pi-gift text-lg" [ngClass]="totalCumpleanos > 0 ? 'text-[#bca028] dark:text-[#d9bd72]' : ''"></i>
+    <button (click)="cumpleOverlay.toggle($event)" 
+            title="Cumpleaños del Mes"
+            class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 shrink-0">
+      <i class="pi pi-gift text-base sm:text-lg" [ngClass]="totalCumpleanos > 0 ? 'text-[#bca028] dark:text-[#d9bd72]' : ''"></i>
       @if (totalCumpleanos > 0) {
-        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-[#bca028] rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
+        <span class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-[#bca028] rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
       }
     </button>
-    <p-overlayPanel #cumpleOverlay styleClass="w-80 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800 p-0 overflow-hidden">
+    <p-overlayPanel #cumpleOverlay [style]="{'max-width': '92vw', 'width': '340px'}" appendTo="body" styleClass="shadow-2xl rounded-2xl border border-gray-100 dark:border-gray-800 p-0 overflow-hidden">
       <ng-template pTemplate="content">
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-2 px-1">
           <span class="font-bold text-gray-800 dark:text-gray-100">Cumpleaños del Mes</span>
@@ -94,7 +107,7 @@
                 <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-[#bca028] shrink-0 mt-0.5">
                   <i class="pi pi-user text-sm"></i>
                 </div>
-                <div class="flex flex-col">
+                <div class="flex flex-col min-w-0 flex-1">
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{{ emp.nombres }} {{ emp.apellidos }}</span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
                     Cumpleaños: <span class="text-[#bca028] font-bold">{{ emp.fechaNacimiento | date:'dd/MM' }}</span>
@@ -113,52 +126,45 @@
       </ng-template>
     </p-overlayPanel>
 
-    <!-- Ayuda -->
-    <button class="w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
-      <i class="pi pi-question-circle text-lg"></i>
-    </button>
-
-    <!-- Separador -->
-    <div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+    <!-- Separador sutil -->
+    <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-0.5 sm:mx-1"></div>
 
     <!-- Perfil Usuario -->
-    <button (click)="profileMenu.toggle($event)" class="flex items-center gap-3 text-left group outline-none cursor-pointer">
-      <!-- Usamos la inicial del nombre si hay usuario, sino un icono por defecto -->
+    <button (click)="profileMenu.toggle($event)" class="flex items-center gap-2 text-left group outline-none cursor-pointer">
       <ng-container *ngIf="currentUser(); else defaultAvatar">
-        <!-- Mostrar imagen si existe -->
-        <img *ngIf="currentUser().avatarUrl; else initialAvatar" [src]="currentUser().avatarUrl" alt="Avatar" class="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-[#bca028] transition-colors" />
+        <img *ngIf="currentUser().avatarUrl; else initialAvatar" [src]="currentUser().avatarUrl" alt="Avatar" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-transparent group-hover:border-[#bca028] transition-colors" />
         
         <ng-template #initialAvatar>
           <p-avatar 
             [label]="getDisplayName().charAt(0).toUpperCase()" 
             shape="circle" 
             size="normal" 
-            styleClass="w-10 h-10 !bg-[#bca028] !text-white font-bold text-lg">
+            styleClass="w-9 h-9 sm:w-10 sm:h-10 !bg-[#bca028] !text-white font-bold text-base sm:text-lg">
           </p-avatar>
         </ng-template>
       </ng-container>
       <ng-template #defaultAvatar>
-        <p-avatar icon="pi pi-user" shape="circle" size="normal" styleClass="w-10 h-10 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300"></p-avatar>
+        <p-avatar icon="pi pi-user" shape="circle" size="normal" styleClass="w-9 h-9 sm:w-10 sm:h-10 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300"></p-avatar>
       </ng-template>
 
       <div class="hidden md:block">
-        <p class="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-[#bca028] dark:group-hover:text-[#d9bd72] transition-colors">
+        <p class="text-sm font-bold text-gray-800 dark:text-gray-100 group-hover:text-[#bca028] dark:group-hover:text-[#d9bd72] transition-colors truncate max-w-[120px]">
           {{ getDisplayName() }}
         </p>
         <p class="text-xs font-medium text-gray-500 dark:text-gray-400">
           {{ currentUser() && currentUser().roles ? currentUser().roles[0] : 'Sin Rol' }}
         </p>
       </div>
-      <i class="pi pi-angle-down text-gray-400 dark:text-gray-500 text-sm ml-1 group-hover:text-[#bca028] dark:group-hover:text-[#d9bd72] transition-colors"></i>
+      <i class="pi pi-angle-down text-gray-400 dark:text-gray-500 text-xs sm:text-sm ml-0.5 group-hover:text-[#bca028] dark:group-hover:text-[#d9bd72] transition-colors"></i>
     </button>
-    <p-menu #profileMenu [model]="profileMenuItems" [popup]="true" appendTo="body" styleClass="w-48 mt-2"></p-menu>
+    <p-menu #profileMenu [model]="profileMenuItems" [popup]="true" appendTo="body" styleClass="w-52 mt-2 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800"></p-menu>
 
   </div>
 
 </header>
 
 <!-- Dialog Mi Perfil -->
-<p-dialog header="Mi Perfil" [(visible)]="displayPerfilModal" [modal]="true" [style]="{width: '400px'}" [draggable]="false" [resizable]="false">
+<p-dialog header="Mi Perfil" [(visible)]="displayPerfilModal" [modal]="true" [style]="{width: '400px'}" [breakpoints]="{'640px': '92vw'}" [draggable]="false" [resizable]="false">
   <div class="flex flex-col items-center gap-4 py-4" *ngIf="currentUser()">
     
     <div class="relative group cursor-pointer">
@@ -217,7 +223,7 @@
 </p-dialog>
 
 <!-- Dialog Configurar Empresa -->
-<p-dialog header="Configuración de la Empresa" [(visible)]="displayEmpresaModal" [modal]="true" [style]="{width: '50vw'}" [breakpoints]="{'960px': '75vw', '640px': '90vw'}" [draggable]="false" [resizable]="false">
+<p-dialog header="Configuración de la Empresa" [(visible)]="displayEmpresaModal" [modal]="true" [style]="{width: '50vw'}" [breakpoints]="{'960px': '75vw', '640px': '92vw'}" [draggable]="false" [resizable]="false">
   <form [formGroup]="empresaForm" (ngSubmit)="guardarEmpresa()" class="flex flex-col gap-5 py-4">
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

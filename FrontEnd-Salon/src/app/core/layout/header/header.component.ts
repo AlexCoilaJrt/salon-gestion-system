@@ -46,6 +46,7 @@ export class HeaderComponent implements OnInit {
   isDarkMode = signal<boolean>(false);
   profileMenuItems: MenuItem[] = [];
   alertasStock = signal<Producto[]>([]);
+  empresaData = signal<EmpresaResponse | null>(null);
 
   // Cumpleaños
   cumpleanerosEmpleados = signal<any[]>([]);
@@ -65,6 +66,13 @@ export class HeaderComponent implements OnInit {
 
   ngOnInit() {
     this.currentUser.set(this.authService.getCurrentUser());
+
+    this.empresaService.empresa$.subscribe(emp => {
+      if (emp) this.empresaData.set(emp);
+    });
+    this.empresaService.getEmpresaActiva().subscribe({
+      error: () => {}
+    });
 
     // Restaurar la preferencia de modo oscuro guardada
     const savedDarkMode = localStorage.getItem('darkMode') === 'true';
