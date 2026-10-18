@@ -59,7 +59,6 @@ export class EmpleadosComponent implements OnInit {
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       telefono: ['', [Validators.required, Validators.pattern('^[0-9]{9,15}$')]],
       fechaNacimiento: ['', Validators.required],
-      fechaIngreso: [this.today, Validators.required],
       especialidadIds: [[], Validators.required],
       turnoId: [null, Validators.required],
       estado: [true]
@@ -119,12 +118,7 @@ export class EmpleadosComponent implements OnInit {
   openNew() {
     this.isEditMode = false;
     this.selectedEmpleadoId = null;
-    this.empleadoForm.reset({ 
-      estado: true, 
-      especialidadIds: [], 
-      turnoId: null,
-      fechaIngreso: this.today 
-    });
+    this.empleadoForm.reset({ estado: true, especialidadIds: [], turnoId: null });
     this.displayDialog = true;
   }
 
@@ -138,7 +132,6 @@ export class EmpleadosComponent implements OnInit {
       email: empleado.email,
       telefono: empleado.telefono,
       fechaNacimiento: empleado.fechaNacimiento,
-      fechaIngreso: empleado.fechaIngreso || this.today,
       especialidadIds: empleado.especialidadIds || [],
       turnoId: empleado.turnoId || null,
       estado: empleado.estado
@@ -158,9 +151,6 @@ export class EmpleadosComponent implements OnInit {
     // Clean empty string for date so Jackson doesn't fail
     if (!empleadoData.fechaNacimiento) {
       empleadoData.fechaNacimiento = null as any;
-    }
-    if (!empleadoData.fechaIngreso) {
-      empleadoData.fechaIngreso = null as any;
     }
     // Clean empty phone
     if (!empleadoData.telefono) {

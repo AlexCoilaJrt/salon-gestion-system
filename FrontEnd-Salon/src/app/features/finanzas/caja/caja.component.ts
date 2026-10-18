@@ -112,12 +112,16 @@ export class CajaComponent implements OnInit {
 
   cargarDatosDashboard() {
     this.cajaService.obtenerTicketsCajaActual().subscribe({
-      next: (tickets) => this.ticketsDashboard = tickets
+      next: (tickets) => this.ticketsDashboard = tickets,
+      error: () => this.ticketsDashboard = []
     });
     this.cajaService.obtenerResumenActual().subscribe({
       next: (res) => {
         this.resumenDashboard = res;
         this.montoDeclarado = res.totalEsperadoEfectivo; // Sync for close
+      },
+      error: () => {
+        this.resumenDashboard = null;
       }
     });
   }

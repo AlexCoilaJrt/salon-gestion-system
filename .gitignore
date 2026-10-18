@@ -1,0 +1,21 @@
+# Archivos de Secretos y Variables de Entorno
+.env
+.env.local
+*.env
+
+# Carpetas de Dependencias y Compilación
+node_modules/
+dist/
+target/
+.angular/
+
+# IDE y Sistema Operativo
+.vscode/
+.idea/
+*.suo
+*.user
+Thumbs.db
+[Dd]esktop.ini
+
+# Respaldos pesados
+backups/*.sql

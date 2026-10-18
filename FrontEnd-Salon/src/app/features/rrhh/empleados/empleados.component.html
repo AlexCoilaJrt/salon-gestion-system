@@ -39,7 +39,7 @@
       <tr>
         <td class="font-bold text-gray-800 dark:text-gray-200">
           <div class="flex items-center gap-3">
-             <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center text-[#bca028] font-bold text-sm">
+             <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-[#bca028] dark:text-[#d9bd72] font-bold text-sm">
                {{empleado.nombres.charAt(0).toUpperCase()}}
              </div>
              <div class="flex flex-col">
@@ -112,33 +112,26 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email de Contacto <span class="text-red-500">*</span></label>
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Email de Contacto <span class="text-red-500">*</span></label>
         <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('email')?.invalid && empleadoForm.get('email')?.touched">Email inválido.</small>
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Turno de Trabajo <span class="text-red-500">*</span></label>
-        <p-dropdown [options]="turnos" formControlName="turnoId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un Turno" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white"></p-dropdown>
-        <small class="text-red-500" *ngIf="empleadoForm.get('turnoId')?.invalid && empleadoForm.get('turnoId')?.touched">Debe seleccionar un turno.</small>
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300">Especialidades <span class="text-red-500">*</span></label>
+        <p-multiSelect [options]="especialidades" formControlName="especialidadIds" optionLabel="nombre" optionValue="id" placeholder="Selecciona..." [filter]="false" [showHeader]="false" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white"></p-multiSelect>
+        <small class="text-red-500" *ngIf="empleadoForm.get('especialidadIds')?.invalid && empleadoForm.get('especialidadIds')?.touched">Seleccione al menos una especialidad.</small>
       </div>
 
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Turno de Trabajo <span class="text-red-500">*</span></label>
+        <p-dropdown [options]="turnos" formControlName="turnoId" optionLabel="nombre" optionValue="id" placeholder="Seleccione un Turno" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white dark:bg-gray-800 dark:text-white"></p-dropdown>
+        <small class="text-red-500" *ngIf="empleadoForm.get('turnoId')?.invalid && empleadoForm.get('turnoId')?.touched">Debe seleccionar un turno.</small>
+      </div>
       <div class="flex flex-col gap-2">
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Nacimiento <span class="text-red-500">*</span></label>
         <input type="date" pInputText formControlName="fechaNacimiento" [max]="today" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('fechaNacimiento')?.invalid && empleadoForm.get('fechaNacimiento')?.touched">Fecha inválida (debe ser pasada).</small>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Ingreso <span class="text-red-500">*</span></label>
-        <input type="date" pInputText formControlName="fechaIngreso" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
-        <small class="text-red-500" *ngIf="empleadoForm.get('fechaIngreso')?.invalid && empleadoForm.get('fechaIngreso')?.touched">Fecha de ingreso requerida.</small>
-      </div>
-
-      <div class="flex flex-col gap-2 md:col-span-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Especialidades <span class="text-red-500">*</span></label>
-        <p-multiSelect [options]="especialidades" formControlName="especialidadIds" optionLabel="nombre" optionValue="id" placeholder="Selecciona..." [filter]="false" [showHeader]="false" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white"></p-multiSelect>
-        <small class="text-red-500" *ngIf="empleadoForm.get('especialidadIds')?.invalid && empleadoForm.get('especialidadIds')?.touched">Seleccione al menos una especialidad.</small>
       </div>
     </div>
 

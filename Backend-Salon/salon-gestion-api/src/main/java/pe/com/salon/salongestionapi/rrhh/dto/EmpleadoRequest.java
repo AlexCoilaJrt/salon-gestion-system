@@ -31,6 +31,7 @@ public class EmpleadoRequest {
     @Past(message = "La fecha de nacimiento debe ser en el pasado")
     private java.time.LocalDate fechaNacimiento;
 
+    @NotNull(message = "La fecha de ingreso es obligatoria")
     private java.time.LocalDate fechaIngreso;
 
     @NotEmpty(message = "Debe asignar al menos una especialidad al empleado")

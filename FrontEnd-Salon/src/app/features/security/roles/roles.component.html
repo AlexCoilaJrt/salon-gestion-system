@@ -13,7 +13,7 @@
     </div>
     <div class="flex gap-3">
        <button pButton icon="pi pi-history" label="Auditoría de Cambios" class="p-button-outlined p-button-secondary font-bold"></button>
-       <button pButton icon="pi pi-plus" label="Crear Nuevo Rol" class="p-button-danger bg-[#8B2346] hover:bg-[#a62b53] border-none font-semibold rounded-lg shadow-md" (click)="openNew()"></button>
+       <button pButton icon="pi pi-plus" label="Crear Nuevo Rol" class="bg-[#bca028] hover:bg-[#9d841f] text-white border-none font-semibold rounded-lg shadow-md" (click)="openNew()"></button>
     </div>
   </div>
 
@@ -24,7 +24,7 @@
        <!-- Total info -->
        <div class="bg-white dark:bg-[#1e1e1e] rounded-xl p-4 flex justify-between items-center border border-gray-100 dark:border-gray-800 shadow-sm">
          <div class="flex items-center gap-3">
-           <div class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-xl text-blue-600 dark:text-blue-400">
+           <div class="bg-amber-50 dark:bg-amber-900/30 p-3 rounded-xl text-[#bca028]">
              <i class="pi pi-users text-2xl"></i>
            </div>
            <div>
@@ -37,9 +37,9 @@
        <!-- Role Cards -->
        <div *ngFor="let role of roles" 
             class="bg-white dark:bg-[#1e1e1e] rounded-xl p-5 border-2 cursor-pointer transition-all duration-200 relative group"
-            [ngClass]="{'border-[#8B2346] shadow-md': selectedRole?.id === role.id, 'border-gray-100 dark:border-gray-800 hover:border-gray-300': selectedRole?.id !== role.id}"
+            [ngClass]="{'border-[#bca028] shadow-md': selectedRole?.id === role.id, 'border-gray-100 dark:border-gray-800 hover:border-gray-300': selectedRole?.id !== role.id}"
             (click)="selectRole(role)">
-          <div *ngIf="selectedRole?.id === role.id" class="absolute -top-3 right-4 bg-[#8B2346] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm tracking-wide">En Edición</div>
+          <div *ngIf="selectedRole?.id === role.id" class="absolute -top-3 right-4 bg-[#bca028] text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-sm tracking-wide">En Edición</div>
           
           <div class="flex justify-between items-start mb-2">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -51,11 +51,11 @@
           <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 min-h-[40px]">{{role.description || 'Sin descripción detallada.'}}</p>
           
           <div class="flex justify-between items-center text-xs font-bold text-gray-600 dark:text-gray-400 mt-2">
-             <div class="bg-gray-100 dark:bg-[#2a2a2a] px-3 py-1.5 rounded-lg flex items-center gap-2 text-blue-600 dark:text-blue-400">
+             <div class="bg-gray-100 dark:bg-[#2a2a2a] px-3 py-1.5 rounded-lg flex items-center gap-2 text-[#bca028]">
                <i class="pi pi-user"></i>
                <span>{{role.users?.length || 0}} usuarios asignados</span>
              </div>
-             <div>Total: <span class="text-base" [ngClass]="{'text-[#8B2346] font-black': selectedRole?.id === role.id}">{{role.permissions?.length || 0}}</span> perms</div>
+             <div>Total: <span class="text-base" [ngClass]="{'text-[#bca028] font-black': selectedRole?.id === role.id}">{{role.permissions?.length || 0}}</span> perms</div>
           </div>
        </div>
      </div>
@@ -66,7 +66,7 @@
         <!-- Matrix Header -->
         <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-[#1a1a1a]">
            <div class="flex items-center gap-4">
-              <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-2xl text-[#8B2346]">
+              <div class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl text-[#bca028]">
                 <i class="pi pi-sitemap text-3xl"></i>
               </div>
               <div>
@@ -76,7 +76,7 @@
            </div>
            <div class="flex gap-3 items-center">
              <button *ngIf="hasUnsavedChanges" pButton label="Descartar" class="p-button-outlined p-button-secondary font-bold" (click)="discardChanges()"></button>
-             <button *ngIf="hasUnsavedChanges" pButton label="Guardar Cambios" icon="pi pi-save" class="p-button-danger bg-[#8B2346] hover:bg-[#a62b53] border-none font-bold shadow-md" (click)="savePermissions()"></button>
+             <button *ngIf="hasUnsavedChanges" pButton label="Guardar Cambios" icon="pi pi-save" class="bg-[#bca028] hover:bg-[#9d841f] text-white border-none font-bold shadow-md px-4 py-2 rounded-lg" (click)="savePermissions()"></button>
              <div *ngIf="!hasUnsavedChanges" class="text-sm font-bold text-gray-400 flex items-center gap-2">
                <i class="pi pi-check"></i> Sin cambios
              </div>
@@ -84,8 +84,8 @@
         </div>
 
         <div class="px-8 py-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white dark:bg-[#1e1e1e]">
-          <span class="text-xs font-bold text-gray-500 tracking-wider flex items-center"><i class="pi pi-sliders-h mr-2 text-[#8B2346]"></i> MOSTRANDO {{selectedPermissionIds.length}} DE {{permissions.length}} PRIVILEGIOS</span>
-          <div class="flex gap-4 text-xs font-bold text-[#8B2346] cursor-pointer">
+          <span class="text-xs font-bold text-gray-500 tracking-wider flex items-center"><i class="pi pi-sliders-h mr-2 text-[#bca028]"></i> MOSTRANDO {{selectedPermissionIds.length}} DE {{permissions.length}} PRIVILEGIOS</span>
+          <div class="flex gap-4 text-xs font-bold text-[#bca028] cursor-pointer">
             <span class="hover:underline">Expandir Todo</span>
             <span class="text-gray-300">•</span>
             <span class="hover:underline">Restablecer Defaults</span>
@@ -97,7 +97,7 @@
            <div *ngFor="let group of groupedPermissions" class="mb-8 bg-white dark:bg-[#1e1e1e] rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
               <div class="p-5 bg-gray-50 dark:bg-[#1a1a1a] border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
                  <div class="flex items-center gap-3">
-                   <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 p-2 rounded-lg"><i class="pi pi-folder-open text-lg"></i></div>
+                   <div class="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 p-2 rounded-lg"><i class="pi pi-folder-open text-lg"></i></div>
                    <div>
                      <h4 class="font-bold text-gray-900 dark:text-white text-lg">{{group.module}}</h4>
                      <p class="text-xs text-gray-500">Gestión de permisos para el módulo de {{group.module | lowercase}}</p>
@@ -105,7 +105,7 @@
                  </div>
                  <div class="flex items-center gap-4">
                     <div class="text-sm font-bold text-gray-600 bg-white dark:bg-[#252525] px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
-                       <span class="text-[#8B2346]">{{getActiveCount(group.module)}}</span> de {{group.items.length}} activos
+                       <span class="text-[#bca028]">{{getActiveCount(group.module)}}</span> de {{group.items.length}} activos
                     </div>
                     <div class="flex items-center gap-2 border-l border-gray-300 dark:border-gray-600 pl-4">
                       <span class="text-xs font-bold text-gray-500">Todos</span>
@@ -138,8 +138,8 @@
      
      <!-- Empty State for right panel -->
      <div class="w-[65%] flex flex-col items-center justify-center bg-white dark:bg-[#1e1e1e] rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 shadow-sm" *ngIf="!selectedRole">
-        <div class="bg-gray-50 dark:bg-[#252525] p-8 rounded-full mb-6">
-           <i class="pi pi-sitemap text-6xl text-gray-300 dark:text-gray-600"></i>
+        <div class="bg-amber-50 dark:bg-amber-900/20 p-8 rounded-full mb-6">
+           <i class="pi pi-sitemap text-6xl text-[#bca028]"></i>
         </div>
         <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-300 mb-2">Selecciona un rol</h3>
         <p class="text-gray-500 text-center max-w-sm">Haz clic en cualquier rol del panel izquierdo para visualizar y editar su matriz de permisos.</p>
@@ -152,13 +152,13 @@
   <form [formGroup]="roleForm" (ngSubmit)="saveRoleInfo()" class="flex flex-col gap-6 py-4">
     <div class="flex flex-col gap-2">
       <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Nombre del Rol <span class="text-red-500">*</span></label>
-      <input pInputText formControlName="name" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#8B2346] uppercase p-3 rounded-xl transition-shadow" placeholder="Ej. RECEPCIONISTA" />
+      <input pInputText formControlName="name" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028] uppercase p-3 rounded-xl transition-shadow" placeholder="Ej. RECEPCIONISTA" />
       <small class="text-red-500" *ngIf="roleForm.get('name')?.invalid && roleForm.get('name')?.touched">El nombre es requerido (mín. 3 letras).</small>
     </div>
 
     <div class="flex flex-col gap-2">
       <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Descripción</label>
-      <textarea pInputTextarea formControlName="description" rows="3" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#8B2346] p-3 rounded-xl transition-shadow" placeholder="¿Qué hace este rol?"></textarea>
+      <textarea pInputTextarea formControlName="description" rows="3" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028] p-3 rounded-xl transition-shadow" placeholder="¿Qué hace este rol?"></textarea>
     </div>
     
     <div class="flex flex-col gap-2" *ngIf="!isEditMode">
@@ -177,7 +177,7 @@
 
     <div class="flex justify-end gap-3 mt-6">
       <p-button label="Cancelar" styleClass="p-button-text text-gray-600 font-bold" (onClick)="displayDialog = false"></p-button>
-      <p-button label="Guardar Configuración" type="submit" [disabled]="roleForm.invalid" styleClass="bg-[#8B2346] hover:bg-[#a62b53] border-none text-white font-bold px-6 py-2.5 shadow-md"></p-button>
+      <p-button label="Guardar Configuración" type="submit" [disabled]="roleForm.invalid" styleClass="bg-[#bca028] hover:bg-[#9d841f] border-none text-white font-bold px-6 py-2.5 shadow-md"></p-button>
     </div>
   </form>
 </p-dialog>

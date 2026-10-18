@@ -4,12 +4,12 @@
 :host {
   --go-surface: #f8f9ff;
   --go-surface-card: #ffffff;
-  --go-surface-low: #eff4ff;
+  --go-surface-low: #fdfbf6;
   --go-on-surface: #121c2a;
-  --go-on-surface-var: #544243;
+  --go-on-surface-var: #52525b;
   --go-outline: #e2e8f0;
-  --go-primary-xlight: #ffdadb;
-  --go-preview-bg: #dde6f5;
+  --go-primary-xlight: #fefcf4;
+  --go-preview-bg: #f8f9fc;
 }
 
 :host-context(.app-dark) {
@@ -19,12 +19,12 @@
   --go-on-surface: #e4e4e7;
   --go-on-surface-var: #a1a1aa;
   --go-outline: #3f3f46;
-  --go-primary-xlight: #3a1a1e;
+  --go-primary-xlight: #2b2306;
   --go-preview-bg: #1f2937;
 }
 
-$primary:        #98434c;
-$primary-light:  #d9777f;
+$primary:        #bca028;
+$primary-light:  #d9bd72;
 $primary-xlight: var(--go-primary-xlight);
 $surface:        var(--go-surface);
 $surface-card:   var(--go-surface-card);
@@ -153,7 +153,7 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   border-radius: 8px;
   font-family: $font;
   font-size: 0.82rem;
-  &.p-focus { border-color: $primary-light; box-shadow: 0 0 0 3px rgba(217,119,127,0.15); }
+  &.p-focus { border-color: $primary-light; box-shadow: 0 0 0 3px rgba(188, 160, 40, 0.15); }
 }
 
 // Format chip
@@ -270,9 +270,9 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
   display: flex; align-items: center; justify-content: center;
   &:hover:not(:disabled) {
-    background: #80353e;
+    background: #9d841f;
     transform: translateY(-1px);
-    box-shadow: 0 6px 18px rgba(152, 67, 76, 0.35);
+    box-shadow: 0 6px 18px rgba(188, 160, 40, 0.35);
   }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
@@ -375,7 +375,7 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
-  &:hover { background: #80353e; }
+  &:hover { background: #9d841f; }
   &:disabled { opacity: 0.4; cursor: not-allowed; }
 }
 

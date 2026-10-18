@@ -1,7 +1,15 @@
-<header class="h-[70px] bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-8 shadow-sm z-10 relative transition-colors duration-300">
+<header class="h-[70px] bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-6 md:px-8 shadow-sm z-10 relative transition-colors duration-300">
   
-  <!-- Buscador -->
-  <div class="flex-1 max-w-xl">
+  <!-- Contenedor Izquierdo: Botón Hamburguesa 3 Rayitas + Buscador -->
+  <div class="flex items-center gap-3 flex-1 max-w-xl">
+    <!-- Botón 3 Rayitas para Plegar / Desplegar Menú Lateral -->
+    <button (click)="layoutService.toggleSidebar()"
+            [title]="layoutService.isSidebarCollapsed() ? 'Desplegar barra lateral' : 'Plegar barra lateral'"
+            class="w-10 h-10 rounded-xl bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300 shrink-0">
+      <i class="pi pi-bars text-lg"></i>
+    </button>
+
+    <!-- Buscador -->
     <div class="relative w-full">
       <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
       <input type="text" 
@@ -65,9 +73,9 @@
     
     <!-- Cumpleaños -->
     <button (click)="cumpleOverlay.toggle($event)" class="relative w-10 h-10 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300">
-      <i class="pi pi-gift text-lg" [ngClass]="totalCumpleanos > 0 ? 'text-pink-500 dark:text-pink-400' : ''"></i>
+      <i class="pi pi-gift text-lg" [ngClass]="totalCumpleanos > 0 ? 'text-[#bca028] dark:text-[#d9bd72]' : ''"></i>
       @if (totalCumpleanos > 0) {
-        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-pink-500 rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
+        <span class="absolute top-2 right-2 w-2.5 h-2.5 bg-[#bca028] rounded-full border-2 border-white dark:border-[#1e1e1e]"></span>
       }
     </button>
     <p-overlayPanel #cumpleOverlay styleClass="w-80 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800 p-0 overflow-hidden">
@@ -75,21 +83,21 @@
         <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-3 mb-2 px-1">
           <span class="font-bold text-gray-800 dark:text-gray-100">Cumpleaños del Mes</span>
           @if (totalCumpleanos > 0) {
-            <span class="text-[10px] bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ totalCumpleanos }} este mes</span>
+            <span class="text-[10px] bg-amber-100 dark:bg-amber-900/30 text-[#bca028] dark:text-[#d9bd72] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{{ totalCumpleanos }} este mes</span>
           }
         </div>
         
         @if (totalCumpleanos > 0) {
           <div class="flex flex-col max-h-[300px] overflow-y-auto -mx-3 px-3">
             @for (emp of cumpleanerosEmpleados(); track emp.id) {
-              <div class="flex gap-3 p-2 hover:bg-pink-50 dark:hover:bg-[#2a1e25] rounded-lg transition-colors border-b border-gray-50 dark:border-gray-800/50 last:border-0">
-                <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-500 shrink-0 mt-0.5">
+              <div class="flex gap-3 p-2 hover:bg-amber-50 dark:hover:bg-[#2b2306] rounded-lg transition-colors border-b border-gray-50 dark:border-gray-800/50 last:border-0">
+                <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-[#bca028] shrink-0 mt-0.5">
                   <i class="pi pi-user text-sm"></i>
                 </div>
                 <div class="flex flex-col">
                   <span class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{{ emp.nombres }} {{ emp.apellidos }}</span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Cumpleaños: <span class="text-pink-500 font-bold">{{ emp.fechaNacimiento | date:'dd/MM' }}</span>
+                    Cumpleaños: <span class="text-[#bca028] font-bold">{{ emp.fechaNacimiento | date:'dd/MM' }}</span>
                   </span>
                 </div>
               </div>
@@ -179,7 +187,7 @@
       <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100">{{ getDisplayName() }}</h3>
       <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ currentUser().email }}</p>
       <div class="mt-3 inline-block px-3 py-1 bg-[#f4f7fa] dark:bg-[#2d2d2d] rounded-full border border-gray-200 dark:border-gray-700">
-        <span class="text-xs font-semibold text-[#bca028] dark:text-[#cc97a6] uppercase tracking-wider">Rol: {{ currentUser().roles ? currentUser().roles[0] : 'Ninguno' }}</span>
+        <span class="text-xs font-semibold text-[#bca028] dark:text-[#d9bd72] uppercase tracking-wider">Rol: {{ currentUser().roles ? currentUser().roles[0] : 'Ninguno' }}</span>
       </div>
     </div>
 

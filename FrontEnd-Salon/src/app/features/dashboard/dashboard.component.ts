@@ -71,9 +71,15 @@ export class DashboardComponent implements OnInit {
     });
 
     // Estado de Caja (Resumen)
-    this.cajaService.obtenerResumenActual().subscribe((resumen: any) => {
-      if (resumen) {
-        this.cajaAbierta.set(resumen);
+    this.cajaService.obtenerResumenActual().subscribe({
+      next: (resumen: any) => {
+        if (resumen) {
+          this.cajaAbierta.set(resumen);
+        }
+      },
+      error: () => {
+        // Si no hay caja abierta (404), se muestra el estado "Caja Cerrada"
+        this.cajaAbierta.set(null);
       }
     });
   }

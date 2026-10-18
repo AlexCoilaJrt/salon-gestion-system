@@ -1,0 +1,75 @@
+services:
+  # ==============================================================
+  # 1. BASE DE DATOS (PostgreSQL 16)
+  # ==============================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: salon_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-salon_gestion_db}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - salon_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-salon_gestion_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - salon-net
+
+  # ==============================================================
+  # 2. BACKEND (Spring Boot + Java 21)
+  # ==============================================================
+  backend:
+    container_name: salon_backend
+    image: alexcoila/salon-backend:latest
+    build:
+      context: ./Backend-Salon/salon-gestion-api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-salon_gestion_db}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - salon-net
+
+  # ==============================================================
+  # 3. FRONTEND (Angular 19 + Nginx)
+  # ==============================================================
+  frontend:
+    container_name: salon_frontend
+    image: alexcoila/salon-frontend:latest
+    build:
+      context: ./FrontEnd-Salon
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"           # Acceso directo: http://localhost
+      - "${FRONTEND_ALT_PORT:-4200}:80"     # Acceso alternativo: http://localhost:4200
+    depends_on:
+      - backend
+    networks:
+      - salon-net
+
+# ==============================================================
+# VOLÚMENES PERSISTENTES (Los datos no se pierden al apagar la PC)
+# ==============================================================
+volumes:
+  salon_postgres_data:
+    name: salon_postgres_data
+
+networks:
+  salon-net:
+    driver: bridge

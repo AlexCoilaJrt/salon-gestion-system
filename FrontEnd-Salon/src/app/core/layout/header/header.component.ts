@@ -16,6 +16,8 @@ import { CatalogoService, Producto } from '../../../features/catalogo/services/c
 import { AgendaService, ClienteResponse } from '../../../features/operaciones/pages/agenda/agenda.service';
 import { RrhhService, Empleado } from '../../../features/rrhh/services/rrhh.service';
 
+import { LayoutService } from '../../services/layout.service';
+
 @Component({
   selector: 'app-header',
   standalone: true,
@@ -23,6 +25,7 @@ import { RrhhService, Empleado } from '../../../features/rrhh/services/rrhh.serv
   templateUrl: './header.component.html'
 })
 export class HeaderComponent implements OnInit {
+  public layoutService = inject(LayoutService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);

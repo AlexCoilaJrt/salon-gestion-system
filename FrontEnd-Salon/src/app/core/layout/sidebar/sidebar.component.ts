@@ -1,39 +1,39 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { TooltipModule } from 'primeng/tooltip';
 import { EmpresaService, EmpresaResponse } from '../../services/empresa.service';
-
 import { AuthService } from '../../auth/services/auth.service';
-
-interface MenuCategory {
-  title: string;
-  items: MenuItem[];
-  expanded?: boolean;
-}
+import { LayoutService } from '../../services/layout.service';
 
 interface MenuItem {
   label: string;
+  shortLabel?: string;
   icon: string;
   route: string;
   active?: boolean;
   requiredPermissions?: string[];
 }
 
-import { RouterModule } from '@angular/router';
+interface MenuCategory {
+  title: string;
+  shortTitle: string;
+  items: MenuItem[];
+  expanded?: boolean;
+}
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TooltipModule],
   templateUrl: './sidebar.component.html'
 })
 export class SidebarComponent implements OnInit {
-  
+  public layoutService = inject(LayoutService);
   private empresaService = inject(EmpresaService);
   private authService = inject(AuthService);
   
-  // Usamos signals o variables para los datos dinámicos
   empresaData = signal<EmpresaResponse | null>(null);
-
   filteredMenuCategories = signal<MenuCategory[]>([]);
 
   ngOnInit() {
@@ -50,60 +50,66 @@ export class SidebarComponent implements OnInit {
     this.calculateFilteredMenu();
   }
 
-  // Menú dinámico basado en Permisos
+  // Menú dinámico basado en Permisos con títulos cortos para modo compacto
   menuCategories: MenuCategory[] = [
     {
       title: 'INICIO',
+      shortTitle: 'INI',
       items: [
-        { label: 'Dashboard', icon: 'pi pi-home', route: '/dashboard' }
+        { label: 'Dashboard', shortLabel: 'Inicio', icon: 'pi pi-home', route: '/dashboard' }
       ]
     },
     {
       title: 'OPERACIONES',
+      shortTitle: 'OPS',
       items: [
-        { label: 'Agenda y Citas', icon: 'pi pi-calendar', route: '/agenda', requiredPermissions: ['VER_AGENDA_Y_CITAS'] },
-        { label: 'Generar Cartilla', icon: 'pi pi-file-edit', route: '/generar-orden', requiredPermissions: ['VER_PUNTO_DE_VENTA_POS'] }
+        { label: 'Agenda y Citas', shortLabel: 'Agenda', icon: 'pi pi-calendar', route: '/agenda', requiredPermissions: ['VER_AGENDA_Y_CITAS'] },
+        { label: 'Generar Cartilla', shortLabel: 'Cartilla', icon: 'pi pi-file-edit', route: '/generar-orden', requiredPermissions: ['VER_PUNTO_DE_VENTA_POS'] }
       ]
     },
     {
       title: 'RRHH',
+      shortTitle: 'RRHH',
       items: [
-        { label: 'Control de Asistencia', icon: 'pi pi-clock', route: '/asistencia', requiredPermissions: ['VER_CONTROL_DE_ASISTENCIA'] },
-        { label: 'Gestión de Empleados', icon: 'pi pi-id-card', route: '/empleados', active: true, requiredPermissions: ['VER_GESTION_DE_EMPLEADOS'] },
-        { label: 'Especialidades', icon: 'pi pi-star', route: '/especialidades', requiredPermissions: ['VER_ESPECIALIDADES'] },
-        { label: 'Turnos', icon: 'pi pi-sun', route: '/turnos', requiredPermissions: ['VER_TURNOS'] },
-        { label: 'Comisiones', icon: 'pi pi-money-bill', route: '/comisiones', requiredPermissions: ['VER_COMISIONES'] },
-        { label: 'Campañas e Incentivos', icon: 'pi pi-sparkles', route: '/incentivos', requiredPermissions: ['VER_CAMPANAS_E_INCENTIVOS'] },
-        { label: 'Monitor de Comisiones', icon: 'pi pi-chart-line', route: '/monitor-comisiones', requiredPermissions: ['VER_MONITOR_DE_COMISIONES'] }
+        { label: 'Control de Asistencia', shortLabel: 'Asistencia', icon: 'pi pi-clock', route: '/asistencia', requiredPermissions: ['VER_CONTROL_DE_ASISTENCIA'] },
+        { label: 'Gestión de Empleados', shortLabel: 'Empleados', icon: 'pi pi-id-card', route: '/empleados', active: true, requiredPermissions: ['VER_GESTION_DE_EMPLEADOS'] },
+        { label: 'Especialidades', shortLabel: 'Especialid.', icon: 'pi pi-star', route: '/especialidades', requiredPermissions: ['VER_ESPECIALIDADES'] },
+        { label: 'Turnos', shortLabel: 'Turnos', icon: 'pi pi-sun', route: '/turnos', requiredPermissions: ['VER_TURNOS'] },
+        { label: 'Comisiones', shortLabel: 'Comisiones', icon: 'pi pi-money-bill', route: '/comisiones', requiredPermissions: ['VER_COMISIONES'] },
+        { label: 'Campañas e Incentivos', shortLabel: 'Incentivos', icon: 'pi pi-sparkles', route: '/incentivos', requiredPermissions: ['VER_CAMPANAS_E_INCENTIVOS'] },
+        { label: 'Monitor de Comisiones', shortLabel: 'Monitor', icon: 'pi pi-chart-line', route: '/monitor-comisiones', requiredPermissions: ['VER_MONITOR_DE_COMISIONES'] }
       ]
     },
     {
       title: 'CATÁLOGO',
+      shortTitle: 'CAT',
       items: [
-        { label: 'Categorías', icon: 'pi pi-tags', route: '/categorias', requiredPermissions: ['VER_CATEGORIAS'] },
-        { label: 'Servicios', icon: 'pi pi-briefcase', route: '/servicios', requiredPermissions: ['VER_SERVICIOS'] },
-        { label: 'Fidelización y Promos', icon: 'pi pi-id-card', route: '/fidelizacion/cartillas', requiredPermissions: ['VER_SERVICIOS'] },
-        { label: 'Insumos (Uso Interno)', icon: 'pi pi-box', route: '/insumos', requiredPermissions: ['VER_PRODUCTOS'] },
-        { label: 'Productos Retail', icon: 'pi pi-shopping-bag', route: '/productos', requiredPermissions: ['VER_PRODUCTOS'] },
-        { label: 'Control de Inventario', icon: 'pi pi-list', route: '/inventario', requiredPermissions: ['VER_CONTROL_DE_INVENTARIO'] }
+        { label: 'Categorías', shortLabel: 'Categorías', icon: 'pi pi-tags', route: '/categorias', requiredPermissions: ['VER_CATEGORIAS'] },
+        { label: 'Servicios', shortLabel: 'Servicios', icon: 'pi pi-briefcase', route: '/servicios', requiredPermissions: ['VER_SERVICIOS'] },
+        { label: 'Fidelización y Promos', shortLabel: 'Fideliz.', icon: 'pi pi-id-card', route: '/fidelizacion/cartillas', requiredPermissions: ['VER_SERVICIOS'] },
+        { label: 'Insumos (Uso Interno)', shortLabel: 'Insumos', icon: 'pi pi-box', route: '/insumos', requiredPermissions: ['VER_PRODUCTOS'] },
+        { label: 'Productos Retail', shortLabel: 'Productos', icon: 'pi pi-shopping-bag', route: '/productos', requiredPermissions: ['VER_PRODUCTOS'] },
+        { label: 'Control de Inventario', shortLabel: 'Inventario', icon: 'pi pi-list', route: '/inventario', requiredPermissions: ['VER_CONTROL_DE_INVENTARIO'] }
       ]
     },
     {
       title: 'FINANZAS',
+      shortTitle: 'FIN',
       items: [
-        { label: 'Caja', icon: 'pi pi-wallet', route: '/caja', requiredPermissions: ['VER_CAJA'] },
-        { label: 'Facturación', icon: 'pi pi-file', route: '/facturacion', requiredPermissions: ['VER_FACTURACION'] },
-        { label: 'Egresos', icon: 'pi pi-chart-line', route: '/egresos', requiredPermissions: ['VER_EGRESOS'] },
-        { label: 'Liquidaciones', icon: 'pi pi-money-bill', route: '/liquidaciones', requiredPermissions: ['VER_LIQUIDACIONES'] }
+        { label: 'Caja', shortLabel: 'Caja', icon: 'pi pi-wallet', route: '/caja', requiredPermissions: ['VER_CAJA'] },
+        { label: 'Facturación', shortLabel: 'Facturas', icon: 'pi pi-file', route: '/facturacion', requiredPermissions: ['VER_FACTURACION'] },
+        { label: 'Egresos', shortLabel: 'Egresos', icon: 'pi pi-chart-line', route: '/egresos', requiredPermissions: ['VER_EGRESOS'] },
+        { label: 'Liquidaciones', shortLabel: 'Liquidac.', icon: 'pi pi-money-bill', route: '/liquidaciones', requiredPermissions: ['VER_LIQUIDACIONES'] }
       ]
     },
     {
       title: 'ANALÍTICA & SEGURIDAD',
+      shortTitle: 'SEG',
       items: [
-        { label: 'Reportes de Rendimiento', icon: 'pi pi-chart-bar', route: '/reportes', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
-        { label: 'Reporte de Ventas', icon: 'pi pi-list', route: '/reportes-ventas', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
-        { label: 'Usuarios', icon: 'pi pi-users', route: '/usuarios', requiredPermissions: ['VER_USUARIOS'] },
-        { label: 'Roles y Permisos', icon: 'pi pi-shield', route: '/roles', requiredPermissions: ['VER_ROLES_Y_PERMISOS'] }
+        { label: 'Reportes de Rendimiento', shortLabel: 'Rendim.', icon: 'pi pi-chart-bar', route: '/reportes', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
+        { label: 'Reporte de Ventas', shortLabel: 'Ventas', icon: 'pi pi-list', route: '/reportes-ventas', requiredPermissions: ['VER_REPORTES_DE_RENDIMIENTO'] },
+        { label: 'Usuarios', shortLabel: 'Usuarios', icon: 'pi pi-users', route: '/usuarios', requiredPermissions: ['VER_USUARIOS'] },
+        { label: 'Roles y Permisos', shortLabel: 'Roles', icon: 'pi pi-shield', route: '/roles', requiredPermissions: ['VER_ROLES_Y_PERMISOS'] }
       ]
     }
   ];
@@ -113,23 +119,20 @@ export class SidebarComponent implements OnInit {
     const userRoles = user?.roles || [];
     const userPermissions = user?.permissions || [];
     
-    // Si es ADMIN, por defecto puede ver todo (Bypass de seguridad)
     const isAdmin = userRoles.includes('ADMIN');
 
     const filtered = this.menuCategories.map(category => {
-      // Filtrar items permitidos
       const allowedItems = category.items.filter(item => {
         if (!item.requiredPermissions || item.requiredPermissions.length === 0) return true;
         if (isAdmin) return true;
         return item.requiredPermissions.some(perm => userPermissions.includes(perm));
       });
 
-      // Validar si algún item está activo en la ruta actual
       const isAnyItemActive = allowedItems.some(item => window.location.pathname.includes(item.route));
 
       return {
         ...category,
-        expanded: isAnyItemActive, // Abierto SOLO si estoy en esa sección
+        expanded: isAnyItemActive,
         items: allowedItems
       };
     }).filter(category => category.items.length > 0);
