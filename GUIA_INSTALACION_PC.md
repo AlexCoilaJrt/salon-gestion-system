@@ -76,7 +76,8 @@ En la carpeta principal encontrarás varios accesos directos por comodidad:
 
 | Archivo | ¿Para qué sirve? |
 | :--- | :--- |
-| `iniciar.bat` | Enciende la base de datos, backend y frontend, y abre el sistema en el navegador. |
+| `iniciar.bat` | Enciende la base de datos, backend y frontend, y abre el sistema en el navegador (descarga de Docker Hub automáticamente la 1ra vez). |
+| `actualizar.bat` | Descarga las últimas actualizaciones de Docker Hub y reinicia los contenedores en 15 segundos sin tocar los datos de la BD. |
 | `detener.bat` | Apaga los contenedores de forma segura (los datos de las citas y ventas **no se borran**). |
 | `ver_logs.bat` | Abre una consola para ver qué está pasando dentro del sistema en tiempo real. |
 | `respaldar_bd.bat` | Genera una copia de seguridad (`.sql`) de toda la base de datos dentro de la carpeta `backups/`. |
