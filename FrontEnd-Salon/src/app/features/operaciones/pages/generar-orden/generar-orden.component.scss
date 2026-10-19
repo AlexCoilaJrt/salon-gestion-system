@@ -738,6 +738,210 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   }
 }
 
+// ── Ajuste de Unidades y Precios en Servicios Seleccionados ──────────
+.selected-services-box {
+  background: $surface-low;
+  border: 1px solid $outline;
+  border-radius: 10px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selected-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px dashed $outline;
+}
+
+.selected-header-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: $primary;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+}
+
+.selected-header-count {
+  font-size: 0.7rem;
+  color: $on-surface-var;
+  font-weight: 600;
+}
+
+.selected-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.selected-item-card {
+  background: $surface-card;
+  border: 1px solid $outline;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  transition: all 0.2s ease;
+
+  &.is-customized {
+    border-color: $primary-light;
+    box-shadow: 0 2px 6px rgba(188, 160, 40, 0.12);
+  }
+}
+
+.selected-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.selected-item-title-wrap {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.selected-item-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: $on-surface;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.selected-item-calc {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: $primary;
+}
+
+.btn-toggle-adjust {
+  background: transparent;
+  border: 1px solid $outline;
+  color: $on-surface-var;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: $primary-xlight;
+    border-color: $primary-light;
+    color: $primary;
+  }
+
+  &.active {
+    background: #ecfdf5;
+    border-color: #10b981;
+    color: #047857;
+    font-weight: 700;
+  }
+}
+
+.custom-adjust-body {
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+:host-context(.app-dark) .custom-adjust-body {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.adjust-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.adjust-lbl {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: $on-surface-var;
+}
+
+.qty-control-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid $outline;
+  border-radius: 6px;
+  background: $surface-low;
+  overflow: hidden;
+  height: 26px;
+
+  .qty-btn {
+    background: transparent;
+    border: none;
+    padding: 0 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: $on-surface;
+    cursor: pointer;
+    line-height: 1;
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
+      background: $primary-xlight;
+      color: $primary;
+    }
+  }
+
+  .qty-num {
+    padding: 0 0.4rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: $on-surface;
+    min-width: 18px;
+    text-align: center;
+  }
+}
+
+.price-input-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid $outline;
+  border-radius: 6px;
+  background: $surface-low;
+  height: 26px;
+  padding: 0 0.35rem;
+
+  .price-symbol {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: $on-surface-var;
+    margin-right: 0.2rem;
+  }
+
+  .price-raw-input {
+    width: 65px;
+    background: transparent;
+    border: none;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: $on-surface;
+    outline: none;
+  }
+}
+
 // ══════════════════════════════════════════════════════════════
 // MEDIA PRINT – Imprime SÓLO la cartilla (idéntica al preview)
 // ══════════════════════════════════════════════════════════════

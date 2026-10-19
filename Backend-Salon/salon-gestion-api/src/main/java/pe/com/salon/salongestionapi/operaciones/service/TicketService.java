@@ -85,7 +85,9 @@ public class TicketService {
                 Servicio servicio = servicioRepository.findById(detReq.getServicioId())
                         .orElseThrow(() -> new ResourceNotFoundException("Servicio no encontrado con id: " + detReq.getServicioId()));
                 detalle.setServicio(servicio);
-                precioUnitario = servicio.getPrecioBase();
+                precioUnitario = (detReq.getPrecioUnitario() != null && detReq.getPrecioUnitario().compareTo(BigDecimal.ZERO) >= 0)
+                        ? detReq.getPrecioUnitario()
+                        : servicio.getPrecioBase();
             } else if (detReq.getProductoId() != null) {
                 Producto producto = productoRepository.findById(detReq.getProductoId())
                         .orElseThrow(() -> new ResourceNotFoundException("Producto no encontrado con id: " + detReq.getProductoId()));
@@ -165,7 +167,9 @@ public class TicketService {
                 }
 
                 detalle.setServicio(servicio);
-                precioUnitario = servicio.getPrecioBase();
+                precioUnitario = (detReq.getPrecioUnitario() != null && detReq.getPrecioUnitario().compareTo(BigDecimal.ZERO) >= 0)
+                        ? detReq.getPrecioUnitario()
+                        : servicio.getPrecioBase();
 
             // Es un producto
             } else if (detReq.getProductoId() != null) {

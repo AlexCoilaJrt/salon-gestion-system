@@ -46,6 +46,63 @@
       </p-multiSelect>
     </div>
 
+    <!-- Servicios Seleccionados y Ajuste de Unidades / Precios -->
+    <div class="selected-services-box" *ngIf="seleccionados().length > 0">
+      <div class="selected-header">
+        <span class="selected-header-title">
+          <i class="pi pi-sliders-h mr-1 text-[#bca028]"></i> Ajuste de Servicios
+        </span>
+        <span class="selected-header-count">({{ seleccionados().length }})</span>
+      </div>
+
+      <div class="selected-items-list">
+        <div *ngFor="let item of seleccionados()" class="selected-item-card" [class.is-customized]="item.personalizado">
+          <div class="selected-item-top">
+            <div class="selected-item-title-wrap">
+              <span class="selected-item-name">{{ item.nombre }}</span>
+              <span class="selected-item-calc">
+                S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}
+                <small *ngIf="item.cantidad > 1" class="text-xs opacity-75">({{ item.cantidad }} x S/ {{ item.precio | number:'1.2-2' }})</small>
+              </span>
+            </div>
+            <button type="button" 
+                    class="btn-toggle-adjust" 
+                    [class.active]="item.personalizado"
+                    (click)="togglePersonalizar(item)"
+                    [title]="item.personalizado ? 'Restablecer valores originales' : 'Ajustar cantidad o precio'">
+              <i [class]="item.personalizado ? 'pi pi-check' : 'pi pi-pencil'"></i>
+              <span>{{ item.personalizado ? 'Ajustado' : 'Ajustar' }}</span>
+            </button>
+          </div>
+
+          <!-- Panel de Ajuste desplegable -->
+          <div class="custom-adjust-body" *ngIf="item.personalizado">
+            <div class="adjust-field">
+              <label class="adjust-lbl">Cantidad:</label>
+              <div class="qty-control-box">
+                <button type="button" class="qty-btn" (click)="decrementarCantidad(item)" [disabled]="item.cantidad <= 1">−</button>
+                <span class="qty-num">{{ item.cantidad }}</span>
+                <button type="button" class="qty-btn" (click)="incrementarCantidad(item)">+</button>
+              </div>
+            </div>
+
+            <div class="adjust-field">
+              <label class="adjust-lbl">P. Unitario:</label>
+              <div class="price-input-box">
+                <span class="price-symbol">S/</span>
+                <input type="number" 
+                       class="price-raw-input" 
+                       [ngModel]="item.precio" 
+                       (ngModelChange)="actualizarPrecio(item, $event)"
+                       min="0" 
+                       step="1" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Cliente -->
     <div class="config-field">
       <label class="config-label">Cliente</label>
@@ -258,8 +315,11 @@
                 <span *ngIf="item.seleccionado">{{ i + 1 }}</span>
                 <span *ngIf="!item.seleccionado" class="row-cross">✕</span>
               </td>
-              <td [class.p-row-strikethrough]="!item.seleccionado">{{ item.nombre }}</td>
-              <td class="tc" *ngIf="mostrarPrecios()">S/ {{ item.precio | number:'1.2-2' }}</td>
+              <td [class.p-row-strikethrough]="!item.seleccionado">
+                {{ item.nombre }}
+                <span *ngIf="item.seleccionado && item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
+              </td>
+              <td class="tc" *ngIf="mostrarPrecios()">S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}</td>
               <td class="tc" *ngIf="!mostrarPrecios()"></td>
               <td class="firma-col"></td>
             </tr>
@@ -294,8 +354,11 @@
                     <span *ngIf="item.seleccionado">{{ i + 1 }}</span>
                     <span *ngIf="!item.seleccionado" class="row-cross">✕</span>
                   </td>
-                  <td [class.p-row-strikethrough]="!item.seleccionado">{{ item.nombre }}</td>
-                  <td class="tc" *ngIf="mostrarPrecios()">S/ {{ item.precio | number:'1.2-2' }}</td>
+                  <td [class.p-row-strikethrough]="!item.seleccionado">
+                    {{ item.nombre }}
+                    <span *ngIf="item.seleccionado && item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
+                  </td>
+                  <td class="tc" *ngIf="mostrarPrecios()">S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}</td>
                   <td class="tc" *ngIf="!mostrarPrecios()"></td>
                   <td class="firma-col"></td>
                 </tr>

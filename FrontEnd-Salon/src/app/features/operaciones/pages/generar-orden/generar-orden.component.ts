@@ -20,8 +20,10 @@ export interface CartillaItem {
   servicioId: number;
   nombre: string;
   precio: number;
+  precioOriginal?: number;
   seleccionado: boolean;
   cantidad: number;
+  personalizado?: boolean;
 }
 
 export interface SubCategoria {
@@ -173,7 +175,15 @@ export class GenerarOrdenComponent implements OnInit {
   }
 
   private toItem(s: Servicio): CartillaItem {
-    return { servicioId: s.id!, nombre: s.nombre, precio: s.precioBase, seleccionado: false, cantidad: 1 };
+    return {
+      servicioId: s.id!,
+      nombre: s.nombre,
+      precio: s.precioBase,
+      precioOriginal: s.precioBase,
+      seleccionado: false,
+      cantidad: 1,
+      personalizado: false
+    };
   }
 
   toggleItem(item: CartillaItem): void {
@@ -189,7 +199,12 @@ export class GenerarOrdenComponent implements OnInit {
     
     // Reset all items to false
     const all = c.tieneSubCategorias ? c.subCategorias.flatMap(s => s.items) : c.items;
-    all.forEach(i => i.seleccionado = false);
+    all.forEach(i => {
+      i.seleccionado = false;
+      i.cantidad = 1;
+      i.personalizado = false;
+      if (i.precioOriginal !== undefined) i.precio = i.precioOriginal;
+    });
   }
 
   onServiciosChange(selected: CartillaItem[]): void {
@@ -198,10 +213,42 @@ export class GenerarOrdenComponent implements OnInit {
     if (selected) {
       selected.forEach(item => {
         const match = all.find(x => x.servicioId === item.servicioId);
-        if (match) match.seleccionado = true;
+        if (match) {
+          match.seleccionado = true;
+          if (!match.cantidad) match.cantidad = 1;
+          if (match.precioOriginal === undefined) match.precioOriginal = match.precio;
+        }
       });
     }
     this.seleccionados.set(selected || []);
+  }
+
+  togglePersonalizar(item: CartillaItem): void {
+    item.personalizado = !item.personalizado;
+    if (!item.personalizado) {
+      item.cantidad = 1;
+      if (item.precioOriginal !== undefined) {
+        item.precio = item.precioOriginal;
+      }
+    }
+    this.seleccionados.set([...this.seleccionados()]);
+  }
+
+  incrementarCantidad(item: CartillaItem): void {
+    item.cantidad = (item.cantidad || 1) + 1;
+    this.seleccionados.set([...this.seleccionados()]);
+  }
+
+  decrementarCantidad(item: CartillaItem): void {
+    if ((item.cantidad || 1) > 1) {
+      item.cantidad = item.cantidad - 1;
+      this.seleccionados.set([...this.seleccionados()]);
+    }
+  }
+
+  actualizarPrecio(item: CartillaItem, nuevoPrecio: number): void {
+    item.precio = nuevoPrecio !== null && nuevoPrecio !== undefined ? nuevoPrecio : 0;
+    this.seleccionados.set([...this.seleccionados()]);
   }
 
   // --- Imprimir cartilla individual en ventana nueva ---
@@ -215,14 +262,16 @@ export class GenerarOrdenComponent implements OnInit {
     const filasExtra = this.incluirFilasExtra() ? this.numFilasExtra() : 0;
 
     const buildRows = (items: CartillaItem[]) =>
-      items.map((item, i) =>
-        `<tr>
+      items.map((item, i) => {
+        const qtyLabel = item.cantidad > 1 ? ` <span style="font-weight:700; color:#555">(x${item.cantidad})</span>` : '';
+        const priceVal = mostrarP ? 'S/ ' + (item.precio * item.cantidad).toFixed(2) : '';
+        return `<tr>
           <td class="tc">${i + 1}</td>
-          <td>${item.nombre}</td>
-          <td class="tc">${mostrarP ? 'S/ ' + item.precio.toFixed(2) : ''}</td>
+          <td>${item.nombre}${qtyLabel}</td>
+          <td class="tc">${priceVal}</td>
           <td class="firma-col"></td>
-        </tr>`
-      ).join('') +
+        </tr>`;
+      }).join('') +
       Array.from({ length: Math.max(0, filasExtra) }).map(() =>
         `<tr><td class="tc"></td><td class="italic text-gray">Adicional...</td><td class="tc"></td><td class="firma-col"></td></tr>`
       ).join('');
@@ -420,7 +469,11 @@ ${cartilla.tieneSubCategorias ? buildSubTables() :
     const request = {
       clienteId: this.selectedCliente()?.id ?? null,
       nombreClienteNoRegistrado: this.selectedCliente() ? null : (this.nombreClienteManual() || 'Público General'),
-      detalles: sel.map(s => ({ servicioId: s.servicioId, cantidad: s.cantidad }))
+      detalles: sel.map(s => ({
+        servicioId: s.servicioId,
+        cantidad: s.cantidad || 1,
+        precioUnitario: s.precio
+      }))
     };
     this.ticketService.generarOrden(request).subscribe({
       next: res => {
