@@ -50,7 +50,22 @@ public class NominaService {
         for (TicketDetalle venta : ventasEmpleado) {
             totalVentas = totalVentas.add(venta.getSubtotal());
             
-            BigDecimal comisionVenta = motorComisionService.calcularComision(especialidadId, venta.getSubtotal());
+            Long espId = especialidadId;
+            if (venta.getServicio() != null && venta.getServicio().getEspecialidadRequerida() != null) {
+                espId = venta.getServicio().getEspecialidadRequerida().getId();
+            }
+
+            java.time.LocalDate fechaVenta = (venta.getTicket() != null && venta.getTicket().getFechaEmision() != null)
+                    ? venta.getTicket().getFechaEmision().toLocalDate()
+                    : (request.getFechaFin() != null ? request.getFechaFin() : java.time.LocalDate.now());
+
+            BigDecimal comisionVenta = motorComisionService.calcularComision(
+                    venta.getServicio(),
+                    empleado.getId(),
+                    espId,
+                    venta.getSubtotal(),
+                    fechaVenta
+            );
             totalComisiones = totalComisiones.add(comisionVenta);
         }
 

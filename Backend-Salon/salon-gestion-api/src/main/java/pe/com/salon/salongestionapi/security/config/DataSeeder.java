@@ -181,6 +181,14 @@ public class DataSeeder implements CommandLineRunner {
             }
         });
 
+        // Asegurar que servicios existentes sin comisión definida queden explícitamente en 0.00
+        servicioRepository.findAll().forEach(s -> {
+            if (s.getComisionPorcentaje() == null) {
+                s.setComisionPorcentaje(BigDecimal.ZERO);
+                servicioRepository.save(s);
+            }
+        });
+
         log.info("Data Seeder finalizado correctamente.");
     }
 
@@ -292,6 +300,7 @@ public class DataSeeder implements CommandLineRunner {
             servicio.setDuracionMinutos(duracion);
             servicio.setCategoria(categoria);
             servicio.setEspecialidadRequerida(especialidad);
+            servicio.setComisionPorcentaje(BigDecimal.ZERO);
             servicio.setEstado(true);
             servicioRepository.save(servicio);
         }

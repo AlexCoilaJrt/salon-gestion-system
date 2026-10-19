@@ -139,6 +139,7 @@ export class ServiciosComponent implements OnInit {
   editServicio(serv: Servicio) {
     this.servicio = { 
       ...serv,
+      comisionPorcentaje: (serv.comisionPorcentaje !== undefined && serv.comisionPorcentaje !== null) ? serv.comisionPorcentaje : 0,
       insumosIds: serv.insumos?.map(i => i.id!) || []
     };
     this.isEdit = true;
@@ -187,6 +188,7 @@ export class ServiciosComponent implements OnInit {
   saveServicio() {
     this.submitted = true;
     this.servicio.categoriaId = (this.categoriaSeleccionada && this.categoriaSeleccionada.data) ? this.categoriaSeleccionada.data.id : 0;
+    this.servicio.comisionPorcentaje = (this.servicio.comisionPorcentaje !== undefined && this.servicio.comisionPorcentaje !== null) ? this.servicio.comisionPorcentaje : 0;
     
     if (this.servicio.nombre.trim() && this.servicio.precioBase >= 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
       if (this.isEdit && this.servicio.id) {

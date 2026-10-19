@@ -45,7 +45,7 @@ public class ServicioService {
         servicio.setDescripcion(request.getDescripcion());
         servicio.setPrecioBase(request.getPrecioBase());
         servicio.setDuracionMinutos(request.getDuracionMinutos());
-        servicio.setComisionPorcentaje(request.getComisionPorcentaje());
+        servicio.setComisionPorcentaje(request.getComisionPorcentaje() != null ? request.getComisionPorcentaje() : java.math.BigDecimal.ZERO);
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
         servicio.setImageUrl(request.getImageUrl());
         servicio.setEstado(true);
@@ -75,7 +75,7 @@ public class ServicioService {
         servicio.setDescripcion(request.getDescripcion());
         servicio.setPrecioBase(request.getPrecioBase());
         servicio.setDuracionMinutos(request.getDuracionMinutos());
-        servicio.setComisionPorcentaje(request.getComisionPorcentaje());
+        servicio.setComisionPorcentaje(request.getComisionPorcentaje() != null ? request.getComisionPorcentaje() : java.math.BigDecimal.ZERO);
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
         if (request.getImageUrl() != null) {
             servicio.setImageUrl(request.getImageUrl());

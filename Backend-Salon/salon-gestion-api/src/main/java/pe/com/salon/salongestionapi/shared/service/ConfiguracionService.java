@@ -28,7 +28,7 @@ public class ConfiguracionService {
      */
     @PostConstruct
     public void inicializarDefaults() {
-        insertar(COMISION_DEFAULT_SERVICIOS, "40.00",
+        actualizarOInsertarDefault(COMISION_DEFAULT_SERVICIOS, "0.00",
                 "Porcentaje de comisión por defecto para servicios (cuando no hay regla específica)");
         insertar(COMISION_DEFAULT_PRODUCTOS, "10.00",
                 "Porcentaje de comisión por defecto para venta de productos");
@@ -38,6 +38,18 @@ public class ConfiguracionService {
                 "Activa o desactiva el bono de fin de semana para especialistas que asistieron ese día (true/false)");
         insertar(PUNTOS_POR_SOL, "1",
                 "Puntos de fidelización que se otorgan por cada S/ 1.00 gastado por el cliente");
+    }
+
+    private void actualizarOInsertarDefault(String clave, String valorDefault, String descripcion) {
+        configuracionRepository.findById(clave).ifPresentOrElse(config -> {
+            if ("40.00".equals(config.getValor()) || "40".equals(config.getValor())) {
+                config.setValor(valorDefault);
+                config.setDescripcion(descripcion);
+                configuracionRepository.save(config);
+            }
+        }, () -> {
+            configuracionRepository.save(new ConfiguracionSistema(clave, valorDefault, descripcion));
+        });
     }
 
     private void insertar(String clave, String valorDefault, String descripcion) {

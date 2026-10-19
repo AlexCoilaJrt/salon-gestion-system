@@ -35,10 +35,9 @@ public class Servicio {
     @Column(name = "duracion_minutos", nullable = false)
     private Integer duracionMinutos;
 
-    // GAP 3: Comisión propia del servicio (override sobre la de Especialidad)
-    // Null = usar la regla de la especialidad o el default
+    // GAP 3: Comisión propia del servicio (override directo). Por defecto 0% (no comisiona)
     @Column(name = "comision_porcentaje", precision = 5, scale = 2)
-    private BigDecimal comisionPorcentaje;
+    private BigDecimal comisionPorcentaje = BigDecimal.ZERO;
 
     // GAP 5: Costo del material utilizado en el servicio
     // Se descuenta antes de calcular la comisión: base = precioBase - costoMaterial

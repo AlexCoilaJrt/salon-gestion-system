@@ -214,16 +214,16 @@ public class IncentivoServiceImpl implements IncentivoService {
                     LocalDate.now()
                 );
                 
-                // El Motor de Comisiones YA procesó el Porcentaje de la especialidad o servicio.
-                // SOLO sumamos incentivos extras o globales aplicados sobre el total (ej: Bono Navideño Global).
                 BigDecimal porcentajeExtra = totalPorc.subtract(basePorc); 
                 BigDecimal gananciaFinalLinea = comisionVenta;
-                if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
-                    gananciaFinalLinea = gananciaFinalLinea.add(
-                        detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
-                    );
-                }
-                gananciaFinalLinea = gananciaFinalLinea.add(totalMonto.subtract(baseMonto)); 
+                if (comisionVenta.compareTo(BigDecimal.ZERO) > 0) {
+                    if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
+                        gananciaFinalLinea = gananciaFinalLinea.add(
+                            detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
+                        );
+                    }
+                    gananciaFinalLinea = gananciaFinalLinea.add(totalMonto.subtract(baseMonto)); 
+                } 
                 
                 comisionGanadaTotal = comisionGanadaTotal.add(gananciaFinalLinea);
                 
@@ -351,12 +351,14 @@ public class IncentivoServiceImpl implements IncentivoService {
                 );
                 
                 BigDecimal gananciaLinea = comisionVenta;
-                if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
-                    gananciaLinea = gananciaLinea.add(
-                        detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
-                    );
+                if (comisionVenta.compareTo(BigDecimal.ZERO) > 0) {
+                    if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
+                        gananciaLinea = gananciaLinea.add(
+                            detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
+                        );
+                    }
+                    gananciaLinea = gananciaLinea.add(montoFijoExtra);
                 }
-                gananciaLinea = gananciaLinea.add(montoFijoExtra);
                 
                 comisionGanadaTotal = comisionGanadaTotal.add(gananciaLinea);
             }

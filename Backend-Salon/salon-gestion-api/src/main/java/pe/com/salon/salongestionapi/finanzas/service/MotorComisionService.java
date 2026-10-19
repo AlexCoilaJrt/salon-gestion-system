@@ -88,6 +88,11 @@ public class MotorComisionService {
             porcentaje = resolverPorcentajeServicio(servicio, empleadoId, especialidadId, fechaVenta);
         }
 
+        // Si el porcentaje base es 0 o no está definido, no comisiona
+        if (porcentaje == null || porcentaje.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
         // 3. Sumar bono por día especial o fin de semana
         //    Solo aplica si el empleado realmente trabajó ese día (verifica RegistroAsistencia)
         BigDecimal bono = resolverBono(fechaVenta, empleadoId);
@@ -126,7 +131,36 @@ public class MotorComisionService {
     private BigDecimal resolverPorcentajeServicio(
             Servicio servicio, Long empleadoId, Long especialidadId, LocalDate fechaVenta) {
 
-        // Nivel 0: Regla desde la entidad Especialidad (Fijo vs Porcentaje)
+        // Validar si el Empleado es estrictamente de Sueldo Fijo
+        if (empleadoId != null) {
+            pe.com.salon.salongestionapi.rrhh.entity.Empleado emp = empleadoRepository.findById(empleadoId).orElse(null);
+            if (emp != null && emp.getEspecialidades() != null && !emp.getEspecialidades().isEmpty()) {
+                boolean tienePorcentaje = false;
+                boolean tieneFijo = false;
+                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : emp.getEspecialidades()) {
+                    if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
+                        tieneFijo = true;
+                    } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
+                        tienePorcentaje = true;
+                    }
+                }
+                if (tieneFijo && !tienePorcentaje) {
+                    return BigDecimal.ZERO; // Si el empleado solo tiene especialidades FIJAS, no gana comisión por servicios.
+                }
+            }
+        }
+
+        // Nivel 1 (Prioridad MÁXIMA para Servicios): comisión propia del Servicio (override directo)
+        // Si el servicio tiene un porcentaje configurado (incluso si es 0%), se respeta.
+        if (servicio != null) {
+            if (servicio.getComisionPorcentaje() != null) {
+                return servicio.getComisionPorcentaje();
+            }
+            // Si el servicio no tiene porcentaje definido (null), por defecto es 0% (no comisiona)
+            return BigDecimal.ZERO;
+        }
+
+        // Nivel 0: Regla desde la entidad Especialidad (Fijo vs Porcentaje) si no hay contexto de servicio
         if (especialidadId != null) {
             pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp = especialidadRepository.findById(especialidadId).orElse(null);
             if (esp != null) {
@@ -137,36 +171,9 @@ public class MotorComisionService {
                 if (("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago()))
                         && esp.getPorcentajeComision() != null 
                         && esp.getPorcentajeComision().compareTo(BigDecimal.ZERO) > 0) {
-                    
-                    // Si el servicio NO tiene override directo, gana el porcentaje de la especialidad
-                    if (servicio.getComisionPorcentaje() == null || servicio.getComisionPorcentaje().compareTo(BigDecimal.ZERO) <= 0) {
-                        return esp.getPorcentajeComision();
-                    }
+                    return esp.getPorcentajeComision();
                 }
             }
-        }
-
-        // Validar si el Empleado es estrictamente de Sueldo Fijo
-        pe.com.salon.salongestionapi.rrhh.entity.Empleado emp = empleadoRepository.findById(empleadoId).orElse(null);
-        if (emp != null && emp.getEspecialidades() != null && !emp.getEspecialidades().isEmpty()) {
-            boolean tienePorcentaje = false;
-            boolean tieneFijo = false;
-            for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : emp.getEspecialidades()) {
-                if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
-                    tieneFijo = true;
-                } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
-                    tienePorcentaje = true;
-                }
-            }
-            if (tieneFijo && !tienePorcentaje) {
-                return BigDecimal.ZERO; // Si el empleado solo tiene especialidades FIJAS, no gana comisión por servicios.
-            }
-        }
-
-        // Nivel 1: comisión propia del Servicio (override directo)
-        if (servicio.getComisionPorcentaje() != null
-                && servicio.getComisionPorcentaje().compareTo(BigDecimal.ZERO) > 0) {
-            return servicio.getComisionPorcentaje();
         }
 
         // Calcular monto acumulado del empleado en el mes actual (para tramos)
