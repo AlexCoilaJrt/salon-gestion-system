@@ -1,17 +1,19 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { MenuModule } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
+import { MenuItem, MessageService } from 'primeng/api';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { ToastModule } from 'primeng/toast';
 import { AuthService } from '../../auth/services/auth.service';
 import { EmpresaService, EmpresaResponse } from '../../services/empresa.service';
+import { ConfiguracionService } from '../../services/configuracion.service';
 import { CatalogoService, Producto } from '../../../features/catalogo/services/catalogo.service';
 import { AgendaService, ClienteResponse } from '../../../features/operaciones/pages/agenda/agenda.service';
 import { RrhhService, Empleado } from '../../../features/rrhh/services/rrhh.service';
@@ -21,7 +23,20 @@ import { LayoutService } from '../../services/layout.service';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, InputTextModule, AvatarModule, BadgeModule, MenuModule, DialogModule, ButtonModule, OverlayPanelModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    InputTextModule,
+    AvatarModule,
+    BadgeModule,
+    MenuModule,
+    DialogModule,
+    ButtonModule,
+    OverlayPanelModule,
+    ToastModule
+  ],
+  providers: [MessageService],
   templateUrl: './header.component.html'
 })
 export class HeaderComponent implements OnInit {
@@ -38,6 +53,8 @@ export class HeaderComponent implements OnInit {
   }
   private fb = inject(FormBuilder);
   private empresaService = inject(EmpresaService);
+  private configuracionService = inject(ConfiguracionService);
+  private messageService = inject(MessageService);
   private catalogoService = inject(CatalogoService);
   private agendaService = inject(AgendaService);
   private rrhhService = inject(RrhhService);
@@ -58,6 +75,23 @@ export class HeaderComponent implements OnInit {
   // Modals state
   displayPerfilModal = signal<boolean>(false);
   displayEmpresaModal = signal<boolean>(false);
+
+  // Modal Tiempo de Sesión
+  displaySesionModal = signal<boolean>(false);
+  sessionTimeoutMinutes = signal<number>(1440); // 24 horas por defecto
+  selectedPresetMinutes = signal<number>(1440);
+  isCustomTimeout = signal<boolean>(false);
+  customHoursInput = signal<number>(24);
+  isSavingSesion = signal<boolean>(false);
+
+  presetOptions = [
+    { label: '8 Horas', minutes: 480, desc: 'Turno estándar de trabajo', icon: 'pi pi-briefcase' },
+    { label: '12 Horas', minutes: 720, desc: 'Jornada extendida de atención', icon: 'pi pi-sun' },
+    { label: '24 Horas', minutes: 1440, desc: '1 día ininterrumpido sin cortes', icon: 'pi pi-check-circle', badge: 'Recomendado' },
+    { label: '48 Horas', minutes: 2880, desc: '2 días continuos sin pedir clave', icon: 'pi pi-calendar' },
+    { label: '7 Días', minutes: 10080, desc: '1 semana completa de sesión activa', icon: 'pi pi-shield' },
+    { label: 'Personalizado', minutes: -1, desc: 'Define la cantidad exacta en horas', icon: 'pi pi-sliders-h' }
+  ];
 
   // Form
   empresaForm!: FormGroup;
@@ -96,6 +130,13 @@ export class HeaderComponent implements OnInit {
         icon: 'pi pi-cog',
         command: () => {
           this.abrirModalEmpresa();
+        }
+      },
+      {
+        label: 'Tiempo de Sesión',
+        icon: 'pi pi-clock',
+        command: () => {
+          this.abrirModalSesion();
         }
       },
       { separator: true },
@@ -260,5 +301,108 @@ export class HeaderComponent implements OnInit {
     
     // Fallback al correo
     return user.email ? user.email.split('@')[0] : 'Usuario';
+  }
+
+  abrirModalSesion() {
+    this.configuracionService.obtenerPorClave('SESSION_TIMEOUT_MINUTES').subscribe({
+      next: (res) => {
+        const minutes = res && res.valor ? parseInt(res.valor, 10) : 1440;
+        const validMinutes = isNaN(minutes) || minutes <= 0 ? 1440 : minutes;
+        this.sessionTimeoutMinutes.set(validMinutes);
+
+        const match = this.presetOptions.find(p => p.minutes === validMinutes);
+        if (match) {
+          this.selectedPresetMinutes.set(validMinutes);
+          this.isCustomTimeout.set(false);
+          this.customHoursInput.set(Math.round(validMinutes / 60));
+        } else {
+          this.selectedPresetMinutes.set(-1);
+          this.isCustomTimeout.set(true);
+          this.customHoursInput.set(Math.round(validMinutes / 60));
+        }
+        this.displaySesionModal.set(true);
+      },
+      error: () => {
+        this.sessionTimeoutMinutes.set(1440);
+        this.selectedPresetMinutes.set(1440);
+        this.isCustomTimeout.set(false);
+        this.customHoursInput.set(24);
+        this.displaySesionModal.set(true);
+      }
+    });
+  }
+
+  seleccionarPresetSesion(minutes: number) {
+    if (minutes === -1) {
+      this.isCustomTimeout.set(true);
+      this.selectedPresetMinutes.set(-1);
+    } else {
+      this.isCustomTimeout.set(false);
+      this.selectedPresetMinutes.set(minutes);
+      this.customHoursInput.set(Math.round(minutes / 60));
+    }
+  }
+
+  onCustomHoursChange(hours: any) {
+    const val = typeof hours === 'number' ? hours : parseInt(hours, 10);
+    if (!isNaN(val) && val > 0) {
+      this.customHoursInput.set(val);
+    }
+  }
+
+  guardarSesionTimeout() {
+    let minutesToSave = this.selectedPresetMinutes();
+    if (this.isCustomTimeout()) {
+      const hours = this.customHoursInput();
+      if (!hours || hours <= 0) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Atención',
+          detail: 'Por favor ingresa un número de horas válido mayor a 0.'
+        });
+        return;
+      }
+      minutesToSave = hours * 60;
+    }
+
+    this.isSavingSesion.set(true);
+    this.configuracionService.actualizar('SESSION_TIMEOUT_MINUTES', minutesToSave.toString()).subscribe({
+      next: () => {
+        this.sessionTimeoutMinutes.set(minutesToSave);
+        // Renovar token de inmediato para aplicar el nuevo tiempo
+        this.authService.refreshToken().subscribe({
+          next: () => {},
+          error: () => {}
+        });
+
+        const horasTexto = (minutesToSave / 60).toFixed(minutesToSave % 60 === 0 ? 0 : 1);
+        this.isSavingSesion.set(false);
+        this.displaySesionModal.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Tiempo de Sesión Actualizado',
+          detail: `La sesión se mantendrá abierta por ${horasTexto} horas sin cerrarse.`
+        });
+      },
+      error: (err) => {
+        this.isSavingSesion.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar la configuración de sesión.'
+        });
+        console.error('Error guardando tiempo de sesión', err);
+      }
+    });
+  }
+
+  getTextoDuracionActual(): string {
+    const min = this.sessionTimeoutMinutes();
+    if (min >= 1440 && min % 1440 === 0) {
+      const dias = min / 1440;
+      return `${dias} ${dias === 1 ? 'día (24h)' : 'días'}`;
+    }
+    const horas = (min / 60).toFixed(min % 60 === 0 ? 0 : 1);
+    return `${horas} horas`;
   }
 }

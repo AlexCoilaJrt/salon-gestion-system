@@ -284,3 +284,116 @@
     </div>
   </form>
 </p-dialog>
+
+<!-- Toast para notificaciones del Header -->
+<p-toast position="top-right"></p-toast>
+
+<!-- Dialog Configurar Tiempo de Sesión -->
+<p-dialog [(visible)]="displaySesionModal" 
+          [modal]="true" 
+          [style]="{width: '540px'}" 
+          [breakpoints]="{'640px': '92vw'}" 
+          [draggable]="false" 
+          [resizable]="false">
+  
+  <ng-template pTemplate="header">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-lg bg-[#bca028]/15 text-[#bca028] flex items-center justify-center text-lg">
+        <i class="pi pi-clock"></i>
+      </div>
+      <div>
+        <h3 class="font-bold text-base text-gray-900 dark:text-white m-0">Tiempo de Sesión</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 m-0">Controla cuánto tiempo permanece abierta la sesión</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="py-3 flex flex-col gap-4">
+    <!-- Estado actual -->
+    <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-[#252525] border border-gray-200/80 dark:border-gray-700/60">
+      <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+        <i class="pi pi-shield text-[#bca028] text-sm"></i>
+        <span>Duración activa actualmente:</span>
+      </div>
+      <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-[#bca028]/15 text-[#bca028] dark:text-[#f3d968]">
+        {{ getTextoDuracionActual() }}
+      </span>
+    </div>
+
+    <!-- Opciones de Selección Rápida (Grid) -->
+    <div>
+      <label class="block text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2.5">
+        Selecciona la duración de sesión:
+      </label>
+      <div class="grid grid-cols-2 gap-2.5">
+        <div *ngFor="let opt of presetOptions" 
+             (click)="seleccionarPresetSesion(opt.minutes)"
+             class="relative p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between"
+             [ngClass]="selectedPresetMinutes() === opt.minutes 
+               ? 'border-[#bca028] bg-[#fcf9ed] dark:bg-[#bca028]/15 shadow-sm' 
+               : 'border-gray-200 dark:border-gray-700/70 bg-white dark:bg-[#282828] hover:border-gray-300 dark:hover:border-gray-600'">
+          
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-bold flex items-center gap-1.5"
+                  [ngClass]="selectedPresetMinutes() === opt.minutes ? 'text-[#bca028] dark:text-[#f3d968]' : 'text-gray-800 dark:text-gray-100'">
+              <i [class]="opt.icon + ' text-xs'"></i> {{ opt.label }}
+            </span>
+            <i *ngIf="selectedPresetMinutes() === opt.minutes" class="pi pi-check-circle text-[#bca028] dark:text-[#f3d968] text-sm"></i>
+          </div>
+
+          <span class="text-[11px] text-gray-500 dark:text-gray-400 leading-tight">
+            {{ opt.desc }}
+          </span>
+
+          <span *ngIf="opt.badge" 
+                class="absolute -top-2 right-2 px-1.5 py-0.5 bg-[#bca028] text-white text-[9px] font-bold rounded-full uppercase tracking-wider shadow-xs">
+            {{ opt.badge }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campo Personalizado (si se seleccionó 'Personalizado') -->
+    <div *ngIf="isCustomTimeout()" class="p-3.5 rounded-xl bg-gray-50 dark:bg-[#252525] border border-gray-200 dark:border-gray-700 flex flex-col gap-2">
+      <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+        Escribe la duración en horas:
+      </label>
+      <div class="flex items-center gap-3">
+        <input pInputText 
+               type="number" 
+               min="1" 
+               max="720"
+               [ngModel]="customHoursInput()" 
+               (ngModelChange)="onCustomHoursChange($event)"
+               class="w-32 bg-white dark:bg-[#1e1e1e] font-bold text-center" />
+        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+          horas (aprox. {{ (customHoursInput() / 24).toFixed(1) }} días)
+        </span>
+      </div>
+    </div>
+
+    <!-- Mensaje Informativo -->
+    <div class="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-xl flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-200">
+      <i class="pi pi-info-circle text-sm mt-0.5 shrink-0 text-[#bca028]"></i>
+      <span class="leading-relaxed">
+        <strong>24 horas (por defecto)</strong> garantiza que la recepcionista o estilistas atiendan a los clientes durante toda la jornada sin que el sistema cierre sesión ni interrumpa el cobro en caja.
+      </span>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2.5 pt-2 border-t border-gray-100 dark:border-gray-800">
+      <p-button label="Cancelar" 
+                icon="pi pi-times" 
+                styleClass="p-button-text text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" 
+                (onClick)="displaySesionModal.set(false)">
+      </p-button>
+      <p-button label="Guardar Configuración" 
+                icon="pi pi-check" 
+                [loading]="isSavingSesion()" 
+                (onClick)="guardarSesionTimeout()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+

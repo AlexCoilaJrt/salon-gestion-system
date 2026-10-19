@@ -21,6 +21,7 @@ public class ConfiguracionService {
     public static final String BONO_FIN_SEMANA            = "BONO_FIN_SEMANA";
     public static final String BONO_FIN_SEMANA_ACTIVO     = "BONO_FIN_SEMANA_ACTIVO";
     public static final String PUNTOS_POR_SOL             = "PUNTOS_POR_SOL";
+    public static final String SESSION_TIMEOUT_MINUTES    = "SESSION_TIMEOUT_MINUTES";
 
     /**
      * Al levantar la aplicación por primera vez, inserta los valores por defecto
@@ -38,6 +39,23 @@ public class ConfiguracionService {
                 "Activa o desactiva el bono de fin de semana para especialistas que asistieron ese día (true/false)");
         insertar(PUNTOS_POR_SOL, "1",
                 "Puntos de fidelización que se otorgan por cada S/ 1.00 gastado por el cliente");
+
+        // Timeout de sesión por defecto: 24 horas (1440 minutos)
+        configuracionRepository.findById(SESSION_TIMEOUT_MINUTES).ifPresentOrElse(config -> {
+            try {
+                long val = Long.parseLong(config.getValor());
+                if (val <= 60) {
+                    config.setValor("1440");
+                    configuracionRepository.save(config);
+                }
+            } catch (Exception e) {
+                config.setValor("1440");
+                configuracionRepository.save(config);
+            }
+        }, () -> {
+            configuracionRepository.save(new ConfiguracionSistema(SESSION_TIMEOUT_MINUTES, "1440",
+                    "Tiempo de expiración de sesión en minutos (por defecto 1440 min = 24 horas)"));
+        });
     }
 
     private void actualizarOInsertarDefault(String clave, String valorDefault, String descripcion) {
@@ -89,16 +107,30 @@ public class ConfiguracionService {
 
     public ConfiguracionSistema actualizar(String clave, String nuevoValor) {
         ConfiguracionSistema config = configuracionRepository.findById(clave)
-                .orElseThrow(() -> new RuntimeException("Configuración no encontrada: " + clave));
+                .orElseGet(() -> new ConfiguracionSistema(clave, nuevoValor, "Configuración: " + clave));
         config.setValor(nuevoValor);
         return configuracionRepository.save(config);
     }
 
+    public ConfiguracionSistema obtenerPorClave(String clave) {
+        return configuracionRepository.findById(clave)
+                .orElseGet(() -> new ConfiguracionSistema(clave, SESSION_TIMEOUT_MINUTES.equals(clave) ? "1440" : "", ""));
+    }
+
     /**
      * Retorna el timeout global de sesión en minutos.
-     * Por defecto 60 minutos si no hay configuración en BD.
+     * Por defecto 1440 minutos (24 horas) si no hay configuración en BD.
      */
     public Long getGlobalSessionTimeout() {
-        return 60L;
+        return configuracionRepository.findById(SESSION_TIMEOUT_MINUTES)
+                .map(c -> {
+                    try {
+                        long val = Long.parseLong(c.getValor());
+                        return val > 0 ? val : 1440L;
+                    } catch (NumberFormatException e) {
+                        return 1440L;
+                    }
+                })
+                .orElse(1440L);
     }
 }

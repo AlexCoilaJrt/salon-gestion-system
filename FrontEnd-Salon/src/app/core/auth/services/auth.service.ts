@@ -80,6 +80,16 @@ export class AuthService {
     return localStorage.getItem('salon_token');
   }
 
+  refreshToken(): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/refresh-token`, {}).pipe(
+      tap(response => {
+        if (response.data && response.data.token) {
+          this.setToken(response.data.token);
+        }
+      })
+    );
+  }
+
   logout(): Observable<any> {
     return this.http.post<any>(`${this.API_URL}/logout`, {}).pipe(
       tap({

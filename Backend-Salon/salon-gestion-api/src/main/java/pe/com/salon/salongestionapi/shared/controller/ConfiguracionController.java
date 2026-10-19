@@ -21,6 +21,11 @@ public class ConfiguracionController {
         return ResponseEntity.ok(configuracionService.listarTodas());
     }
 
+    @GetMapping("/{clave}")
+    public ResponseEntity<ConfiguracionSistema> obtenerPorClave(@PathVariable String clave) {
+        return ResponseEntity.ok(configuracionService.obtenerPorClave(clave));
+    }
+
     @PutMapping("/{clave}")
     public ResponseEntity<ConfiguracionSistema> actualizar(
             @PathVariable String clave,

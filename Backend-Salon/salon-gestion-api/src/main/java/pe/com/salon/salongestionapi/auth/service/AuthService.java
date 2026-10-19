@@ -195,7 +195,11 @@ public class AuthService {
         if (!user.getActive())
             throw new AuthException("Cuenta inactiva");
 
-        String newToken = jwtService.generateToken(user);
+        Long sucursalId = jwtService.extractSucursalId(oldToken);
+        String sucursalNombre = jwtService.extractSucursalNombre(oldToken);
+        String newToken = (sucursalId != null)
+                ? jwtService.generateTokenWithSucursal(user, sucursalId, sucursalNombre)
+                : jwtService.generateToken(user);
 
         return pe.com.salon.salongestionapi.auth.service.dto.TokenInfoResponse.builder()
                 .token(newToken)
