@@ -143,7 +143,13 @@ public class DataSeeder implements CommandLineRunner {
         // 5. Crear Empresa por Defecto
         createEmpresaIfNotFound("Mi Salón VIP", "Mi Salón S.A.C.", "20123456789");
 
-        // 6. Crear Categorías, Especialidades y Servicios
+        // 6. Crear Especialidades base
+        createEspecialidadIfNotFound("Estilista", "Cortes y Peinados");
+        createEspecialidadIfNotFound("Manicurista", "Uñas");
+        createEspecialidadIfNotFound("Maquillador", "Maquillaje");
+
+        // NOTA: Categorías, Servicios y Productos demo deshabilitados para catálogo limpio
+        /*
         Categoria catCabello = createCategoriaIfNotFound("Cuidado Capilar", "Servicios para el cabello");
         Categoria catUnas = createCategoriaIfNotFound("Manicure y Pedicure", "Cuidado de uñas");
         Categoria catMaquillaje = createCategoriaIfNotFound("Maquillaje", "Maquillaje profesional");
@@ -157,6 +163,7 @@ public class DataSeeder implements CommandLineRunner {
         createServicioIfNotFound("Manicure Rusa", "Limpieza profunda con torno", new BigDecimal("45.00"), 60, catUnas, espManicurista);
         createServicioIfNotFound("Uñas Acrílicas", "Uñas esculpidas en acrílico", new BigDecimal("80.00"), 120, catUnas, espManicurista);
         createServicioIfNotFound("Maquillaje de Noche", "Maquillaje social para eventos", new BigDecimal("60.00"), 60, catMaquillaje, espMaquillador);
+        */
 
         try {
             jdbcTemplate.execute("ALTER TABLE producto ALTER COLUMN image_url TYPE TEXT");
@@ -164,6 +171,7 @@ public class DataSeeder implements CommandLineRunner {
             log.warn("No se pudo alterar la columna image_url: " + e.getMessage());
         }
 
+        /*
         // 7. Crear Productos con imágenes en Base64 si no existen
         createProductoIfNotFound("Shampoo Sin Sal 1L", "L'Oreal", "SKU-CAP-001", "ProHair Import", getBase64Image("shampoo.jpg"), new BigDecimal("25.00"), new BigDecimal("45.00"), 50, 10, true, true, catCabello);
         createProductoIfNotFound("Keratina Alisante 500ml", "Kativa", "SKU-CAP-002", "ProHair Import", getBase64Image("keratina.jpg"), new BigDecimal("40.00"), new BigDecimal("0.00"), 20, 5, true, false, catCabello);
@@ -180,6 +188,7 @@ public class DataSeeder implements CommandLineRunner {
                 productoRepository.save(p);
             }
         });
+        */
 
         // Asegurar que servicios existentes sin comisión definida queden explícitamente en 0.00
         servicioRepository.findAll().forEach(s -> {

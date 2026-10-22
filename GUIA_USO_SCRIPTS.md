@@ -13,6 +13,7 @@ Esta guía te explica de forma clara y ordenada cómo usar los archivos de inici
 | **`actualizar.bat`** | Usuario / Cliente | Cuando el desarrollador avisa que hay una nueva versión. | Descarga los cambios de Docker Hub y reinicia el sistema en 15 segundos sin tocar los datos de la BD. |
 | **`detener.bat`** | Usuario / Cliente | Al finalizar la jornada o antes de apagar la PC. | Apaga los contenedores de forma segura para no corromper la base de datos. |
 | **`respaldar_bd.bat`** | Usuario / Admin | Semanalmente o antes de hacer mantenimientos. | Genera un archivo `.sql` con fecha y hora dentro de la carpeta `backups/`. |
+| **`restaurar_bd.bat`** | Usuario / Admin | Para recuperar datos o migrar a otra computadora. | Restaura el respaldo `.sql` más reciente en PostgreSQL automáticamente. |
 | **`ver_logs.bat`** | Administrador / Soporte | Si algo no responde o se quiere ver la consola en vivo. | Muestra la actividad del Backend, Frontend y Base de Datos en tiempo real. |
 | **`publicar_docker_hub.bat`** | Solo Tú (Programador) | Cuando terminas de programar una nueva mejora. | Compila el código nuevo y lo sube a la nube de Docker Hub (`alexcoila`). |
 
