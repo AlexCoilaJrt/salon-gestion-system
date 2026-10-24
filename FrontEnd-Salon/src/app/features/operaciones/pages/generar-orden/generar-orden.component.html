@@ -264,8 +264,8 @@
             <div class="p-fecha-block" *ngIf="ticketGenerado()">
               <div class="p-fecha-lbl">N° ORDEN</div>
               <div class="p-fecha-boxes">
-                <div class="p-fbox" style="min-width:52px;">
-                  <span class="p-fbox-val" style="font-size:13px;">#{{ ticketGenerado()?.id }}</span>
+                <div class="p-fbox" style="min-width:54px;">
+                  <span class="p-fbox-val" style="font-size:15px; font-weight:900;">#{{ ticketGenerado()?.id }}</span>
                 </div>
               </div>
             </div>
@@ -427,7 +427,14 @@
   [style]="{width:'420px'}" [closable]="false">
   <div *ngIf="ticketGenerado()" class="ticket-modal-body">
     <div class="tm-salon">SPA DIANA</div>
-    <div class="tm-num">ORDEN N° #{{ ticketGenerado().id }}</div>
+    <div class="tm-order-badge">
+      <div class="tm-order-label">
+        <i class="pi pi-ticket"></i> N° DE ORDEN
+      </div>
+      <div class="tm-order-number">
+        <span class="tm-order-hash">#</span>{{ ticketGenerado().id }}
+      </div>
+    </div>
     <div class="tm-info">
       <div><strong>Fecha:</strong> {{ ticketGenerado().fechaEmision | date:'dd/MM/yyyy HH:mm' }}</div>
       <div><strong>Cliente:</strong> {{ ticketGenerado().clienteNombreCompleto }}</div>

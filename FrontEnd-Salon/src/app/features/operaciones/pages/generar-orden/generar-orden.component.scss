@@ -643,19 +643,64 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   padding: 0.5rem 0;
 }
 .tm-salon {
-  font-size: 1.6rem;
+  font-size: 1.35rem;
   font-weight: 900;
   color: $primary;
   letter-spacing: 2px;
   text-align: center;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.35rem;
 }
-.tm-num {
+
+.tm-order-badge, .tm-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1.25rem;
+  background: linear-gradient(135deg, rgba(188, 160, 40, 0.12) 0%, rgba(188, 160, 40, 0.04) 100%);
+  border: 2px dashed rgba(188, 160, 40, 0.45);
+  border-radius: 12px;
   text-align: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #6b7280;
-  margin-bottom: 1rem;
+  box-shadow: inset 0 0 16px rgba(188, 160, 40, 0.05);
+
+  .tm-order-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: $on-surface-var;
+    margin-bottom: 0.2rem;
+    opacity: 0.9;
+
+    i {
+      font-size: 0.85rem;
+      color: $primary;
+    }
+  }
+
+  .tm-order-number {
+    font-size: 2.75rem;
+    font-weight: 900;
+    line-height: 1;
+    color: $primary;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 12px rgba(188, 160, 40, 0.25);
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+
+    .tm-order-hash {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin-right: 2px;
+      opacity: 0.8;
+    }
+  }
 }
 .tm-info {
   background: $surface-low;
