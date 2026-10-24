@@ -15,6 +15,7 @@ export interface Role {
   name: string;
   description: string;
   active: boolean;
+  userCount?: number;
   permissions?: Permission[];
   permissionIds?: number[];
   users?: any[];
