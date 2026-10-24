@@ -227,11 +227,37 @@
                 <p-dropdown 
                   [options]="empleados" 
                   [(ngModel)]="item.empleadoId" 
-                  optionLabel="nombres" 
+                  optionLabel="nombreCompleto" 
                   optionValue="id" 
-                  placeholder="Asignar a..." 
+                  placeholder="Asignar especialista..." 
+                  [filter]="true"
+                  filterBy="nombreCompleto,nombres,apellidos"
+                  filterPlaceholder="Buscar especialista..."
+                  [resetFilterOnHide]="true"
+                  emptyFilterMessage="No se encontraron especialistas"
                   styleClass="w-full text-xs p-dropdown-sm"
+                  panelStyleClass="text-xs shadow-xl"
                   appendTo="body">
+                  <ng-template pTemplate="selectedItem" let-selectedOption>
+                    <div class="flex items-center gap-1.5 truncate">
+                      <div class="w-4 h-4 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[9px] flex items-center justify-center font-bold shrink-0">
+                        {{ (selectedOption.nombres?.charAt(0) || '') }}
+                      </div>
+                      <span class="font-medium text-xs truncate text-gray-800 dark:text-white">
+                        {{ selectedOption.nombreCompleto || selectedOption.nombres }}
+                      </span>
+                    </div>
+                  </ng-template>
+                  <ng-template let-emp pTemplate="item">
+                    <div class="flex items-center gap-2 py-0.5">
+                      <div class="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[10px] flex items-center justify-center font-bold shrink-0">
+                        {{ (emp.nombres?.charAt(0) || '') + (emp.apellidos?.charAt(0) || '') }}
+                      </div>
+                      <span class="font-semibold text-xs text-gray-800 dark:text-white truncate">
+                        {{ emp.nombreCompleto || emp.nombres }}
+                      </span>
+                    </div>
+                  </ng-template>
                 </p-dropdown>
               </div>
             </div>
@@ -289,11 +315,42 @@
                 <p-dropdown 
                   [options]="empleados" 
                   [(ngModel)]="item.empleadoId" 
-                  optionLabel="nombres" 
+                  optionLabel="nombreCompleto" 
                   optionValue="id" 
-                  placeholder="Asignar a..." 
+                  placeholder="Asignar especialista..." 
+                  [filter]="true"
+                  filterBy="nombreCompleto,nombres,apellidos"
+                  filterPlaceholder="Buscar especialista por nombre..."
+                  [resetFilterOnHide]="true"
+                  emptyFilterMessage="No se encontraron especialistas"
                   styleClass="w-full text-sm p-dropdown-sm"
+                  panelStyleClass="text-sm shadow-xl"
                   appendTo="body">
+                  <ng-template pTemplate="selectedItem" let-selectedOption>
+                    <div class="flex items-center gap-2">
+                      <div class="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[10px] flex items-center justify-center font-bold shrink-0">
+                        {{ (selectedOption.nombres?.charAt(0) || '') + (selectedOption.apellidos?.charAt(0) || '') }}
+                      </div>
+                      <span class="font-medium text-xs text-gray-800 dark:text-white truncate">
+                        {{ selectedOption.nombreCompleto || selectedOption.nombres }}
+                      </span>
+                    </div>
+                  </ng-template>
+                  <ng-template let-emp pTemplate="item">
+                    <div class="flex items-center gap-2 py-1">
+                      <div class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-bold shrink-0">
+                        {{ (emp.nombres?.charAt(0) || '') + (emp.apellidos?.charAt(0) || '') }}
+                      </div>
+                      <div class="flex flex-col min-w-0">
+                        <span class="font-bold text-xs text-gray-800 dark:text-white truncate">
+                          {{ emp.nombreCompleto || emp.nombres }}
+                        </span>
+                        <span *ngIf="emp.especialidadesNombres?.length" class="text-[10px] text-gray-400 truncate">
+                          {{ emp.especialidadesNombres.join(', ') }}
+                        </span>
+                      </div>
+                    </div>
+                  </ng-template>
                 </p-dropdown>
               </div>
             </div>

@@ -157,7 +157,12 @@ export class CajaComponent implements OnInit {
 
   cargarEmpleados() {
     this.rrhhService.getEmpleados().subscribe(res => {
-      this.empleados = res.filter(e => e.estado !== false);
+      this.empleados = res
+        .filter(e => e.estado !== false)
+        .map(e => ({
+          ...e,
+          nombreCompleto: `${e.nombres} ${e.apellidos || ''}`.trim()
+        }));
     });
   }
 

@@ -28,6 +28,7 @@ export interface Empleado {
   id?: number;
   nombres: string;
   apellidos: string;
+  nombreCompleto?: string;
   dni: string;
   email?: string;
   telefono?: string;
