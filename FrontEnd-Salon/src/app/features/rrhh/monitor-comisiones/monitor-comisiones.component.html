@@ -63,18 +63,18 @@
     <div class="flex flex-wrap items-center gap-2">
       <!-- Elegir Día Específico -->
       <div class="flex items-center gap-1.5">
-        <p-calendar [(ngModel)]="fechaCalendarDia" (ngModelChange)="onDiaChange($event)" 
-                    dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Elegir otro día..."
-                    styleClass="p-inputtext-sm text-xs !w-44" inputStyleClass="!text-xs !py-1.5">
-        </p-calendar>
+        <p-datepicker [(ngModel)]="fechaCalendarDia" (ngModelChange)="onDiaChange($event)" 
+                      dateFormat="dd/mm/yy" [showIcon]="true" placeholder="Elegir otro día..." appendTo="body"
+                      styleClass="p-inputtext-sm text-xs !w-44" inputStyleClass="!text-xs !py-1.5">
+        </p-datepicker>
       </div>
 
       <!-- Elegir Rango / Semana Personalizada -->
       <div class="flex items-center gap-1.5">
-        <p-calendar [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" 
-                    (ngModelChange)="onRangoChange($event)" dateFormat="dd/mm/yy" [showIcon]="true" 
-                    placeholder="Rango o Semana..." styleClass="p-inputtext-sm text-xs !w-56" inputStyleClass="!text-xs !py-1.5">
-        </p-calendar>
+        <p-datepicker [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" 
+                      (ngModelChange)="onRangoChange($event)" dateFormat="dd/mm/yy" [showIcon]="true" appendTo="body"
+                      placeholder="Rango o Semana..." styleClass="p-inputtext-sm text-xs !w-56" inputStyleClass="!text-xs !py-1.5">
+        </p-datepicker>
       </div>
     </div>
   </div>

@@ -78,6 +78,16 @@ export class GenerarOrdenComponent implements OnInit {
 
   // --- Dynamic Code ---
   codigoCartilla = signal(this.generarCodigoAleatorio());
+  zoomLevel = signal<number>(1.08);
+
+  cambiarZoom(delta: number): void {
+    const nuevo = Math.min(Math.max(+(this.zoomLevel() + delta).toFixed(2), 0.8), 1.5);
+    this.zoomLevel.set(nuevo);
+  }
+
+  resetZoom(): void {
+    this.zoomLevel.set(1.08);
+  }
 
   // --- Computed ---
   readonly Math = Math;

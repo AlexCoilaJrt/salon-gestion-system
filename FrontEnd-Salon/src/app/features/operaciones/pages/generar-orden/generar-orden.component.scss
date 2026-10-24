@@ -49,8 +49,8 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 // SIDEBAR
 // ══════════════════════════════════════════════════════════════
 .go-sidebar {
-  width: 460px;
-  min-width: 400px;
+  width: 420px;
+  min-width: 370px;
   background: $surface-card;
   border-right: 1px solid $outline;
   padding: 1.25rem 1.25rem 2rem;
@@ -352,7 +352,7 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 
 .preview-topbar {
   width: 100%;
-  max-width: 750px;
+  max-width: 900px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -362,16 +362,16 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: $on-surface;
   background: var(--go-surface-card);
-  padding: 0.35rem 0.85rem;
+  padding: 0.4rem 0.95rem;
   border-radius: 999px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 .preview-dot {
-  width: 8px; height: 8px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   background: $tertiary;
   animation: pulse 2s infinite;
@@ -382,16 +382,59 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 }
 .preview-zoom-actions {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.65rem;
+}
+.zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  background: var(--go-surface-card);
+  border: 1px solid $outline;
+  border-radius: 999px;
+  padding: 2px 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.zoom-step-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: $on-surface;
+  cursor: pointer;
+  font-size: 0.72rem;
+  transition: all 0.15s;
+  &:hover {
+    background: $surface-low;
+    color: $primary;
+  }
+}
+.zoom-val-btn {
+  background: transparent;
+  border: none;
+  padding: 0 8px;
+  font-family: $font;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: $on-surface-var;
+  cursor: pointer;
+  min-width: 48px;
+  text-align: center;
+  &:hover {
+    color: $primary;
+  }
 }
 .zoom-btn {
   background: $primary;
   color: white;
   border: none;
   border-radius: 999px;
-  padding: 0.4rem 1rem;
+  padding: 0.45rem 1.15rem;
   font-family: $font;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s;
@@ -402,21 +445,22 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 // Hoja A5 preview
 .preview-paper-wrap {
   width: 100%;
-  max-width: 750px;
+  max-width: 900px;
   display: flex;
   justify-content: center;
+  transition: transform 0.2s ease;
 }
 .paper-a5 {
   width: 100%;
   background: white;
-  border-radius: 4px;
+  border-radius: 6px;
   box-shadow:
     0 4px 6px rgba(0,0,0,0.07),
     0 20px 40px rgba(0,0,0,0.12);
-  padding: 28px 30px 24px;
+  padding: 34px 38px 28px;
   font-family: Arial, sans-serif;
   color: #111;
-  font-size: 9pt;
+  font-size: 10.5pt;
   position: relative;
 }
 
@@ -425,41 +469,41 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 2px solid #111;
-  padding-bottom: 8px;
-  margin-bottom: 6px;
+  border-bottom: 2.5px solid #111;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
 }
 .p-salon-name {
   font-family: 'Georgia', 'Times New Roman', serif;
-  font-size: 22pt;
+  font-size: 26pt;
   font-weight: 900;
   letter-spacing: 2px;
   text-transform: uppercase;
-  line-height: 1;
+  line-height: 1.05;
   color: #000;
 }
 .p-salon-sub {
-  font-size: 6pt;
-  color: #444;
+  font-size: 7.5pt;
+  color: #333;
   font-weight: 700;
   letter-spacing: 0.5px;
-  margin-top: 2px;
-}
-.p-salon-addr {
-  font-size: 6.5pt;
-  color: #333;
   margin-top: 3px;
 }
+.p-salon-addr {
+  font-size: 8pt;
+  color: #333;
+  margin-top: 4px;
+}
 .p-fecha-block { text-align: right; }
-.p-fecha-lbl   { font-size: 5.5pt; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px; }
+.p-fecha-lbl   { font-size: 7pt; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px; }
 .p-fecha-boxes {
   display: flex;
-  gap: 2px;
-  padding: 2px;
+  gap: 3px;
+  padding: 2.5px;
   background: #111;
 }
 .p-fbox {
-  width: 34px; height: 28px;
+  width: 42px; height: 34px;
   background: white;
   border: 1.5px solid #111;
   display: flex;
@@ -467,47 +511,47 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   align-items: center;
   justify-content: center;
 }
-.p-fbox-lbl { font-size: 4pt; font-weight: 900; line-height: 1; }
-.p-fbox-val { font-size: 9pt; font-weight: 900; line-height: 1.2; }
+.p-fbox-lbl { font-size: 5.5pt; font-weight: 900; line-height: 1; }
+.p-fbox-val { font-size: 11pt; font-weight: 900; line-height: 1.2; }
 
 .p-badge {
   display: inline-block;
   background: #111;
   color: white;
-  font-size: 5.5pt;
+  font-size: 7pt;
   font-weight: 800;
   letter-spacing: 1.5px;
-  padding: 2px 8px;
-  margin-bottom: 6px;
+  padding: 3px 10px;
+  margin-bottom: 8px;
 }
 .p-fields {
   display: flex;
-  gap: 12px;
-  margin-bottom: 6px;
+  gap: 16px;
+  margin-bottom: 8px;
 }
-.p-field { flex: 1; border-bottom: 1px solid #555; padding-bottom: 2px; }
-.p-field-lbl { font-size: 5.5pt; font-weight: 800; letter-spacing: 0.5px; color: #666; }
-.p-field-val { font-size: 7.5pt; font-weight: 600; min-height: 11px; }
+.p-field { flex: 1; border-bottom: 1.5px solid #555; padding-bottom: 3px; }
+.p-field-lbl { font-size: 7pt; font-weight: 800; letter-spacing: 0.5px; color: #555; }
+.p-field-val { font-size: 9.5pt; font-weight: 700; min-height: 15px; }
 
 // Tabla de servicios
 .p-tabla {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   cursor: pointer;
   thead tr { background: #111; color: white; }
   th {
-    padding: 3px 4px;
-    font-size: 6.5pt;
+    padding: 5px 6px;
+    font-size: 8.5pt;
     font-weight: 800;
     letter-spacing: 0.4px;
-    border: 0.8px solid #444;
+    border: 1px solid #444;
   }
   .tc { text-align: center; }
   td {
-    border: 0.8px solid #bbb;
-    padding: 3px 4px;
-    font-size: 7.5pt;
+    border: 1px solid #bbb;
+    padding: 5px 6px;
+    font-size: 9pt;
   }
 }
 .p-row {
@@ -518,55 +562,55 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   opacity: 0.4;
 }
 .p-row-strikethrough { text-decoration: line-through; }
-.p-row-extra td { height: 17px; }
-.p-row-extra-txt { font-style: italic; color: #aaa; font-size: 7pt; }
-.row-cross { color: #e74c3c; font-weight: 900; font-size: 8pt; }
-.firma-col { width: 100px; }
+.p-row-extra td { height: 22px; }
+.p-row-extra-txt { font-style: italic; color: #999; font-size: 8.5pt; }
+.row-cross { color: #e74c3c; font-weight: 900; font-size: 9.5pt; }
+.firma-col { width: 130px; }
 
 .p-sub-lbl {
-  font-size: 6.5pt;
+  font-size: 8pt;
   font-weight: 800;
   background: #e0e0e0;
-  padding: 2px 6px;
+  padding: 3px 8px;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  margin: 4px 0 0;
+  margin: 6px 0 0;
 }
 
 // Footer
 .p-footer-grid {
   display: flex;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  margin-top: 8px;
 }
 .p-obs {
   flex: 2;
-  border: 0.8px solid #aaa;
-  padding: 5px 6px;
-  min-height: 40px;
+  border: 1px solid #aaa;
+  padding: 6px 8px;
+  min-height: 48px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
-.p-obs-lbl       { font-size: 5.5pt; font-weight: 800; color: #555; margin-bottom: 4px; }
-.p-obs-disclaimer { font-size: 5pt; color: #999; font-style: italic; margin-top: auto; }
-.p-totals { flex: 1; border: 1.5px solid #111; }
+.p-obs-lbl       { font-size: 7pt; font-weight: 800; color: #555; margin-bottom: 4px; }
+.p-obs-disclaimer { font-size: 6pt; color: #888; font-style: italic; margin-top: auto; }
+.p-totals { flex: 1.2; border: 1.5px solid #111; }
 .p-total-row {
   display: flex;
   justify-content: space-between;
-  padding: 2px 5px;
+  padding: 3px 6px;
   border-bottom: 0.5px solid #ccc;
-  font-size: 6.5pt;
+  font-size: 8pt;
   align-items: center;
   &.p-total-main {
     background: #111;
     color: white;
     font-weight: 800;
-    font-size: 7pt;
+    font-size: 8.5pt;
   }
 }
 .p-total-line {
-  min-width: 55px;
+  min-width: 65px;
   border-bottom: 1px solid #555;
   text-align: right;
   padding-right: 2px;
@@ -576,39 +620,39 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
 // Firmas
 .p-sigs {
   display: flex;
-  gap: 16px;
-  margin-top: 10px;
-  padding-top: 5px;
+  gap: 20px;
+  margin-top: 12px;
+  padding-top: 6px;
   border-top: 1px dashed #aaa;
 }
 .p-sig { flex: 1; text-align: center; }
 .p-sig-line { border-top: 1px solid #333; margin-bottom: 2px; }
-.p-sig-lbl  { font-size: 5.5pt; font-weight: 700; color: #333; letter-spacing: 0.3px; }
-.p-sig-sub  { font-size: 4.5pt; color: #888; font-style: italic; }
+.p-sig-lbl  { font-size: 7pt; font-weight: 700; color: #333; letter-spacing: 0.3px; }
+.p-sig-sub  { font-size: 5.5pt; color: #777; font-style: italic; }
 
 // Barcode area
 .p-barcode-area {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-top: 8px;
-  padding-top: 5px;
+  margin-top: 10px;
+  padding-top: 6px;
   border-top: 1px solid #ddd;
 }
 .p-barcode-lines {
   letter-spacing: -0.5px;
-  font-size: 18pt;
+  font-size: 22pt;
   color: #111;
   line-height: 1;
 }
 .p-barcode-text {
-  font-size: 5.5pt;
+  font-size: 7pt;
   letter-spacing: 1.5px;
   font-weight: 700;
-  margin-top: 1px;
+  margin-top: 2px;
 }
-.p-gracias     { font-size: 7pt; font-style: italic; font-weight: 700; color: #333; text-align: right; }
-.p-gracias-sub { font-size: 5.5pt; color: #888; text-align: right; }
+.p-gracias     { font-size: 8.5pt; font-style: italic; font-weight: 700; color: #333; text-align: right; }
+.p-gracias-sub { font-size: 7pt; color: #777; text-align: right; }
 
 // Disclaimer bottom
 .preview-disclaimer {
@@ -1045,6 +1089,8 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    zoom: 1 !important;
+    transform: none !important;
   }
 
   .paper-a5 {
@@ -1053,11 +1099,29 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
     border-radius: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
+    font-size: 8.5pt !important;
     page-break-after: avoid;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
     color-adjust: exact;
   }
+
+  .p-salon-name { font-size: 20pt !important; }
+  .p-salon-sub  { font-size: 6pt !important; }
+  .p-salon-addr { font-size: 6.5pt !important; }
+  .p-fbox       { width: 34px !important; height: 28px !important; }
+  .p-fbox-val   { font-size: 9pt !important; }
+  .p-badge      { font-size: 6pt !important; padding: 2px 8px !important; }
+  .p-field-lbl  { font-size: 6pt !important; }
+  .p-field-val  { font-size: 8pt !important; }
+  .p-tabla th   { padding: 3px 4px !important; font-size: 7pt !important; }
+  .p-tabla td   { padding: 3px 4px !important; font-size: 7.5pt !important; }
+  .p-row-extra td { height: 16px !important; }
+  .p-obs        { min-height: 38px !important; }
+  .p-total-row  { padding: 2px 5px !important; font-size: 6.5pt !important; }
+  .p-total-main { font-size: 7pt !important; }
+  .p-sigs       { margin-top: 8px !important; }
+  .p-barcode-lines { font-size: 18pt !important; }
 
   // Asegura que fondos negros (cabecera tabla, badge) se impriman
   * {

@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TreeTableModule } from 'primeng/treetable';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
-import { CalendarModule } from 'primeng/calendar';
+import { DatePickerModule } from 'primeng/datepicker';
 import { TooltipModule } from 'primeng/tooltip';
 import { TreeNode } from 'primeng/api';
 import { IncentivoService, MonitorComision } from '../services/incentivo.service';
@@ -12,7 +12,7 @@ import { IncentivoService, MonitorComision } from '../services/incentivo.service
 @Component({
   selector: 'app-monitor-comisiones',
   standalone: true,
-  imports: [CommonModule, FormsModule, TreeTableModule, TagModule, ButtonModule, CalendarModule, TooltipModule],
+  imports: [CommonModule, FormsModule, TreeTableModule, TagModule, ButtonModule, DatePickerModule, TooltipModule],
   templateUrl: './monitor-comisiones.component.html'
 })
 export class MonitorComisionesComponent implements OnInit {

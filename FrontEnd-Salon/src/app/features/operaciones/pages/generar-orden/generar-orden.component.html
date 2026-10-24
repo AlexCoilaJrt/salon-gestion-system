@@ -238,6 +238,19 @@
         VISTA PREVIA REAL (A5 – 148 × 210 mm)
       </div>
       <div class="preview-zoom-actions">
+        <!-- Controles de Zoom -->
+        <div class="zoom-controls">
+          <button type="button" class="zoom-step-btn" (click)="cambiarZoom(-0.1)" title="Reducir tamaño (zoom -)">
+            <i class="pi pi-minus"></i>
+          </button>
+          <button type="button" class="zoom-val-btn" (click)="resetZoom()" title="Restablecer tamaño normal">
+            {{ Math.round(zoomLevel() * 100) }}%
+          </button>
+          <button type="button" class="zoom-step-btn" (click)="cambiarZoom(0.1)" title="Agrandar tamaño (zoom +)">
+            <i class="pi pi-plus"></i>
+          </button>
+        </div>
+
         <button class="zoom-btn" title="Imprimir esta cartilla" (click)="imprimirCartilla()" [disabled]="!cartillaSeleccionada()">
           <i class="pi pi-print mr-1"></i>Imprimir
         </button>
@@ -245,7 +258,7 @@
     </div>
 
     <!-- CARTILLA FÍSICA: PREVIEW -->
-    <div class="preview-paper-wrap" *ngIf="cartillaSeleccionada(); else noCartilla">
+    <div class="preview-paper-wrap" [style.zoom]="zoomLevel()" *ngIf="cartillaSeleccionada(); else noCartilla">
       <div class="paper-a5">
 
         <!-- CABECERA -->
@@ -301,10 +314,10 @@
         <table class="p-tabla" *ngIf="!cartillaSeleccionada()!.tieneSubCategorias">
           <thead>
             <tr>
-              <th class="tc" style="width:24px">N°</th>
+              <th class="tc" style="width:32px">N°</th>
               <th>SERVICIOS</th>
-              <th class="tc" style="width:48px">P.U</th>
-              <th style="width:100px">{{ cartillaSeleccionada()!.nombre.toUpperCase() }}</th>
+              <th class="tc" style="width:65px">P.U</th>
+              <th style="width:130px">{{ cartillaSeleccionada()!.nombre.toUpperCase() }}</th>
             </tr>
           </thead>
           <tbody>
@@ -340,10 +353,10 @@
             <table class="p-tabla">
               <thead>
                 <tr>
-                  <th class="tc" style="width:24px">N°</th>
+                  <th class="tc" style="width:32px">N°</th>
                   <th>Servicios</th>
-                  <th class="tc" style="width:48px">P.U</th>
-                  <th style="width:100px">{{ cartillaSeleccionada()!.nombre }}</th>
+                  <th class="tc" style="width:65px">P.U</th>
+                  <th style="width:130px">{{ cartillaSeleccionada()!.nombre }}</th>
                 </tr>
               </thead>
               <tbody>
