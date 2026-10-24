@@ -61,8 +61,12 @@ export class IncentivoService {
     return this.http.get<Incentivo[]>(this.apiUrl);
   }
 
-  getMonitorComisiones(): Observable<MonitorComision[]> {
-    return this.http.get<MonitorComision[]>(`${this.apiUrl}/monitor`);
+  getMonitorComisiones(fechaInicio?: string, fechaFin?: string): Observable<MonitorComision[]> {
+    let url = `${this.apiUrl}/monitor`;
+    if (fechaInicio && fechaFin) {
+      url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+    }
+    return this.http.get<MonitorComision[]>(url);
   }
 
   getLiquidaciones(fechaInicio: string, fechaFin: string): Observable<LiquidacionResponse[]> {

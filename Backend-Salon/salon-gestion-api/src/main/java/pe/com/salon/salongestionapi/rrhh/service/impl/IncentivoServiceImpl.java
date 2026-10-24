@@ -107,12 +107,24 @@ public class IncentivoServiceImpl implements IncentivoService {
     @Override
     @Transactional(readOnly = true)
     public List<MonitorComisionResponse> getMonitorComisiones() {
+        return getMonitorComisiones(null, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MonitorComisionResponse> getMonitorComisiones(LocalDate fechaInicio, LocalDate fechaFin) {
+        LocalDate fInicio = fechaInicio != null ? fechaInicio : LocalDate.now();
+        LocalDate fFin = fechaFin != null ? fechaFin : fInicio;
+
+        LocalDateTime inicioRango = fInicio.atStartOfDay();
+        LocalDateTime finRango = fFin.atTime(23, 59, 59);
+
         List<MonitorComisionResponse> monitorList = new ArrayList<>();
         List<Empleado> empleadosActivos = empleadoRepository.findAll().stream()
                 .filter(e -> e.getEstado() != null && e.getEstado())
                 .collect(Collectors.toList());
         
-        List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
+        List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(finRango);
         
         for (Empleado empleado : empleadosActivos) {
             MonitorComisionResponse response = new MonitorComisionResponse();
@@ -121,15 +133,18 @@ public class IncentivoServiceImpl implements IncentivoService {
             
             // Determinar Asistencia
             boolean asistenciaActiva = false;
-            java.util.Optional<RegistroAsistencia> asistenciaOpt = asistenciaRepository.findByEmpleadoIdAndFecha(empleado.getId(), LocalDate.now());
+            LocalDate fechaAsistencia = fFin.isEqual(LocalDate.now()) ? LocalDate.now() : fFin;
+            java.util.Optional<RegistroAsistencia> asistenciaOpt = asistenciaRepository.findByEmpleadoIdAndFecha(empleado.getId(), fechaAsistencia);
             if (asistenciaOpt.isPresent()) {
                 RegistroAsistencia asis = asistenciaOpt.get();
-                if (asis.getHoraEntrada() != null && asis.getHoraSalida() == null) {
-                    asistenciaActiva = true;
+                if (fechaAsistencia.isEqual(LocalDate.now())) {
+                    asistenciaActiva = asis.getHoraEntrada() != null && asis.getHoraSalida() == null;
+                } else {
+                    asistenciaActiva = asis.getHoraEntrada() != null;
                 }
             }
             response.setAsistenciaActiva(asistenciaActiva);
-            response.setEnTurno(asistenciaActiva); // Simplificación por ahora
+            response.setEnTurno(asistenciaActiva);
             
             // Determinar Comisión Base
             BigDecimal basePorc = BigDecimal.ZERO;
@@ -178,18 +193,15 @@ public class IncentivoServiceImpl implements IncentivoService {
             response.setTotalComisionPorcentaje(totalPorc);
             response.setTotalComisionMontoFijo(totalMonto);
             
-            // Calcular ventas del dia
-            LocalDateTime inicioDia = LocalDate.now().atStartOfDay();
-            LocalDateTime finDia = LocalDate.now().atTime(23, 59, 59);
+            // Calcular ventas del rango solicitado (Día, Semana o Rango)
+            BigDecimal ventasPeriodo = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioRango, finRango);
+            response.setVentasHoy(ventasPeriodo != null ? ventasPeriodo : BigDecimal.ZERO);
             
-            BigDecimal ventasHoy = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioDia, finDia);
-            response.setVentasHoy(ventasHoy != null ? ventasHoy : BigDecimal.ZERO);
-            
-            List<TicketDetalle> detallesHoy = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioDia, finDia);
+            List<TicketDetalle> detallesPeriodo = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioRango, finRango);
             List<MonitorComisionResponse.DetalleServicio> detalleServicios = new ArrayList<>();
             BigDecimal comisionGanadaTotal = BigDecimal.ZERO;
             
-            for(TicketDetalle detalle : detallesHoy) {
+            for(TicketDetalle detalle : detallesPeriodo) {
                 Long especialidadId = null;
                 String servicioNombre = "Producto / Otro";
                 String categoriaNombre = "-";
@@ -206,12 +218,16 @@ public class IncentivoServiceImpl implements IncentivoService {
                     }
                 }
                 
+                LocalDate fechaVenta = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null)
+                        ? detalle.getTicket().getFechaEmision().toLocalDate()
+                        : fFin;
+
                 BigDecimal comisionVenta = motorComisionService.calcularComision(
                     detalle.getServicio(), 
                     empleado.getId(), 
                     especialidadId, 
                     detalle.getSubtotal(), 
-                    LocalDate.now()
+                    fechaVenta
                 );
                 
                 BigDecimal porcentajeExtra = totalPorc.subtract(basePorc); 
@@ -234,13 +250,16 @@ public class IncentivoServiceImpl implements IncentivoService {
                 // El Tipo Pago en el sub-servicio refleja si realmente ganó comisión por él.
                 boolean esSoloFijo = basePorc.compareTo(BigDecimal.ZERO) == 0 && baseMonto.compareTo(BigDecimal.ZERO) > 0;
                 ds.setTipoPago(esSoloFijo || gananciaFinalLinea.compareTo(BigDecimal.ZERO) == 0 ? "Sueldo Fijo" : "Comisión");
-                ds.setPorcentajeAplicado(BigDecimal.ZERO); // Podríamos calcular (ganancia / subtotal) * 100
+                ds.setPorcentajeAplicado(BigDecimal.ZERO);
                 if (detalle.getSubtotal().compareTo(BigDecimal.ZERO) > 0) {
                     ds.setPorcentajeAplicado(gananciaFinalLinea.multiply(new BigDecimal("100")).divide(detalle.getSubtotal(), 2, java.math.RoundingMode.HALF_UP));
                 }
                 ds.setPrecioCobrado(detalle.getSubtotal());
                 ds.setComisionGanada(gananciaFinalLinea);
-                ds.setFechaHora(LocalDateTime.now()); // ticket no tiene hora exacta en este modelo, usamos now
+                LocalDateTime fechaHoraVenta = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null)
+                        ? detalle.getTicket().getFechaEmision()
+                        : inicioRango;
+                ds.setFechaHora(fechaHoraVenta);
                 detalleServicios.add(ds);
             }
 
