@@ -8,6 +8,7 @@ import { ToastModule } from 'primeng/toast';
 import { CalendarModule } from 'primeng/calendar';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
+import { InputTextModule } from 'primeng/inputtext';
 import { MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
 import { LiquidacionesService, LiquidacionResponse, DetalleLiquidacion } from './liquidaciones.service';
@@ -16,7 +17,7 @@ import { IncentivoService } from '../services/incentivo.service';
 @Component({
   selector: 'app-liquidaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule, TooltipModule, DialogModule],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule, TooltipModule, DialogModule, InputTextModule],
   providers: [MessageService],
   templateUrl: './liquidaciones.component.html'
 })
@@ -29,6 +30,7 @@ export class LiquidacionesComponent implements OnInit {
   displayDetalle = false;
   loadingDetalle = false;
   detalle: DetalleLiquidacion[] = [];
+  busquedaDetalle = '';
   liquidacionSeleccionada: LiquidacionResponse | null = null;
 
   constructor(
@@ -120,6 +122,7 @@ export class LiquidacionesComponent implements OnInit {
   verDetalle(liq: LiquidacionResponse): void {
     this.liquidacionSeleccionada = liq;
     this.detalle = [];
+    this.busquedaDetalle = '';
     this.displayDetalle = true;
     this.loadingDetalle = true;
     this.liquidacionesService.obtenerDetalle(liq.empleadoId, liq.fechaInicio, liq.fechaFin).subscribe({
@@ -134,12 +137,37 @@ export class LiquidacionesComponent implements OnInit {
     });
   }
 
-  get totalDetalleVentas(): number {
+  // Filtra por servicio/producto, cliente o número de ticket (sin distinguir mayúsculas ni tildes)
+  get detalleFiltrado(): DetalleLiquidacion[] {
+    const termino = this.normalizar(this.busquedaDetalle);
+    if (!termino) return this.detalle;
+    return this.detalle.filter(d =>
+      this.normalizar(d.descripcion).includes(termino) ||
+      this.normalizar(d.cliente).includes(termino) ||
+      String(d.ticketId).includes(termino.replace('#', ''))
+    );
+  }
+
+  // Totales del periodo completo (no dependen de la búsqueda)
+  get totalVentasPeriodo(): number {
     return this.detalle.reduce((acc, d) => acc + (d.subtotal || 0), 0);
   }
 
-  get totalDetalleComision(): number {
+  get totalComisionPeriodo(): number {
     return this.detalle.reduce((acc, d) => acc + (d.comision || 0), 0);
+  }
+
+  // Totales de lo que se está mostrando con la búsqueda
+  get totalDetalleVentas(): number {
+    return this.detalleFiltrado.reduce((acc, d) => acc + (d.subtotal || 0), 0);
+  }
+
+  get totalDetalleComision(): number {
+    return this.detalleFiltrado.reduce((acc, d) => acc + (d.comision || 0), 0);
+  }
+
+  private normalizar(texto: string | null | undefined): string {
+    return (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   }
 
   private formatDate(date: Date): string {

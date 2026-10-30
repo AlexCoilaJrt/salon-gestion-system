@@ -122,7 +122,24 @@
     · Ventas cobradas, sin tickets anulados
   </p>
 
-  <p-table [value]="detalle" [loading]="loadingDetalle" styleClass="p-datatable-sm" [scrollable]="true" scrollHeight="400px">
+  <!-- Resumen del periodo completo (no cambia con la búsqueda) -->
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div class="flex gap-4 text-sm">
+      <span class="text-gray-600 dark:text-gray-300">{{detalle.length}} {{detalle.length === 1 ? 'servicio' : 'servicios'}}</span>
+      <span class="text-gray-600 dark:text-gray-300">Ventas: <b>S/ {{totalVentasPeriodo | number:'1.2-2'}}</b></span>
+      <span class="text-emerald-600 dark:text-emerald-400">Comisión: <b>S/ {{totalComisionPeriodo | number:'1.2-2'}}</b></span>
+    </div>
+    <span class="relative w-full sm:w-72">
+      <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+      <input pInputText type="text" [(ngModel)]="busquedaDetalle"
+             placeholder="Buscar servicio, cliente o ticket..."
+             class="w-full pl-9 bg-[#f4f7fa] dark:bg-[#2d2d2d] border-none focus:ring-2 focus:ring-[#bca028] dark:text-gray-100" />
+    </span>
+  </div>
+
+  <p-table [value]="detalleFiltrado" [loading]="loadingDetalle" styleClass="p-datatable-sm"
+           [paginator]="true" [rows]="10" [rowsPerPageOptions]="[10, 25, 50]"
+           [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} servicios">
     <ng-template pTemplate="header">
       <tr>
         <th>Fecha</th>
@@ -149,21 +166,25 @@
       </tr>
     </ng-template>
     <ng-template pTemplate="footer">
-      <tr *ngIf="detalle.length > 0">
-        <td colspan="5" class="font-semibold">Total ({{detalle.length}} {{detalle.length === 1 ? 'línea' : 'líneas'}})</td>
+      <tr *ngIf="detalleFiltrado.length > 0">
+        <td colspan="5" class="font-semibold">
+          {{ busquedaDetalle.trim() ? 'Total de la búsqueda' : 'Total' }} ({{detalleFiltrado.length}} {{detalleFiltrado.length === 1 ? 'servicio' : 'servicios'}})
+        </td>
         <td class="text-right font-semibold">S/ {{totalDetalleVentas | number:'1.2-2'}}</td>
         <td class="text-right font-bold text-emerald-600 dark:text-emerald-400">S/ {{totalDetalleComision | number:'1.2-2'}}</td>
       </tr>
     </ng-template>
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="7" class="p-6 text-center text-gray-500 dark:text-gray-400">No hay servicios registrados en este periodo.</td>
+        <td colspan="7" class="p-6 text-center text-gray-500 dark:text-gray-400">
+          {{ busquedaDetalle.trim() && detalle.length > 0 ? 'Ningún servicio coincide con la búsqueda.' : 'No hay servicios registrados en este periodo.' }}
+        </td>
       </tr>
     </ng-template>
   </p-table>
 
   <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 mb-0"
-     *ngIf="liquidacionSeleccionada?.estado === 'PAGADO' && detalle.length > 0 && (totalDetalleComision | number:'1.2-2') !== (liquidacionSeleccionada?.totalComision | number:'1.2-2')">
+     *ngIf="liquidacionSeleccionada?.estado === 'PAGADO' && detalle.length > 0 && (totalComisionPeriodo | number:'1.2-2') !== (liquidacionSeleccionada?.totalComision | number:'1.2-2')">
     <i class="pi pi-info-circle"></i> Esta liquidación ya fue pagada con S/ {{liquidacionSeleccionada?.totalComision | number:'1.2-2'}} de comisión;
     el detalle muestra las ventas actuales del periodo.
   </p>
