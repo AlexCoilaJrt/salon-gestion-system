@@ -19,3 +19,7 @@ Thumbs.db
 
 # Respaldos pesados
 backups/*.sql
+
+# Llaves JWT (se generan solas en keys/; nunca subirlas)
+*.pem
+keys/

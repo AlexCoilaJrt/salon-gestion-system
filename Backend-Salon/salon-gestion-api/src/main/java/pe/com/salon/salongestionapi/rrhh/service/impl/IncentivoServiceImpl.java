@@ -16,6 +16,7 @@ import pe.com.salon.salongestionapi.rrhh.repository.AsistenciaRepository;
 import pe.com.salon.salongestionapi.rrhh.repository.ComisionRepository;
 import pe.com.salon.salongestionapi.rrhh.service.IncentivoService;
 import pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse;
+import pe.com.salon.salongestionapi.rrhh.dto.DetalleLiquidacionResponse;
 import pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse.IncentivoAplicado;
 import pe.com.salon.salongestionapi.operaciones.entity.TicketDetalle;
 import pe.com.salon.salongestionapi.finanzas.service.MotorComisionService;
@@ -328,60 +329,12 @@ public class IncentivoServiceImpl implements IncentivoService {
             BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
             response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
 
-            // 3. Comisiones exactas por servicio
-            List<TicketDetalle> detalles = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioPeriodo, finPeriodo);
-            BigDecimal comisionGanadaTotal = BigDecimal.ZERO;
-            
-            // Re-evaluar incentivos globales (mismo algoritmo que getMonitorComisiones)
-            BigDecimal basePorc = BigDecimal.ZERO;
-            if (empleado.getEspecialidades() != null) {
-                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
-                    if (esp.getEstado() && ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago()))) {
-                        if (esp.getPorcentajeComision() != null) basePorc = basePorc.add(esp.getPorcentajeComision());
-                    }
-                }
-            }
-            
-            BigDecimal porcentajeExtra = BigDecimal.ZERO;
-            BigDecimal montoFijoExtra = BigDecimal.ZERO;
-            // Para ser exactos, los incentivos extra aplican si asistió. 
-            // Como esto es mensual, sumamos incentivos que aplicaban. Simplificamos usando los incentivos actuales.
-            for (IncentivoComision inc : incentivosActivos) {
-                if (inc.getTipoIncentivo() == TipoComision.PORCENTAJE) {
-                    porcentajeExtra = porcentajeExtra.add(inc.getValor());
-                } else {
-                    montoFijoExtra = montoFijoExtra.add(inc.getValor());
-                }
-            }
+            // 3. Comisiones exactas por servicio (mismo cálculo que el desglose de la liquidación)
+            BigDecimal comisionGanadaTotal = calcularLineasLiquidacion(empleado.getId(), inicioPeriodo, finPeriodo, incentivosActivos)
+                    .stream()
+                    .map(DetalleLiquidacionResponse::getComision)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            for(TicketDetalle detalle : detalles) {
-                Long especialidadId = null;
-                if (detalle.getServicio() != null && detalle.getServicio().getEspecialidadRequerida() != null) {
-                    especialidadId = detalle.getServicio().getEspecialidadRequerida().getId();
-                }
-                
-                LocalDate fechaServicio = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null) ? detalle.getTicket().getFechaEmision().toLocalDate() : LocalDate.now();
-                BigDecimal comisionVenta = motorComisionService.calcularComision(
-                    detalle.getServicio(), 
-                    empleado.getId(), 
-                    especialidadId, 
-                    detalle.getSubtotal(), 
-                    fechaServicio
-                );
-                
-                BigDecimal gananciaLinea = comisionVenta;
-                if (comisionVenta.compareTo(BigDecimal.ZERO) > 0) {
-                    if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
-                        gananciaLinea = gananciaLinea.add(
-                            detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
-                        );
-                    }
-                    gananciaLinea = gananciaLinea.add(montoFijoExtra);
-                }
-                
-                comisionGanadaTotal = comisionGanadaTotal.add(gananciaLinea);
-            }
-            
             response.setTotalComision(comisionGanadaTotal);
 
             // 4. Descuentos y Total
@@ -393,6 +346,91 @@ public class IncentivoServiceImpl implements IncentivoService {
         }
 
         return liquidaciones;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DetalleLiquidacionResponse> getDetalleLiquidacion(Long empleadoId, LocalDate fechaInicio, LocalDate fechaFin) {
+        List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
+        return calcularLineasLiquidacion(empleadoId, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59), incentivosActivos);
+    }
+
+    /**
+     * Calcula, línea por línea, la comisión de cada servicio/producto vendido por el empleado en el periodo.
+     * Lo usan tanto el total de la liquidación como su desglose, para que siempre cuadren.
+     */
+    private List<DetalleLiquidacionResponse> calcularLineasLiquidacion(Long empleadoId, LocalDateTime inicioPeriodo,
+                                                                       LocalDateTime finPeriodo, List<IncentivoComision> incentivosActivos) {
+        BigDecimal porcentajeExtra = BigDecimal.ZERO;
+        BigDecimal montoFijoExtra = BigDecimal.ZERO;
+        // Para ser exactos, los incentivos extra aplican si asistió.
+        // Como esto es mensual, sumamos incentivos que aplicaban. Simplificamos usando los incentivos actuales.
+        for (IncentivoComision inc : incentivosActivos) {
+            if (inc.getTipoIncentivo() == TipoComision.PORCENTAJE) {
+                porcentajeExtra = porcentajeExtra.add(inc.getValor());
+            } else {
+                montoFijoExtra = montoFijoExtra.add(inc.getValor());
+            }
+        }
+
+        List<DetalleLiquidacionResponse> lineas = new ArrayList<>();
+        for (TicketDetalle detalle : ticketDetalleRepository.findByEmpleadoAndFechaRango(empleadoId, inicioPeriodo, finPeriodo)) {
+            Long especialidadId = null;
+            if (detalle.getServicio() != null && detalle.getServicio().getEspecialidadRequerida() != null) {
+                especialidadId = detalle.getServicio().getEspecialidadRequerida().getId();
+            }
+
+            LocalDate fechaServicio = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null) ? detalle.getTicket().getFechaEmision().toLocalDate() : LocalDate.now();
+            BigDecimal comisionVenta = motorComisionService.calcularComision(
+                detalle.getServicio(),
+                empleadoId,
+                especialidadId,
+                detalle.getSubtotal(),
+                fechaServicio
+            );
+
+            BigDecimal gananciaLinea = comisionVenta;
+            if (comisionVenta.compareTo(BigDecimal.ZERO) > 0) {
+                if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
+                    gananciaLinea = gananciaLinea.add(
+                        detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
+                    );
+                }
+                gananciaLinea = gananciaLinea.add(montoFijoExtra);
+            }
+
+            DetalleLiquidacionResponse linea = new DetalleLiquidacionResponse();
+            if (detalle.getTicket() != null) {
+                linea.setTicketId(detalle.getTicket().getId());
+                linea.setFecha(detalle.getTicket().getFechaEmision());
+                linea.setCliente(nombreCliente(detalle.getTicket()));
+            }
+            if (detalle.getServicio() != null) {
+                linea.setTipo("SERVICIO");
+                linea.setDescripcion(detalle.getServicio().getNombre());
+            } else {
+                linea.setTipo("PRODUCTO");
+                linea.setDescripcion(detalle.getProducto() != null ? detalle.getProducto().getNombre() : "Producto");
+            }
+            linea.setCantidad(detalle.getCantidad());
+            linea.setPrecioUnitario(detalle.getPrecioUnitario());
+            linea.setSubtotal(detalle.getSubtotal());
+            linea.setComision(gananciaLinea);
+            lineas.add(linea);
+        }
+        return lineas;
+    }
+
+    private String nombreCliente(pe.com.salon.salongestionapi.operaciones.entity.Ticket ticket) {
+        if (ticket.getNombreClienteNoRegistrado() != null && !ticket.getNombreClienteNoRegistrado().isBlank()) {
+            return ticket.getNombreClienteNoRegistrado();
+        }
+        if (ticket.getCliente() != null) {
+            String nombre = ((ticket.getCliente().getNombres() != null ? ticket.getCliente().getNombres() : "") + " "
+                    + (ticket.getCliente().getApellidos() != null ? ticket.getCliente().getApellidos() : "")).trim();
+            return nombre.isEmpty() ? "Público General" : nombre;
+        }
+        return "Público General";
     }
 
     private IncentivoResponse mapToResponse(IncentivoComision incentivo) {

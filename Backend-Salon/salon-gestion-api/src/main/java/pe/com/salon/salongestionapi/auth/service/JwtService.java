@@ -1,7 +1,11 @@
 package pe.com.salon.salongestionapi.auth.service;
 
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -38,6 +42,9 @@ public class JwtService {
 
     @Value("${jwt.expiration}")
     private Long defaultExpiration;
+
+    private volatile PrivateKey privateKey;
+    private volatile PublicKey publicKey;
 
     private final pe.com.salon.salongestionapi.shared.service.ConfiguracionService configuracionService;
 
@@ -157,46 +164,86 @@ public class JwtService {
     }
 
     private PrivateKey getPrivateKey() {
-        try {
-            String keyContent = loadKeyContent(privateKeyPath);
-            keyContent = keyContent
-                    .replace("-----BEGIN PRIVATE KEY-----", "")
-                    .replace("-----END PRIVATE KEY-----", "")
-                    .replaceAll("\\s", "");
-
-            byte[] keyBytes = Base64.getDecoder().decode(keyContent);
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            return kf.generatePrivate(spec);
-        } catch (Exception e) {
-            log.error("Could not load private key", e);
-            throw new RuntimeException("Could not load private key", e);
+        if (privateKey == null) {
+            loadOrCreateKeys();
         }
+        return privateKey;
     }
 
     private PublicKey getPublicKey() {
+        if (publicKey == null) {
+            loadOrCreateKeys();
+        }
+        return publicKey;
+    }
+
+    /**
+     * Carga el par de llaves RSA una sola vez. Si se configuran rutas de archivo (por defecto ./keys)
+     * y no existen, se genera un par nuevo y se guarda ahí, para que las llaves nunca viajen en el repositorio.
+     */
+    private synchronized void loadOrCreateKeys() {
+        if (privateKey != null && publicKey != null) {
+            return;
+        }
         try {
-            String keyContent = loadKeyContent(publicKeyPath);
-            keyContent = keyContent
+            if (!privateKeyPath.startsWith("classpath:")) {
+                Path privatePath = Path.of(privateKeyPath.replace("file:", ""));
+                Path publicPath = Path.of(publicKeyPath.replace("file:", ""));
+                if (!Files.exists(privatePath) || !Files.exists(publicPath)) {
+                    generateKeyFiles(privatePath, publicPath);
+                }
+            }
+
+            String privateContent = loadKeyContent(privateKeyPath)
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s", "");
+            String publicContent = loadKeyContent(publicKeyPath)
                     .replace("-----BEGIN PUBLIC KEY-----", "")
                     .replace("-----END PUBLIC KEY-----", "")
                     .replaceAll("\\s", "");
 
-            byte[] keyBytes = Base64.getDecoder().decode(keyContent);
-            X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
             KeyFactory kf = KeyFactory.getInstance("RSA");
-            return kf.generatePublic(spec);
+            privateKey = kf.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateContent)));
+            publicKey = kf.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(publicContent)));
         } catch (Exception e) {
-            log.error("Could not load public key", e);
-            throw new RuntimeException("Could not load public key", e);
+            log.error("Could not load RSA keys", e);
+            throw new RuntimeException("Could not load RSA keys", e);
         }
     }
 
-    private String loadKeyContent(String path) throws Exception {
-        String resourcePath = path.replace("classpath:", "");
-        try (InputStream inputStream = new ClassPathResource(resourcePath).getInputStream()) {
-            return new String(inputStream.readAllBytes());
+    private void generateKeyFiles(Path privatePath, Path publicPath) throws Exception {
+        log.warn("No se encontraron llaves JWT en {}. Generando un par RSA nuevo (las sesiones anteriores quedarán invalidadas).",
+                privatePath.toAbsolutePath().getParent());
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair pair = generator.generateKeyPair();
+
+        Base64.Encoder encoder = Base64.getMimeEncoder(64, "\n".getBytes());
+        String privatePem = "-----BEGIN PRIVATE KEY-----\n"
+                + encoder.encodeToString(pair.getPrivate().getEncoded())
+                + "\n-----END PRIVATE KEY-----\n";
+        String publicPem = "-----BEGIN PUBLIC KEY-----\n"
+                + encoder.encodeToString(pair.getPublic().getEncoded())
+                + "\n-----END PUBLIC KEY-----\n";
+
+        if (privatePath.toAbsolutePath().getParent() != null) {
+            Files.createDirectories(privatePath.toAbsolutePath().getParent());
         }
+        if (publicPath.toAbsolutePath().getParent() != null) {
+            Files.createDirectories(publicPath.toAbsolutePath().getParent());
+        }
+        Files.writeString(privatePath, privatePem);
+        Files.writeString(publicPath, publicPem);
+    }
+
+    private String loadKeyContent(String path) throws Exception {
+        if (path.startsWith("classpath:")) {
+            try (InputStream inputStream = new ClassPathResource(path.replace("classpath:", "")).getInputStream()) {
+                return new String(inputStream.readAllBytes());
+            }
+        }
+        return Files.readString(Path.of(path.replace("file:", "")));
     }
 
     /**

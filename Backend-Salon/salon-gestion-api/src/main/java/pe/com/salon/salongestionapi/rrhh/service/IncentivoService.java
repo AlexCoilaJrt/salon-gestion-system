@@ -15,4 +15,5 @@ public interface IncentivoService {
     List<pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse> getMonitorComisiones();
     List<pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse> getMonitorComisiones(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin);
     List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> getLiquidaciones(java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin);
+    List<pe.com.salon.salongestionapi.rrhh.dto.DetalleLiquidacionResponse> getDetalleLiquidacion(Long empleadoId, java.time.LocalDate fechaInicio, java.time.LocalDate fechaFin);
 }

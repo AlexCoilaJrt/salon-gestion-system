@@ -11,7 +11,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Sólo accesible desde esta PC (backups/DBeaver). Para abrirla a la red: POSTGRES_BIND=0.0.0.0
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - salon_postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -34,6 +35,13 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}
       SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-update}
+      JWT_PRIVATE_KEY_PATH: /app/keys/private_key.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/public_key.pem
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-admin123}
+      APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+    volumes:
+      # Llaves JWT generadas en el primer arranque; persisten entre actualizaciones
+      - salon_jwt_keys:/app/keys
     ports:
       - "${BACKEND_PORT:-8080}:8080"
     depends_on:
@@ -63,4 +71,6 @@ networks:
 
 volumes:
   salon_postgres_data:
+    driver: local
+  salon_jwt_keys:
     driver: local

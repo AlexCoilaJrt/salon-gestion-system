@@ -15,7 +15,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Crear usuario no root por seguridad
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup     && mkdir -p /app/keys && chown appuser:appgroup /app/keys
 USER appuser
 
 # Copiar el artefacto generado desde la etapa de compilación

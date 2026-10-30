@@ -29,11 +29,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        if (path.startsWith("/api/auth/login") ||
-                path.startsWith("/api/auth/register") ||
-                path.startsWith("/api/auth/register") ||
-                path.startsWith("/api/auth/refresh") ||
-                path.startsWith("/api/auth/logout")) {
+        // Sólo el login se salta el filtro: register/logout/refresh necesitan al usuario autenticado
+        if (path.startsWith("/api/auth/login")) {
 
             filterChain.doFilter(request, response);
             return;

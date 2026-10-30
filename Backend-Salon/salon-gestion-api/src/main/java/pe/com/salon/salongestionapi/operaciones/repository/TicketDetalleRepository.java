@@ -14,11 +14,18 @@ import java.util.List;
 @Repository
 public interface TicketDetalleRepository extends JpaRepository<TicketDetalle, Long> {
 
+    /**
+     * Líneas vendidas por un empleado en el rango, para comisiones y liquidaciones.
+     * Excluye tickets anulados y órdenes aún no cobradas (método de pago POR_DEFINIR).
+     */
     @Query("SELECT td FROM TicketDetalle td " +
-           "JOIN td.ticket t " +
+           "JOIN FETCH td.ticket t " +
            "WHERE td.empleado.id = :empleadoId " +
+           "AND t.activo = true " +
+           "AND (t.metodoPago IS NULL OR t.metodoPago <> pe.com.salon.salongestionapi.operaciones.entity.MetodoPago.POR_DEFINIR) " +
            "AND t.fechaEmision >= :fechaInicio " +
-           "AND t.fechaEmision <= :fechaFin")
+           "AND t.fechaEmision <= :fechaFin " +
+           "ORDER BY t.fechaEmision")
     List<TicketDetalle> findByEmpleadoAndFechaRango(
             @Param("empleadoId") Long empleadoId, 
             @Param("fechaInicio") LocalDateTime fechaInicio, 
@@ -75,6 +82,7 @@ public interface TicketDetalleRepository extends JpaRepository<TicketDetalle, Lo
            "JOIN td.ticket t " +
            "WHERE td.empleado.id = :empleadoId " +
            "AND t.activo = true " +
+           "AND (t.metodoPago IS NULL OR t.metodoPago <> pe.com.salon.salongestionapi.operaciones.entity.MetodoPago.POR_DEFINIR) " +
            "AND t.fechaEmision >= :fechaInicio AND t.fechaEmision <= :fechaFin")
     BigDecimal sumVentasEmpleadoEnPeriodo(
             @Param("empleadoId") Long empleadoId,

@@ -31,6 +31,18 @@ export interface LiquidacionResponse {
   fechaRegistro: string;
 }
 
+export interface DetalleLiquidacion {
+  ticketId: number;
+  fecha: string;
+  tipo: 'SERVICIO' | 'PRODUCTO';
+  descripcion: string;
+  cliente: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  comision: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -50,6 +62,13 @@ export class LiquidacionesService {
 
   obtenerPorEmpleado(empleadoId: number): Observable<LiquidacionResponse[]> {
     return this.http.get<LiquidacionResponse[]>(`${this.apiUrl}/empleado/${empleadoId}`);
+  }
+
+  // Desglose de los servicios/productos que realizó el especialista en el periodo
+  obtenerDetalle(empleadoId: number, fechaInicio: string, fechaFin: string): Observable<DetalleLiquidacion[]> {
+    return this.http.get<DetalleLiquidacion[]>(
+      `http://localhost:8080/api/v1/incentivos/liquidaciones/detalle?empleadoId=${empleadoId}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`
+    );
   }
 
   cambiarEstado(id: number, estado: string): Observable<LiquidacionResponse> {

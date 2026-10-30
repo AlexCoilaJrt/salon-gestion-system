@@ -30,8 +30,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(clonedReq).pipe(
     catchError(error => {
-      // Si el token expiró o es inválido, limpiar sesión y redirigir al login
-      if (error.status === 401 || error.status === 403) {
+      // Si el token expiró o es inválido (401), limpiar sesión y redirigir al login.
+      // Un 403 significa "sin permiso para esta acción": la sesión sigue siendo válida.
+      if (error.status === 401) {
         authService.clearLocalSession();
         router.navigate(['/login']);
       }

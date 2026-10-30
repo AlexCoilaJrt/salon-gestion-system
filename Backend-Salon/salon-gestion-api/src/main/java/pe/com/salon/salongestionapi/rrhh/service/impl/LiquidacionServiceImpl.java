@@ -43,7 +43,16 @@ public class LiquidacionServiceImpl implements LiquidacionService {
         Empleado empleado = empleadoRepository.findById(request.getEmpleadoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado"));
 
-        Liquidacion liquidacion = new Liquidacion();
+        // Si ya existe una liquidación del mismo empleado y periodo, se recalcula en lugar de duplicarla.
+        // Sólo las PENDIENTE se actualizan: una vez pagada (o retenida) queda congelada.
+        Liquidacion existente = liquidacionRepository
+                .findFirstByEmpleadoIdAndFechaInicioAndFechaFin(empleado.getId(), request.getFechaInicio(), request.getFechaFin())
+                .orElse(null);
+        if (existente != null && existente.getEstado() != EstadoLiquidacion.PENDIENTE) {
+            return mapToResponse(existente);
+        }
+
+        Liquidacion liquidacion = existente != null ? existente : new Liquidacion();
         liquidacion.setEmpleado(empleado);
         liquidacion.setFechaInicio(request.getFechaInicio());
         liquidacion.setFechaFin(request.getFechaFin());
@@ -52,7 +61,9 @@ public class LiquidacionServiceImpl implements LiquidacionService {
         liquidacion.setSueldoFijoProporcional(request.getSueldoFijoProporcional());
         liquidacion.setDescuentos(request.getDescuentos());
         liquidacion.setTotalAPagar(request.getTotalAPagar());
-        liquidacion.setEstado(request.getEstado());
+        if (existente == null) {
+            liquidacion.setEstado(request.getEstado());
+        }
         liquidacion.setDiasAsistidos(request.getDiasAsistidos());
         liquidacion.setMontoRetenido(request.getMontoRetenido() != null ? request.getMontoRetenido() : BigDecimal.ZERO);
         liquidacion.setMontoLiberado(request.getMontoLiberado() != null ? request.getMontoLiberado() : BigDecimal.ZERO);

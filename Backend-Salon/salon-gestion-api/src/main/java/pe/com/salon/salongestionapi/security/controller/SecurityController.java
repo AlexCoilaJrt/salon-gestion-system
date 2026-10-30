@@ -30,7 +30,7 @@ public class SecurityController {
         private final UsuarioRepository usuarioRepository;
 
         @GetMapping("/sessions/{login}")
-        @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_BIOLOGO')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
         public ResponseEntity<List<SessionInfoDTO>> getUserActiveSessions(@PathVariable String login) {
                 Usuario user = usuarioRepository.findByUsername(login)
                                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -55,7 +55,7 @@ public class SecurityController {
         }
 
         @GetMapping("/intrusions/recent")
-        @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_BIOLOGO')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
         public ResponseEntity<List<IntrusionAttempt>> getRecentIntrusions(
                         @RequestParam(defaultValue = "24") int hours) {
 
@@ -64,7 +64,7 @@ public class SecurityController {
         }
 
         @PostMapping("/sessions/{sessionId}/close")
-        @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_BIOLOGO')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
         public ResponseEntity<String> closeSession(@PathVariable Long sessionId) {
                 // Este método necesitaría obtener el token de la sesión
                 // Por simplicidad, se deja como ejemplo
@@ -72,7 +72,7 @@ public class SecurityController {
         }
 
         @PostMapping("/sessions/{sessionId}/mark-suspicious")
-        @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_BIOLOGO')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
         public ResponseEntity<String> markAsSuspicious(
                         @PathVariable Long sessionId,
                         @RequestParam String reason) {
@@ -82,7 +82,7 @@ public class SecurityController {
         }
 
         @GetMapping("/intruso/bloqueadas")
-        @PreAuthorize("hasRole('ROLE_ADMINISTRADOR')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
         public ResponseEntity<List<pe.com.salon.salongestionapi.security.dto.IntrusionAttemptDTO>> listarIPsBloqueadas() {
                 List<pe.com.salon.salongestionapi.security.dto.IntrusionAttemptDTO> bloqueadas = securityMonitorService
                                 .listarIPsBloqueadas();
@@ -90,7 +90,7 @@ public class SecurityController {
         }
 
         @PostMapping("/intruso/desbloquear")
-        @PreAuthorize("hasRole('ROLE_ADMINISTRADOR')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR')")
         public ResponseEntity<java.util.Map<String, String>> desbloquearIP(
                         @org.springframework.web.bind.annotation.RequestBody pe.com.salon.salongestionapi.security.dto.DesbloqueoIPRequest request,
                         @org.springframework.security.core.annotation.AuthenticationPrincipal org.springframework.security.core.userdetails.UserDetails userDetails,

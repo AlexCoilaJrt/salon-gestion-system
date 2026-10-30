@@ -7,14 +7,16 @@ import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { CalendarModule } from 'primeng/calendar';
 import { TooltipModule } from 'primeng/tooltip';
+import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
-import { LiquidacionesService, LiquidacionResponse } from './liquidaciones.service';
+import { forkJoin } from 'rxjs';
+import { LiquidacionesService, LiquidacionResponse, DetalleLiquidacion } from './liquidaciones.service';
 import { IncentivoService } from '../services/incentivo.service';
 
 @Component({
   selector: 'app-liquidaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule, TooltipModule],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule, TooltipModule, DialogModule],
   providers: [MessageService],
   templateUrl: './liquidaciones.component.html'
 })
@@ -22,6 +24,12 @@ export class LiquidacionesComponent implements OnInit {
   liquidaciones: LiquidacionResponse[] = [];
   loading = false;
   rangoFechas: Date[] | undefined;
+
+  // Desglose de servicios de una liquidación
+  displayDetalle = false;
+  loadingDetalle = false;
+  detalle: DetalleLiquidacion[] = [];
+  liquidacionSeleccionada: LiquidacionResponse | null = null;
 
   constructor(
     private liquidacionesService: LiquidacionesService,
@@ -61,49 +69,77 @@ export class LiquidacionesComponent implements OnInit {
 
     this.incentivoService.getLiquidaciones(inicioStr, finStr).subscribe({
       next: (data: any[]) => {
-        // Combinamos la data precalculada con lo que ya está guardado (si existe)
-        data.forEach(item => {
-          item.fechaInicio = inicioStr;
-          item.fechaFin = finStr;
-          item.estado = 'PENDIENTE'; // Estado por defecto para las nuevas
-          
-          // Verificamos si ya existe
-          const existente = this.liquidaciones.find(l => l.empleadoId === item.empleadoId && l.fechaInicio === inicioStr && l.fechaFin === finStr);
-          if (!existente) {
-             // Guardar en la DB
-             this.liquidacionesService.crearLiquidacion({
-               empleadoId: item.empleadoId,
-               fechaInicio: inicioStr,
-               fechaFin: finStr,
-               totalVentas: item.totalVentas,
-               totalComision: item.totalComision,
-               sueldoFijoProporcional: item.sueldoFijoProporcional || 0,
-               descuentos: item.descuentosAdelantos || 0,
-               totalAPagar: item.totalPagar,
-               estado: 'PENDIENTE',
-               diasAsistidos: item.diasAsistidos || 0
-             }).subscribe({
-               next: (nueva) => {
-                 this.liquidaciones.push(nueva);
-               },
-               error: (err) => {
-                 console.error('Error al guardar liquidación:', err);
-                 this.messageService.add({severity:'error', summary:'Error Backend', detail:'Fallo al registrar un pago. Revisa si el backend fue reiniciado.'});
-               }
-             });
+        // El backend crea la liquidación si no existe y recalcula las PENDIENTE con las ventas nuevas;
+        // las PAGADAS/RETENIDAS se devuelven tal cual.
+        const peticiones = data.map(item => this.liquidacionesService.crearLiquidacion({
+          empleadoId: item.empleadoId,
+          fechaInicio: inicioStr,
+          fechaFin: finStr,
+          totalVentas: item.totalVentas,
+          totalComision: item.totalComision,
+          sueldoFijoProporcional: item.sueldoFijoProporcional || 0,
+          descuentos: item.descuentosAdelantos || 0,
+          totalAPagar: item.totalPagar,
+          estado: 'PENDIENTE',
+          diasAsistidos: item.diasAsistidos || 0
+        }));
+
+        if (peticiones.length === 0) {
+          this.loading = false;
+          return;
+        }
+
+        forkJoin(peticiones).subscribe({
+          next: (guardadas) => {
+            guardadas.forEach(liq => {
+              const index = this.liquidaciones.findIndex(l => l.id === liq.id);
+              if (index !== -1) {
+                this.liquidaciones[index] = liq;
+              } else {
+                this.liquidaciones.push(liq);
+              }
+            });
+            this.liquidaciones = [...this.liquidaciones];
+            this.loading = false;
+            this.messageService.add({severity:'success', summary:'Calculado', detail:'Pagos calculados y actualizados con las ventas del periodo.'});
+          },
+          error: (err) => {
+            console.error('Error al guardar liquidación:', err);
+            this.loading = false;
+            this.messageService.add({severity:'error', summary:'Error Backend', detail:'Fallo al registrar un pago. Revisa si el backend fue reiniciado.'});
           }
         });
-        
-        setTimeout(() => {
-          this.loading = false;
-          this.messageService.add({severity:'success', summary:'Calculado', detail:'Pagos pre-calculados y registrados con éxito.'});
-        }, 1000);
       },
       error: () => {
         this.loading = false;
         this.messageService.add({severity:'error', summary:'Error', detail:'Fallo al calcular los pagos'});
       }
     });
+  }
+
+  verDetalle(liq: LiquidacionResponse): void {
+    this.liquidacionSeleccionada = liq;
+    this.detalle = [];
+    this.displayDetalle = true;
+    this.loadingDetalle = true;
+    this.liquidacionesService.obtenerDetalle(liq.empleadoId, liq.fechaInicio, liq.fechaFin).subscribe({
+      next: (lineas) => {
+        this.detalle = lineas;
+        this.loadingDetalle = false;
+      },
+      error: () => {
+        this.loadingDetalle = false;
+        this.messageService.add({severity:'error', summary:'Error', detail:'No se pudo cargar el detalle de servicios'});
+      }
+    });
+  }
+
+  get totalDetalleVentas(): number {
+    return this.detalle.reduce((acc, d) => acc + (d.subtotal || 0), 0);
+  }
+
+  get totalDetalleComision(): number {
+    return this.detalle.reduce((acc, d) => acc + (d.comision || 0), 0);
   }
 
   private formatDate(date: Date): string {

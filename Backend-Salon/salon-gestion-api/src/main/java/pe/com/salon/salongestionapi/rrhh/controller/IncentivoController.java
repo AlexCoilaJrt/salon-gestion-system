@@ -43,6 +43,15 @@ public class IncentivoController {
         return ResponseEntity.ok(incentivoService.getLiquidaciones(fechaInicio, fechaFin));
     }
 
+    // Desglose de servicios/productos que el especialista realizó en el periodo, con su comisión
+    @GetMapping("/liquidaciones/detalle")
+    public ResponseEntity<List<pe.com.salon.salongestionapi.rrhh.dto.DetalleLiquidacionResponse>> getDetalleLiquidacion(
+            @RequestParam("empleadoId") Long empleadoId,
+            @RequestParam("fechaInicio") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaInicio,
+            @RequestParam("fechaFin") @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaFin) {
+        return ResponseEntity.ok(incentivoService.getDetalleLiquidacion(empleadoId, fechaInicio, fechaFin));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<IncentivoResponse> findById(@PathVariable Long id) {
         return ResponseEntity.ok(incentivoService.findById(id));

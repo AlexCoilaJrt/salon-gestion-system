@@ -2,6 +2,7 @@ package pe.com.salon.salongestionapi.security.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -35,8 +36,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
 
-import org.springframework.jdbc.core.JdbcTemplate;
-// ... (I will add it inside the class instead)
 
 @Component
 @RequiredArgsConstructor
@@ -55,10 +54,22 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final EspecialidadRepository especialidadRepository;
 
+    @Value("${app.seed.admin-password}")
+    private String adminPassword;
+
+    @Value("${app.seed.cajero-password}")
+    private String cajeroPassword;
+
+    @Value("${app.seed.barbero-password}")
+    private String barberoPassword;
+
     @Override
     @Transactional
     public void run(String... args) throws Exception {
         log.info("Iniciando Data Seeder...");
+        if ("admin123".equals(adminPassword)) {
+            log.warn("SEED_ADMIN_PASSWORD no está configurada: el admin inicial usará la clave por defecto. Cámbiela desde Usuarios.");
+        }
 
         try {
             jdbcTemplate.execute("ALTER TABLE empresas ALTER COLUMN logo_url TYPE TEXT;");
@@ -132,13 +143,10 @@ public class DataSeeder implements CommandLineRunner {
         Role roleBarbero = createRoleIfNotFound("BARBERO", "Especialista del Salón", portalSalon, barberoPerms);
 
         // 4. Crear Usuarios por Defecto
-        Usuario admin = createUserIfNotFound("admin@salon.com", "admin123", Set.of(roleAdmin));
-        admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setEstado(true);
-        usuarioRepository.save(admin);
-        
-        createUserIfNotFound("caja@salon.com", "caja123", Set.of(roleCajero));
-        createUserIfNotFound("juan@salon.com", "juan123", Set.of(roleBarbero));
+        // Sólo se crean si no existen: no se sobrescribe la contraseña que el administrador haya cambiado
+        createUserIfNotFound("admin@salon.com", adminPassword, Set.of(roleAdmin));
+        createUserIfNotFound("caja@salon.com", cajeroPassword, Set.of(roleCajero));
+        createUserIfNotFound("juan@salon.com", barberoPassword, Set.of(roleBarbero));
 
         // 5. Crear Empresa por Defecto
         createEmpresaIfNotFound("Mi Salón VIP", "Mi Salón S.A.C.", "20123456789");

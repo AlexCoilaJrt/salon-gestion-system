@@ -117,6 +117,10 @@ export class HeaderComponent implements OnInit {
 
     this.initForm();
 
+    // Empresa y tiempo de sesión son configuración global: el backend sólo la permite al ADMIN
+    const roles: string[] = this.currentUser()?.roles || [];
+    const isAdmin = roles.some(r => ['ADMIN', 'ROLE_ADMIN', 'ADMINISTRADOR'].includes(String(r).toUpperCase()));
+
     this.profileMenuItems = [
       {
         label: 'Mi Perfil',
@@ -128,6 +132,7 @@ export class HeaderComponent implements OnInit {
       {
         label: 'Configurar Empresa',
         icon: 'pi pi-cog',
+        visible: isAdmin,
         command: () => {
           this.abrirModalEmpresa();
         }
@@ -135,6 +140,7 @@ export class HeaderComponent implements OnInit {
       {
         label: 'Tiempo de Sesión',
         icon: 'pi pi-clock',
+        visible: isAdmin,
         command: () => {
           this.abrirModalSesion();
         }
