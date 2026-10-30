@@ -47,7 +47,7 @@ docker compose up -d
 if errorlevel 1 (
     echo.
     echo [ERROR] Ocurrio un problema al levantar los contenedores.
-    echo Revisa que los puertos 80, 4200, 8080 y 5432 no esten ocupados.
+    echo Revisa que los puertos 80, 4200, 8080 y 5433 no esten ocupados.
     echo.
     pause
     exit /b 1

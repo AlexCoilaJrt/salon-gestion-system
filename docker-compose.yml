@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
     ports:
       # Sólo accesible desde esta PC (backups/DBeaver). Para abrirla a la red: POSTGRES_BIND=0.0.0.0
-      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5433}:5432"
     volumes:
       - salon_postgres_data:/var/lib/postgresql/data
     healthcheck:
