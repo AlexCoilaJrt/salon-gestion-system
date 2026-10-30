@@ -14,6 +14,7 @@ import pe.com.salon.salongestionapi.rrhh.entity.EstadoLiquidacion;
 import pe.com.salon.salongestionapi.rrhh.entity.Liquidacion;
 import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.rrhh.repository.LiquidacionRrhhRepository;
+import pe.com.salon.salongestionapi.rrhh.service.IncentivoService;
 import pe.com.salon.salongestionapi.rrhh.service.LiquidacionService;
 
 import java.math.BigDecimal;
@@ -27,6 +28,7 @@ public class LiquidacionServiceImpl implements LiquidacionService {
     private final LiquidacionRrhhRepository liquidacionRepository;
     private final EmpleadoRepository empleadoRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final IncentivoService incentivoService;
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
@@ -75,19 +77,58 @@ public class LiquidacionServiceImpl implements LiquidacionService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<LiquidacionResponse> obtenerPorEmpleado(Long empleadoId) {
         return liquidacionRepository.findByEmpleadoId(empleadoId).stream()
+                .map(this::recalcularSiPendiente)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<LiquidacionResponse> obtenerTodas() {
         return liquidacionRepository.findAll().stream()
+                .map(this::recalcularSiPendiente)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Una liquidación PENDIENTE refleja siempre las ventas actuales del periodo (nuevas ventas, anulaciones).
+     * Las PAGADAS/RETENIDAS/ANULADAS quedan congeladas con el monto con que se cerraron.
+     */
+    private Liquidacion recalcularSiPendiente(Liquidacion liquidacion) {
+        if (liquidacion.getEstado() != EstadoLiquidacion.PENDIENTE) {
+            return liquidacion;
+        }
+        LiquidacionResponse calculo = incentivoService.calcularLiquidacionEmpleado(
+                liquidacion.getEmpleado().getId(), liquidacion.getFechaInicio(), liquidacion.getFechaFin());
+
+        BigDecimal descuentos = liquidacion.getDescuentos() != null ? liquidacion.getDescuentos() : BigDecimal.ZERO;
+        BigDecimal total = calculo.getSueldoFijoProporcional().add(calculo.getTotalComision()).subtract(descuentos);
+
+        boolean cambio = !mismoMonto(liquidacion.getTotalVentas(), calculo.getTotalVentas())
+                || !mismoMonto(liquidacion.getTotalComision(), calculo.getTotalComision())
+                || !mismoMonto(liquidacion.getSueldoFijoProporcional(), calculo.getSueldoFijoProporcional())
+                || !mismoMonto(liquidacion.getTotalAPagar(), total);
+        if (!cambio) {
+            return liquidacion;
+        }
+
+        liquidacion.setTotalVentas(calculo.getTotalVentas());
+        liquidacion.setTotalComision(calculo.getTotalComision());
+        liquidacion.setSueldoFijoProporcional(calculo.getSueldoFijoProporcional());
+        liquidacion.setDiasAsistidos(calculo.getDiasAsistidos());
+        liquidacion.setTotalAPagar(total);
+        return liquidacionRepository.save(liquidacion);
+    }
+
+    private boolean mismoMonto(BigDecimal a, BigDecimal b) {
+        if (a == null || b == null) {
+            return a == b;
+        }
+        return a.compareTo(b) == 0;
     }
 
     @Override

@@ -286,66 +286,81 @@ public class IncentivoServiceImpl implements IncentivoService {
         List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
 
         for (Empleado empleado : empleadosActivos) {
-            pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse response = new pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse();
-            response.setEmpleadoId(empleado.getId());
-            response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
-
-            // 1. Calcular Sueldo Fijo Proporcional
-            BigDecimal sueldoFijo = empleado.getSueldoFijo() != null ? empleado.getSueldoFijo() : BigDecimal.ZERO;
-            
-            // Fallback: Si el sueldo fijo está en 0 en la entidad Empleado, buscar en Especialidades
-            if (sueldoFijo.compareTo(BigDecimal.ZERO) == 0 && empleado.getEspecialidades() != null) {
-                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
-                    if (esp.getEstado() && ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago()))) {
-                        if (esp.getMontoFijo() != null) {
-                            sueldoFijo = sueldoFijo.add(esp.getMontoFijo());
-                        }
-                    }
-                }
-            }
-
-            LocalDate fechaIngreso = empleado.getFechaIngreso();
-            BigDecimal sueldoFijoProporcional = sueldoFijo;
-            long diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
-
-            if (fechaIngreso != null) {
-                if (fechaIngreso.isAfter(fechaFin)) {
-                    diasTrabajados = 0;
-                    sueldoFijoProporcional = BigDecimal.ZERO;
-                } else if (fechaIngreso.isAfter(fechaInicio)) {
-                    diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaIngreso, fechaFin) + 1;
-                    long diasEnPeriodo = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
-                    if (diasEnPeriodo > 0 && sueldoFijo.compareTo(BigDecimal.ZERO) > 0) {
-                        sueldoFijoProporcional = sueldoFijo.multiply(new BigDecimal(diasTrabajados))
-                                .divide(new BigDecimal(diasEnPeriodo), 2, java.math.RoundingMode.HALF_UP);
-                    }
-                }
-            }
-            
-            response.setDiasAsistidos((int) diasTrabajados);
-            response.setSueldoFijoProporcional(sueldoFijoProporcional);
-
-            // 2. Ventas en el periodo
-            BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
-            response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
-
-            // 3. Comisiones exactas por servicio (mismo cálculo que el desglose de la liquidación)
-            BigDecimal comisionGanadaTotal = calcularLineasLiquidacion(empleado.getId(), inicioPeriodo, finPeriodo, incentivosActivos)
-                    .stream()
-                    .map(DetalleLiquidacionResponse::getComision)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            response.setTotalComision(comisionGanadaTotal);
-
-            // 4. Descuentos y Total
-            response.setDescuentosAdelantos(BigDecimal.ZERO);
-            BigDecimal totalPagar = response.getSueldoFijoProporcional().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
-            response.setTotalPagar(totalPagar);
-
-            liquidaciones.add(response);
+            liquidaciones.add(calcularLiquidacion(empleado, fechaInicio, fechaFin, inicioPeriodo, finPeriodo, incentivosActivos));
         }
 
         return liquidaciones;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacionEmpleado(Long empleadoId, LocalDate fechaInicio, LocalDate fechaFin) {
+        Empleado empleado = empleadoRepository.findById(empleadoId)
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con id: " + empleadoId));
+        List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
+        return calcularLiquidacion(empleado, fechaInicio, fechaFin, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59), incentivosActivos);
+    }
+
+    private pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacion(Empleado empleado, LocalDate fechaInicio, LocalDate fechaFin,
+                                                                                         LocalDateTime inicioPeriodo, LocalDateTime finPeriodo,
+                                                                                         List<IncentivoComision> incentivosActivos) {
+        pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse response = new pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse();
+        response.setEmpleadoId(empleado.getId());
+        response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
+
+        // 1. Calcular Sueldo Fijo Proporcional
+        BigDecimal sueldoFijo = empleado.getSueldoFijo() != null ? empleado.getSueldoFijo() : BigDecimal.ZERO;
+        
+        // Fallback: Si el sueldo fijo está en 0 en la entidad Empleado, buscar en Especialidades
+        if (sueldoFijo.compareTo(BigDecimal.ZERO) == 0 && empleado.getEspecialidades() != null) {
+            for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
+                if (esp.getEstado() && ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago()))) {
+                    if (esp.getMontoFijo() != null) {
+                        sueldoFijo = sueldoFijo.add(esp.getMontoFijo());
+                    }
+                }
+            }
+        }
+
+        LocalDate fechaIngreso = empleado.getFechaIngreso();
+        BigDecimal sueldoFijoProporcional = sueldoFijo;
+        long diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
+
+        if (fechaIngreso != null) {
+            if (fechaIngreso.isAfter(fechaFin)) {
+                diasTrabajados = 0;
+                sueldoFijoProporcional = BigDecimal.ZERO;
+            } else if (fechaIngreso.isAfter(fechaInicio)) {
+                diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaIngreso, fechaFin) + 1;
+                long diasEnPeriodo = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
+                if (diasEnPeriodo > 0 && sueldoFijo.compareTo(BigDecimal.ZERO) > 0) {
+                    sueldoFijoProporcional = sueldoFijo.multiply(new BigDecimal(diasTrabajados))
+                            .divide(new BigDecimal(diasEnPeriodo), 2, java.math.RoundingMode.HALF_UP);
+                }
+            }
+        }
+        
+        response.setDiasAsistidos((int) diasTrabajados);
+        response.setSueldoFijoProporcional(sueldoFijoProporcional);
+
+        // 2. Ventas en el periodo
+        BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
+        response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
+
+        // 3. Comisiones exactas por servicio (mismo cálculo que el desglose de la liquidación)
+        BigDecimal comisionGanadaTotal = calcularLineasLiquidacion(empleado.getId(), inicioPeriodo, finPeriodo, incentivosActivos)
+                .stream()
+                .map(DetalleLiquidacionResponse::getComision)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        response.setTotalComision(comisionGanadaTotal);
+
+        // 4. Descuentos y Total
+        response.setDescuentosAdelantos(BigDecimal.ZERO);
+        BigDecimal totalPagar = response.getSueldoFijoProporcional().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
+        response.setTotalPagar(totalPagar);
+
+        return response;
     }
 
     @Override
