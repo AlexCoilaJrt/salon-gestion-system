@@ -113,6 +113,8 @@ public class SecurityConfig {
                 writeRule(auth, new String[]{"/api/v1/productos/**"}, PRODUCTOS, INVENTARIO);
                 writeRule(auth, new String[]{"/api/operaciones/citas/**"}, AGENDA);
                 writeRule(auth, new String[]{"/api/operaciones/clientes/**"}, AGENDA, POS, CAJA);
+                auth.requestMatchers(HttpMethod.DELETE, "/api/operaciones/tickets/**").hasAnyAuthority(ADMIN_ROLES);
+                auth.requestMatchers(HttpMethod.PUT, "/api/operaciones/tickets/*/precios").hasAnyAuthority(ADMIN_ROLES);
                 writeRule(auth, new String[]{"/api/operaciones/tickets/**"}, POS, CAJA, FACTURACION);
                 writeRule(auth, new String[]{"/api/operaciones/caja/**"}, CAJA);
                 writeRule(auth, new String[]{"/api/operaciones/egresos/**", "/api/finanzas/gastos/**"}, EGRESOS, CAJA);

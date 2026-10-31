@@ -52,4 +52,19 @@ public class TicketController {
     public ResponseEntity<TicketResponse> pagarTicket(@PathVariable Long id, @Valid @RequestBody TicketRequest request) {
         return ResponseEntity.ok(ticketService.pagarTicket(id, request));
     }
+
+    @DeleteMapping("/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ADMINISTRADOR') or hasAuthority('ADMIN')")
+    public ResponseEntity<Void> eliminarTicketPendiente(@PathVariable Long id) {
+        ticketService.eliminarTicketPendiente(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/precios")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'ADMINISTRADOR') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_ADMINISTRADOR') or hasAuthority('ADMIN')")
+    public ResponseEntity<TicketResponse> actualizarPreciosTicket(
+            @PathVariable Long id,
+            @Valid @RequestBody pe.com.salon.salongestionapi.operaciones.dto.ActualizarPreciosTicketRequest request) {
+        return ResponseEntity.ok(ticketService.actualizarPreciosTicket(id, request));
+    }
 }

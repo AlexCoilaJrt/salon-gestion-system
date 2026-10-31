@@ -19,8 +19,8 @@ export class MonitorComisionesComponent implements OnInit {
   nodes: TreeNode[] = [];
   loading = false;
   
-  // Modos de filtro: 'hoy' | 'semana' | 'dia' | 'rango'
-  modoFiltro: 'hoy' | 'semana' | 'dia' | 'rango' = 'hoy';
+  // Modos de filtro: 'hoy' | 'semana' | 'mes' | 'dia' | 'rango'
+  modoFiltro: 'hoy' | 'semana' | 'mes' | 'dia' | 'rango' = 'hoy';
   fechaSeleccionada: Date = new Date();
   fechaCalendarDia: Date = new Date();
   rangoFechas: Date[] = [];
@@ -80,6 +80,17 @@ export class MonitorComisionesComponent implements OnInit {
     this.loadMonitor();
   }
 
+  setFiltroMes(referencia: Date = new Date()): void {
+    this.modoFiltro = 'mes';
+    this.fechaSeleccionada = referencia;
+    const primerDia = new Date(referencia.getFullYear(), referencia.getMonth(), 1);
+    const ultimoDia = new Date(referencia.getFullYear(), referencia.getMonth() + 1, 0);
+    this.fechaInicioStr = this.formatDate(primerDia);
+    this.fechaFinStr = this.formatDate(ultimoDia);
+    this.actualizarFechaDisplay(primerDia, ultimoDia);
+    this.loadMonitor();
+  }
+
   setFiltroDia(fecha: Date): void {
     if (!fecha) return;
     this.modoFiltro = 'dia';
@@ -127,6 +138,10 @@ export class MonitorComisionesComponent implements OnInit {
       const inicio = new Date(this.fechaInicioStr + 'T00:00:00');
       inicio.setDate(inicio.getDate() + (direccion * 7));
       this.setFiltroSemana(inicio);
+    } else if (this.modoFiltro === 'mes') {
+      const nueva = new Date(this.fechaSeleccionada);
+      nueva.setMonth(nueva.getMonth() + direccion);
+      this.setFiltroMes(nueva);
     }
   }
 
@@ -146,6 +161,9 @@ export class MonitorComisionesComponent implements OnInit {
       } else {
         this.fechaDisplay = `Semana del ${this.fechaInicioStr} al ${this.fechaFinStr}`;
       }
+    } else if (this.modoFiltro === 'mes') {
+      const d = this.fechaSeleccionada;
+      this.fechaDisplay = `Mes completo · ${meses[d.getMonth()]} ${d.getFullYear()}`;
     } else if (this.modoFiltro === 'rango') {
       if (fInicio && fFin) {
         this.fechaDisplay = `Rango: ${fInicio.getDate()}/${fInicio.getMonth()+1}/${fInicio.getFullYear()} - ${fFin.getDate()}/${fFin.getMonth()+1}/${fFin.getFullYear()}`;
@@ -158,6 +176,7 @@ export class MonitorComisionesComponent implements OnInit {
   get columnaVentasTitulo(): string {
     if (this.modoFiltro === 'hoy') return 'Ventas Hoy (S/)';
     if (this.modoFiltro === 'semana') return 'Ventas Semana (S/)';
+    if (this.modoFiltro === 'mes') return 'Ventas del Mes (S/)';
     if (this.modoFiltro === 'dia') return 'Ventas del Día (S/)';
     return 'Ventas Período (S/)';
   }
@@ -165,6 +184,7 @@ export class MonitorComisionesComponent implements OnInit {
   get columnaGananciaTitulo(): string {
     if (this.modoFiltro === 'hoy') return 'Ganancia Hoy (S/)';
     if (this.modoFiltro === 'semana') return 'Ganancia Semana (S/)';
+    if (this.modoFiltro === 'mes') return 'Ganancia del Mes (S/)';
     if (this.modoFiltro === 'dia') return 'Ganancia del Día (S/)';
     return 'Ganancia Período (S/)';
   }
@@ -188,8 +208,46 @@ export class MonitorComisionesComponent implements OnInit {
     });
   }
 
+  expandirTodo(): void {
+    this.nodes = this.nodes.map(n => ({
+      ...n,
+      expanded: true
+    }));
+    this.cd.markForCheck();
+  }
+
+  colapsarTodo(): void {
+    this.nodes = this.nodes.map(n => ({
+      ...n,
+      expanded: false
+    }));
+    this.cd.markForCheck();
+  }
+
+  toggleNode(node: TreeNode): void {
+    if (node.children && node.children.length > 0) {
+      node.expanded = !node.expanded;
+      this.nodes = [...this.nodes];
+      this.cd.markForCheck();
+    }
+  }
+
   transformToTreeNodes(monitores: MonitorComision[]): TreeNode[] {
     return monitores.map(monitor => {
+      const children = monitor.detallesServicios ? monitor.detallesServicios.map(detalle => ({
+        data: {
+          nombre: detalle.servicioNombre,
+          categoriaNombre: detalle.categoriaNombre,
+          especialidadAplicada: detalle.especialidadAplicada,
+          tipoPago: detalle.tipoPago,
+          precioCobrado: detalle.precioCobrado,
+          porcentajeAplicado: detalle.porcentajeAplicado,
+          comisionesGanadasHoy: detalle.comisionGanada,
+          fechaHora: detalle.fechaHora,
+          isRoot: false
+        }
+      })) : [];
+
       return {
         data: {
           empleadoId: monitor.empleadoId,
@@ -204,19 +262,8 @@ export class MonitorComisionesComponent implements OnInit {
           comisionesGanadasHoy: monitor.comisionesGanadasHoy,
           isRoot: true
         },
-        children: monitor.detallesServicios ? monitor.detallesServicios.map(detalle => ({
-          data: {
-            nombre: detalle.servicioNombre,
-            categoriaNombre: detalle.categoriaNombre,
-            especialidadAplicada: detalle.especialidadAplicada,
-            tipoPago: detalle.tipoPago,
-            precioCobrado: detalle.precioCobrado,
-            porcentajeAplicado: detalle.porcentajeAplicado,
-            comisionesGanadasHoy: detalle.comisionGanada,
-            fechaHora: detalle.fechaHora,
-            isRoot: false
-          }
-        })) : []
+        children: children,
+        expanded: children.length > 0
       };
     });
   }

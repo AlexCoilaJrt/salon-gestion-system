@@ -1,6 +1,7 @@
 package pe.com.salon.salongestionapi.catalogo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import pe.com.salon.salongestionapi.catalogo.dto.ServicioRequest;
 import pe.com.salon.salongestionapi.catalogo.dto.ServicioResponse;
@@ -28,7 +29,10 @@ public class ServicioService {
     private final ProductoRepository productoRepository;
 
     public List<ServicioResponse> listarTodos() {
-        return servicioRepository.findAll().stream()
+        return servicioRepository.findAll(Sort.by(
+                Sort.Order.asc("orden").nullsLast(),
+                Sort.Order.asc("id")
+        )).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -49,6 +53,7 @@ public class ServicioService {
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
         servicio.setImageUrl(request.getImageUrl());
         servicio.setEstado(true);
+        servicio.setOrden(request.getOrden() != null ? request.getOrden() : 0);
 
         Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadRequeridaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada con id: " + request.getEspecialidadRequeridaId()));
@@ -79,6 +84,9 @@ public class ServicioService {
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
         if (request.getImageUrl() != null) {
             servicio.setImageUrl(request.getImageUrl());
+        }
+        if (request.getOrden() != null) {
+            servicio.setOrden(request.getOrden());
         }
 
         if (!servicio.getEspecialidadRequerida().getId().equals(request.getEspecialidadRequeridaId())) {
@@ -123,6 +131,7 @@ public class ServicioService {
         response.setCostoMaterial(servicio.getCostoMaterial());
         response.setImageUrl(servicio.getImageUrl());
         response.setEstado(servicio.getEstado());
+        response.setOrden(servicio.getOrden() != null ? servicio.getOrden() : 0);
         if (servicio.getEspecialidadRequerida() != null) {
             response.setEspecialidadRequeridaId(servicio.getEspecialidadRequerida().getId());
             response.setEspecialidadRequeridaNombre(servicio.getEspecialidadRequerida().getNombre());

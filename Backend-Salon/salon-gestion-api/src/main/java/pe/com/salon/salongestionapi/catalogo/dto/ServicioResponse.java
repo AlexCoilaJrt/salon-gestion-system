@@ -22,4 +22,6 @@ public class ServicioResponse {
     private List<ProductoResponse> insumos;
 
     private String imageUrl;
+
+    private Integer orden;
 }

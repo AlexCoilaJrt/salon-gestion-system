@@ -36,4 +36,16 @@ public class SesionCajaController {
     public ResponseEntity<pe.com.salon.salongestionapi.operaciones.dto.ResumenCajaResponse> obtenerResumenActual() {
         return ResponseEntity.ok(sesionCajaService.obtenerResumenActual());
     }
+
+    @GetMapping("/totales-periodo")
+    public ResponseEntity<pe.com.salon.salongestionapi.operaciones.dto.TotalesPeriodoResponse> obtenerTotalesPeriodo() {
+        return ResponseEntity.ok(sesionCajaService.obtenerTotalesPeriodo());
+    }
+
+    @GetMapping("/movimientos")
+    public ResponseEntity<pe.com.salon.salongestionapi.operaciones.dto.MovimientosCajaResponse> obtenerMovimientosPeriodo(
+            @RequestParam(required = false, defaultValue = "TURNO") String periodo,
+            @RequestParam(required = false) String fecha) {
+        return ResponseEntity.ok(sesionCajaService.obtenerMovimientosPeriodo(periodo, fecha));
+    }
 }

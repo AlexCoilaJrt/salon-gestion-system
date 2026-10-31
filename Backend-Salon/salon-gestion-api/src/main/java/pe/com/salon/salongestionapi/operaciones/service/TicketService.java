@@ -26,12 +26,17 @@ import pe.com.salon.salongestionapi.fidelizacion.service.FidelizacionService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TicketService {
+
+    private static final ZoneId ZONE_PERU = ZoneId.of("America/Lima");
 
     private final TicketRepository ticketRepository;
     private final SesionCajaRepository sesionCajaRepository;
@@ -66,7 +71,7 @@ public class TicketService {
 
         // 2. Preparar cabecera de la Orden
         Ticket ticket = new Ticket();
-        ticket.setFechaEmision(LocalDateTime.now());
+        ticket.setFechaEmision(LocalDateTime.now(ZONE_PERU));
         ticket.setEstado(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO);
         ticket.setMetodoPago(pe.com.salon.salongestionapi.operaciones.entity.MetodoPago.POR_DEFINIR);
         ticket.setSesionCaja(sesionActiva);
@@ -142,8 +147,9 @@ public class TicketService {
 
         // 3. Preparar cabecera del Ticket
         Ticket ticket = new Ticket();
-        ticket.setFechaEmision(LocalDateTime.now());
+        ticket.setFechaEmision(LocalDateTime.now(ZONE_PERU));
         ticket.setMetodoPago(request.getMetodoPago());
+        ticket.setEstado(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO);
         ticket.setCliente(cliente);
         ticket.setNombreClienteNoRegistrado(request.getNombreClienteNoRegistrado());
         ticket.setSesionCaja(sesionActiva);
@@ -217,32 +223,8 @@ public class TicketService {
             cliente.setFechaUltimaVisita(LocalDate.now());
             clienteRepository.save(cliente);
 
-            // Procesar Cartillas de Fidelización (Sellos automáticos): Máximo 1 sello por ticket
-            // Si el cliente eligió a qué servicio aplicarlo, usamos ese. Si no, tomamos el más caro por defecto.
-            Long servicioPrioridadId = request.getServicioSelloId();
-
-            List<TicketDetalle> detallesFiltrados = guardado.getDetalles().stream()
-                .filter(d -> d.getServicio() != null)
-                .collect(Collectors.toList());
-
-            if (servicioPrioridadId != null) {
-                // Poner el servicio elegido por el cliente de primero en la lista
-                detallesFiltrados.sort((d1, d2) -> {
-                    if (d1.getServicio().getId().equals(servicioPrioridadId)) return -1;
-                    if (d2.getServicio().getId().equals(servicioPrioridadId)) return 1;
-                    return d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()); // Fallback: ordenar por precio
-                });
-            } else {
-                // Si no eligió nada, simplemente ordenar por el más caro
-                detallesFiltrados.sort((d1, d2) -> d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()));
-            }
-
-            for (TicketDetalle d : detallesFiltrados) {
-                boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
-                if (selloAgregado) {
-                    break; // Solo otorgamos 1 sello por visita/ticket
-                }
-            }
+            // Procesar Cartillas de Fidelización (Sellos para los servicios seleccionados o todos)
+            procesarSellosFidelizacion(cliente, guardado.getDetalles(), request);
 
             // Procesar canje de premios en bloque (al confirmar el ticket)
             if (request.getPremiosFidelizacionIds() != null && !request.getPremiosFidelizacionIds().isEmpty()) {
@@ -270,7 +252,7 @@ public class TicketService {
     }
 
     public List<TicketResponse> obtenerTicketsPendientes() {
-        return ticketRepository.findByEstadoOrderByFechaEmisionDesc(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO).stream()
+        return ticketRepository.findByEstadoAndActivoTrueOrderByFechaEmisionDesc(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -290,12 +272,24 @@ public class TicketService {
         ticket.setMetodoPago(request.getMetodoPago());
         ticket.setSesionCaja(sesionActiva);
         ticket.setEstado(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO);
+        ticket.setFechaEmision(LocalDateTime.now(ZONE_PERU));
         
         // Asignar empleados desde el request a los detalles existentes
         for (int i = 0; i < ticket.getDetalles().size(); i++) {
             TicketDetalle detalle = ticket.getDetalles().get(i);
-            if (i < request.getDetalles().size() && request.getDetalles().get(i).getEmpleadoId() != null) {
-                Long empId = request.getDetalles().get(i).getEmpleadoId();
+            pe.com.salon.salongestionapi.operaciones.dto.TicketDetalleRequest matchedReq = null;
+            if (detalle.getId() != null && request.getDetalles() != null) {
+                matchedReq = request.getDetalles().stream()
+                        .filter(r -> detalle.getId().equals(r.getId()))
+                        .findFirst()
+                        .orElse(null);
+            }
+            if (matchedReq == null && request.getDetalles() != null && i < request.getDetalles().size()) {
+                matchedReq = request.getDetalles().get(i);
+            }
+
+            if (matchedReq != null && matchedReq.getEmpleadoId() != null) {
+                Long empId = matchedReq.getEmpleadoId();
                 Empleado empleado = empleadoRepository.findById(empId)
                         .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + empId));
                 detalle.setEmpleado(empleado);
@@ -312,27 +306,8 @@ public class TicketService {
             cliente.setFechaUltimaVisita(LocalDate.now());
             clienteRepository.save(cliente);
 
-            Long servicioPrioridadId = request.getServicioSelloId();
-            List<TicketDetalle> detallesFiltrados = guardado.getDetalles().stream()
-                .filter(d -> d.getServicio() != null)
-                .collect(Collectors.toList());
-
-            if (servicioPrioridadId != null) {
-                detallesFiltrados.sort((d1, d2) -> {
-                    if (d1.getServicio().getId().equals(servicioPrioridadId)) return -1;
-                    if (d2.getServicio().getId().equals(servicioPrioridadId)) return 1;
-                    return d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()); 
-                });
-            } else {
-                detallesFiltrados.sort((d1, d2) -> d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()));
-            }
-
-            for (TicketDetalle d : detallesFiltrados) {
-                boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
-                if (selloAgregado) {
-                    break;
-                }
-            }
+            // Procesar Cartillas de Fidelización (Sellos para los servicios seleccionados o todos)
+            procesarSellosFidelizacion(cliente, guardado.getDetalles(), request);
 
             if (request.getPremiosFidelizacionIds() != null && !request.getPremiosFidelizacionIds().isEmpty()) {
                 for (Long cartillaId : request.getPremiosFidelizacionIds()) {
@@ -376,7 +351,61 @@ public class TicketService {
         return mapToResponse(ticket);
     }
 
-    private TicketResponse mapToResponse(Ticket ticket) {
+    @Transactional
+    public void eliminarTicketPendiente(Long ticketId) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Orden no encontrada con id: " + ticketId));
+
+        if (ticket.getEstado() != pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO) {
+            throw new RuntimeException("Solo se pueden eliminar órdenes en estado pendiente de pago.");
+        }
+
+        ticketRepository.delete(ticket);
+    }
+
+    @Transactional
+    public TicketResponse actualizarPreciosTicket(Long ticketId, pe.com.salon.salongestionapi.operaciones.dto.ActualizarPreciosTicketRequest request) {
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Orden no encontrada con id: " + ticketId));
+
+        if (ticket.getEstado() != pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PENDIENTE_PAGO) {
+            throw new RuntimeException("Solo se pueden corregir precios de órdenes en estado pendiente de pago.");
+        }
+
+        if (Boolean.FALSE.equals(ticket.getActivo())) {
+            throw new RuntimeException("La orden se encuentra anulada o inactiva.");
+        }
+
+        if (request.getDetalles() != null) {
+            for (pe.com.salon.salongestionapi.operaciones.dto.ActualizarPreciosTicketRequest.DetallePrecioItem itemReq : request.getDetalles()) {
+                if (itemReq.getId() != null) {
+                    ticket.getDetalles().stream()
+                            .filter(d -> itemReq.getId().equals(d.getId()))
+                            .findFirst()
+                            .ifPresent(detalle -> {
+                                if (itemReq.getPrecioUnitario() != null) {
+                                    detalle.setPrecioUnitario(itemReq.getPrecioUnitario());
+                                }
+                                if (itemReq.getCantidad() != null && itemReq.getCantidad() > 0) {
+                                    detalle.setCantidad(itemReq.getCantidad());
+                                }
+                                BigDecimal subtotal = detalle.getPrecioUnitario().multiply(BigDecimal.valueOf(detalle.getCantidad()));
+                                detalle.setSubtotal(subtotal);
+                            });
+                }
+            }
+        }
+
+        BigDecimal totalRecalculado = ticket.getDetalles().stream()
+                .map(pe.com.salon.salongestionapi.operaciones.entity.TicketDetalle::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        ticket.setTotal(totalRecalculado);
+        Ticket guardado = ticketRepository.save(ticket);
+        return mapToResponse(guardado);
+    }
+
+    public TicketResponse mapToResponse(Ticket ticket) {
         TicketResponse res = new TicketResponse();
         res.setId(ticket.getId());
         res.setFechaEmision(ticket.getFechaEmision());
@@ -424,6 +453,44 @@ public class TicketService {
 
         res.setDetalles(detallesRes);
         return res;
+    }
+
+    private void procesarSellosFidelizacion(Cliente cliente, List<TicketDetalle> detalles, TicketRequest request) {
+        if (cliente == null || cliente.getId().equals(1L)) return;
+
+        List<Long> serviciosSellosIds = request.getServiciosSellosIds();
+        
+        // Si el frontend envía la lista explícita de servicios seleccionados (puede ser todos o dinámico uno a uno)
+        if (serviciosSellosIds != null) {
+            Set<Long> serviciosUnicos = new HashSet<>(serviciosSellosIds);
+            for (Long sId : serviciosUnicos) {
+                fidelizacionService.procesarPagoServicio(cliente.getId(), sId);
+            }
+            return;
+        }
+
+        // Modo legacy: Si solo vino servicioSelloId o fallback al más caro (1 solo sello)
+        Long servicioPrioridadId = request.getServicioSelloId();
+        List<TicketDetalle> detallesFiltrados = detalles.stream()
+            .filter(d -> d.getServicio() != null)
+            .collect(Collectors.toList());
+
+        if (servicioPrioridadId != null) {
+            detallesFiltrados.sort((d1, d2) -> {
+                if (d1.getServicio().getId().equals(servicioPrioridadId)) return -1;
+                if (d2.getServicio().getId().equals(servicioPrioridadId)) return 1;
+                return d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario());
+            });
+        } else {
+            detallesFiltrados.sort((d1, d2) -> d2.getPrecioUnitario().compareTo(d1.getPrecioUnitario()));
+        }
+
+        for (TicketDetalle d : detallesFiltrados) {
+            boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
+            if (selloAgregado) {
+                break;
+            }
+        }
     }
 }
 

@@ -7,6 +7,8 @@ import lombok.Data;
 @Data
 public class TicketDetalleRequest {
 
+    private Long id;
+
     private Long servicioId;
     
     private Long productoId;

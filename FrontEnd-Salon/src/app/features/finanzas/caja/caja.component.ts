@@ -4,19 +4,23 @@ import { forkJoin } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { CajaService, SesionCaja } from '../services/caja.service';
 import { CatalogoService, Producto, Servicio } from '../../catalogo/services/catalogo.service';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ButtonModule } from 'primeng/button';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { DialogModule } from 'primeng/dialog';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { InputTextModule } from 'primeng/inputtext';
 import { DropdownModule } from 'primeng/dropdown';
 import { TableModule } from 'primeng/table';
 import { PaginatorModule } from 'primeng/paginator';
+import { CalendarModule } from 'primeng/calendar';
+import { TooltipModule } from 'primeng/tooltip';
 import { RrhhService, Empleado } from '../../rrhh/services/rrhh.service';
 import { EmpresaService, EmpresaResponse } from '../../../core/services/empresa.service';
+import { AuthService } from '../../../core/auth/services/auth.service';
 
 export interface VentaItem {
   id: number;
@@ -30,13 +34,30 @@ export interface TicketItem extends VentaItem {
   cantidad: number;
   subtotal: number;
   empleadoId?: number;
+  detalleId?: number;
 }
 
 @Component({
   selector: 'app-caja',
   standalone: true,
-  imports: [CommonModule, FormsModule, ToastModule, ButtonModule, InputNumberModule, AutoCompleteModule, DialogModule, SelectButtonModule, InputTextModule, DropdownModule, TableModule, PaginatorModule],
-  providers: [MessageService],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ToastModule, 
+    ConfirmDialogModule, 
+    ButtonModule, 
+    InputNumberModule, 
+    AutoCompleteModule, 
+    DialogModule, 
+    SelectButtonModule, 
+    InputTextModule, 
+    DropdownModule, 
+    TableModule, 
+    PaginatorModule,
+    CalendarModule,
+    TooltipModule
+  ],
+  providers: [MessageService, ConfirmationService],
   templateUrl: './caja.component.html'
 })
 export class CajaComponent implements OnInit {
@@ -44,7 +65,18 @@ export class CajaComponent implements OnInit {
   private catalogoService = inject(CatalogoService);
   private rrhhService = inject(RrhhService);
   private messageService = inject(MessageService);
+  private confirmationService = inject(ConfirmationService);
   private empresaService = inject(EmpresaService);
+  private authService = inject(AuthService);
+
+  get isAdmin(): boolean {
+    const user = this.authService.getCurrentUser();
+    const roles: any[] = user?.usuario?.roles || user?.roles || [];
+    return roles.some(r => {
+      const roleStr = typeof r === 'string' ? r.toUpperCase() : (r as any).nombre?.toUpperCase();
+      return roleStr === 'ADMIN' || roleStr === 'ROLE_ADMIN' || roleStr === 'ADMINISTRADOR';
+    });
+  }
 
   empresa = signal<EmpresaResponse | null>(null);
 
@@ -98,10 +130,47 @@ export class CajaComponent implements OnInit {
     this.itemsPorPaginaEspera = event.rows;
   }
 
-  // Dashboard de Caja
+  // Dashboard & Movimientos de Caja
   vistaActual: 'pos' | 'espera' | 'dashboard' = 'pos';
   ticketsDashboard: any[] = [];
   resumenDashboard: any = null;
+
+  // Nuevas métricas y filtros de período
+  totalesPeriodo: {
+    totalHoy: number;
+    cantidadVentasHoy: number;
+    totalSemana: number;
+    cantidadVentasSemana: number;
+    totalMes: number;
+    cantidadVentasMes: number;
+  } | null = null;
+  movimientosResumen: any = null;
+  periodoSeleccionado: 'TURNO' | 'HOY' | 'SEMANA' | 'MES' | 'FECHA' = 'TURNO';
+  fechaFiltroMovimientos: Date | null = null;
+  rankingTrabajadoras: any[] = [];
+  cargandoMovimientos: boolean = false;
+  trabajadoraSeleccionadaDetalle: any = null;
+  detalleTrabajadoraDialog: boolean = false;
+
+  // Filtro de búsqueda rápida en movimientos (cliente, ticket, empleado, servicio)
+  filtroTransacciones: string = '';
+
+  get ticketsDashboardFiltrados(): any[] {
+    if (!this.filtroTransacciones || !this.filtroTransacciones.trim()) {
+      return this.ticketsDashboard;
+    }
+    const term = this.filtroTransacciones.toLowerCase().trim();
+    return this.ticketsDashboard.filter(t => 
+      t.clienteNombreCompleto?.toLowerCase().includes(term) ||
+      t.id?.toString().includes(term) ||
+      t.metodoPago?.toLowerCase().includes(term) ||
+      t.detalles?.some((d: any) => 
+        d.empleadoNombreCompleto?.toLowerCase().includes(term) ||
+        d.servicioNombre?.toLowerCase().includes(term) ||
+        d.productoNombre?.toLowerCase().includes(term)
+      )
+    );
+  }
 
   cambiarVista(vista: 'pos' | 'espera' | 'dashboard') {
     this.vistaActual = vista;
@@ -111,10 +180,8 @@ export class CajaComponent implements OnInit {
   }
 
   cargarDatosDashboard() {
-    this.cajaService.obtenerTicketsCajaActual().subscribe({
-      next: (tickets) => this.ticketsDashboard = tickets,
-      error: () => this.ticketsDashboard = []
-    });
+    this.cargarTotalesPeriodo();
+    this.cargarMovimientosFiltrados();
     this.cajaService.obtenerResumenActual().subscribe({
       next: (res) => {
         this.resumenDashboard = res;
@@ -124,6 +191,59 @@ export class CajaComponent implements OnInit {
         this.resumenDashboard = null;
       }
     });
+  }
+
+  cargarTotalesPeriodo() {
+    this.cajaService.obtenerTotalesPeriodo().subscribe({
+      next: (data) => this.totalesPeriodo = data,
+      error: () => this.totalesPeriodo = null
+    });
+  }
+
+  cambiarPeriodoMovimientos(periodo: 'TURNO' | 'HOY' | 'SEMANA' | 'MES' | 'FECHA') {
+    this.periodoSeleccionado = periodo;
+    if (periodo !== 'FECHA') {
+      this.fechaFiltroMovimientos = null;
+      this.cargarMovimientosFiltrados();
+    }
+  }
+
+  onFechaFiltroChange() {
+    if (this.fechaFiltroMovimientos) {
+      this.periodoSeleccionado = 'FECHA';
+      this.cargarMovimientosFiltrados();
+    }
+  }
+
+  cargarMovimientosFiltrados() {
+    this.cargandoMovimientos = true;
+    let fechaStr: string | undefined = undefined;
+    if (this.periodoSeleccionado === 'FECHA' && this.fechaFiltroMovimientos) {
+      const d = this.fechaFiltroMovimientos;
+      const anio = d.getFullYear();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      fechaStr = `${anio}-${mes}-${dia}`;
+    }
+
+    this.cajaService.obtenerMovimientosPeriodo(this.periodoSeleccionado, fechaStr).subscribe({
+      next: (res) => {
+        this.movimientosResumen = res;
+        this.ticketsDashboard = res.tickets || [];
+        this.rankingTrabajadoras = res.rankingTrabajadoras || [];
+        this.cargandoMovimientos = false;
+      },
+      error: () => {
+        this.cargandoMovimientos = false;
+        this.ticketsDashboard = [];
+        this.rankingTrabajadoras = [];
+      }
+    });
+  }
+
+  abrirDetalleTrabajadora(trab: any) {
+    this.trabajadoraSeleccionadaDetalle = trab;
+    this.detalleTrabajadoraDialog = true;
   }
 
   fechaActual: Date = new Date();
@@ -318,6 +438,8 @@ export class CajaComponent implements OnInit {
       this.nombreCliente = '';
     }
     this.servicioSelloId = null;
+    this.serviciosSellosSeleccionados = this.serviciosEnTicket.map(s => s.id);
+    this.onEspecialistaIndividualChange();
     this.cobroDialog = true;
   }
 
@@ -333,6 +455,7 @@ export class CajaComponent implements OnInit {
     
     // Cargar los detalles al ticket actual para validar empleados
     this.ticket = ticketPendiente.detalles.map((d: any) => ({
+      detalleId: d.id,
       id: d.servicioId || d.productoId,
       nombre: d.servicioNombre || d.productoNombre,
       precio: d.precioUnitario,
@@ -344,6 +467,8 @@ export class CajaComponent implements OnInit {
     this.subtotalTicket = ticketPendiente.total;
     this.descuentoTicket = 0;
 
+    this.serviciosSellosSeleccionados = this.serviciosEnTicket.map(s => s.id);
+    this.onEspecialistaIndividualChange();
     this.cobroDialog = true;
   }
 
@@ -355,7 +480,6 @@ export class CajaComponent implements OnInit {
     }
   }
 
-
   get ticketNumero(): string {
     if (!this.ticketGenerado?.id) return '000001';
     return this.ticketGenerado.id.toString().padStart(6, '0');
@@ -366,6 +490,61 @@ export class CajaComponent implements OnInit {
   }
   
   servicioSelloId: number | null = null;
+  serviciosSellosSeleccionados: number[] = [];
+  especialistaTodosId: number | null = null;
+
+  get todosSellosSeleccionados(): boolean {
+    const servicios = this.serviciosEnTicket;
+    return servicios.length > 0 && servicios.every(s => this.serviciosSellosSeleccionados.includes(s.id));
+  }
+
+  toggleTodosSellos() {
+    if (this.todosSellosSeleccionados) {
+      this.serviciosSellosSeleccionados = [];
+    } else {
+      this.serviciosSellosSeleccionados = this.serviciosEnTicket.map(s => s.id);
+    }
+  }
+
+  toggleSelloServicio(servicioId: number) {
+    const index = this.serviciosSellosSeleccionados.indexOf(servicioId);
+    if (index > -1) {
+      this.serviciosSellosSeleccionados.splice(index, 1);
+    } else {
+      this.serviciosSellosSeleccionados.push(servicioId);
+    }
+  }
+
+  isSelloSeleccionado(servicioId: number): boolean {
+    return this.serviciosSellosSeleccionados.includes(servicioId);
+  }
+
+  asignarEspecialistaATodos(empleadoId: number | null | undefined) {
+    if (!empleadoId) return;
+    this.especialistaTodosId = empleadoId;
+    this.ticket.forEach(item => {
+      if (item.tipo === 'servicio') {
+        item.empleadoId = empleadoId;
+      }
+    });
+    const emp = this.empleados.find(e => e.id === empleadoId);
+    const nombre = emp ? (emp.nombreCompleto || emp.nombres) : 'Especialista';
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Especialista Asignada',
+      detail: `${nombre} asignada a todos los servicios seleccionados.`,
+      life: 2500
+    });
+  }
+
+  onEspecialistaIndividualChange() {
+    const servicios = this.serviciosEnTicket;
+    if (servicios.length > 0 && servicios.every(s => s.empleadoId && s.empleadoId === servicios[0].empleadoId)) {
+      this.especialistaTodosId = servicios[0].empleadoId || null;
+    } else {
+      this.especialistaTodosId = null;
+    }
+  }
 
   confirmarCobro() {
     if (this.metodoPago === 'Efectivo' && this.montoRecibido < this.totalTicket) {
@@ -386,6 +565,7 @@ export class CajaComponent implements OnInit {
     }
 
     const detallesRequest = this.ticket.map(item => ({
+      id: item.detalleId,
       cantidad: item.cantidad,
       servicioId: item.tipo === 'servicio' ? item.id : undefined,
       productoId: item.tipo === 'producto' ? item.id : undefined,
@@ -396,7 +576,8 @@ export class CajaComponent implements OnInit {
       metodoPago: this.metodoPago.toUpperCase(),
       nombreClienteNoRegistrado: this.nombreCliente || 'Público General',
       detalles: detallesRequest,
-      servicioSelloId: this.servicioSelloId || undefined
+      servicioSelloId: this.serviciosSellosSeleccionados.length === 1 ? this.serviciosSellosSeleccionados[0] : undefined,
+      serviciosSellosIds: this.serviciosSellosSeleccionados
     };
 
     if (this.ticketPendienteId) {
@@ -436,6 +617,17 @@ export class CajaComponent implements OnInit {
   observacionesCierre: string = '';
 
   abrirDialogoCierre() {
+    if (this.ticketsPendientes.length > 0) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Cierre de Caja Bloqueado',
+        detail: `No puedes cerrar caja porque hay ${this.ticketsPendientes.length} orden(es) en espera de pago. Debes cobrarlas o eliminarlas primero.`,
+        life: 5000
+      });
+      this.cambiarVista('espera');
+      return;
+    }
+
     this.cajaService.obtenerResumenActual().subscribe({
       next: (res) => {
         this.resumenCaja = res;
@@ -450,6 +642,15 @@ export class CajaComponent implements OnInit {
   }
 
   confirmarCierre() {
+    if (this.ticketsPendientes.length > 0) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Cierre Bloqueado',
+        detail: `Existen ${this.ticketsPendientes.length} órdenes en espera pendientes de cobro.`
+      });
+      return;
+    }
+
     this.cajaService.cerrarCaja({
       montoDeclarado: this.montoDeclarado,
       observaciones: this.observacionesCierre
@@ -461,6 +662,129 @@ export class CajaComponent implements OnInit {
       },
       error: (err) => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al cerrar caja.' });
+      }
+    });
+  }
+
+  confirmarEliminarOrden(event: Event, tp: any) {
+    event.stopPropagation();
+    if (!this.isAdmin) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Acceso Denegado',
+        detail: 'Solo el Administrador tiene permiso para eliminar órdenes en espera.'
+      });
+      return;
+    }
+
+    const cliente = tp.clienteNombreCompleto || 'Público General';
+    const total = Number(tp.total || 0).toFixed(2);
+
+    this.confirmationService.confirm({
+      target: event.target as EventTarget,
+      message: `¿Estás seguro de eliminar la Orden #${tp.id} (${cliente}) por S/ ${total}? Esta acción cancelará la orden pendiente de pago y no se podrá deshacer.`,
+      header: 'Confirmar Eliminación de Orden',
+      icon: 'pi pi-exclamation-triangle text-red-500',
+      acceptLabel: 'Sí, eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-text',
+      accept: () => {
+        this.eliminarOrden(tp.id);
+      }
+    });
+  }
+
+  eliminarOrden(id: number) {
+    this.cajaService.eliminarTicketPendiente(id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Orden Eliminada',
+          detail: `La orden #${id} fue eliminada correctamente.`
+        });
+        this.cargarTicketsPendientes();
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.error?.message || 'No se pudo eliminar la orden en espera.'
+        });
+      }
+    });
+  }
+
+  // Edición de Precios de Orden en Espera (Solo Administrador)
+  editarPreciosDialog: boolean = false;
+  ordenParaEditar: any = null;
+  detallesEdicion: {
+    id: number;
+    nombre: string;
+    cantidad: number;
+    precioUnitario: number;
+    subtotal: number;
+  }[] = [];
+  guardandoPrecios: boolean = false;
+
+  abrirEditarPrecios(event: Event, tp: any) {
+    event.stopPropagation();
+    this.ordenParaEditar = tp;
+    this.detallesEdicion = (tp.detalles || []).map((d: any) => {
+      const cant = Number(d.cantidad) || 1;
+      const pu = Number(d.precioUnitario) || 0;
+      return {
+        id: d.id,
+        nombre: d.servicioNombre || d.productoNombre || 'Servicio',
+        cantidad: cant,
+        precioUnitario: pu,
+        subtotal: pu * cant
+      };
+    });
+    this.editarPreciosDialog = true;
+  }
+
+  recalcularSubtotalEdicion(item: any) {
+    item.cantidad = Math.max(1, Number(item.cantidad) || 1);
+    item.precioUnitario = Math.max(0, Number(item.precioUnitario) || 0);
+    item.subtotal = item.cantidad * item.precioUnitario;
+  }
+
+  get totalEdicion(): number {
+    return this.detallesEdicion.reduce((sum, item) => sum + (item.subtotal || 0), 0);
+  }
+
+  guardarNuevosPrecios() {
+    if (!this.ordenParaEditar) return;
+    this.guardandoPrecios = true;
+
+    const request = {
+      detalles: this.detallesEdicion.map(d => ({
+        id: d.id,
+        precioUnitario: d.precioUnitario,
+        cantidad: d.cantidad
+      }))
+    };
+
+    this.cajaService.actualizarPreciosTicket(this.ordenParaEditar.id, request).subscribe({
+      next: (res) => {
+        this.guardandoPrecios = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Precios Actualizados',
+          detail: `Se corrigieron los precios de la orden #${this.ordenParaEditar.id}.`
+        });
+        this.editarPreciosDialog = false;
+        this.ordenParaEditar = null;
+        this.cargarTicketsPendientes();
+      },
+      error: (err) => {
+        this.guardandoPrecios = false;
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.error?.message || 'No se pudieron actualizar los precios de la orden.'
+        });
       }
     });
   }

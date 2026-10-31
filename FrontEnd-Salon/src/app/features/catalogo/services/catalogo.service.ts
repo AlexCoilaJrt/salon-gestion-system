@@ -28,6 +28,7 @@ export interface Servicio {
   insumosIds?: number[];
   insumos?: Producto[];
   imageUrl?: string;
+  orden?: number;
 }
 
 export interface Producto {

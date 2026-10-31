@@ -39,4 +39,6 @@ public class ServicioRequest {
     private List<Long> insumosIds;
 
     private String imageUrl;
+
+    private Integer orden;
 }

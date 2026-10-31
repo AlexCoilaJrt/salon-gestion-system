@@ -62,8 +62,11 @@ export class ServiciosComponent implements OnInit {
     this.catalogoService.getServicios().subscribe({
       next: (data) => {
         data.sort((a, b) => {
-          if (a.estado === b.estado) return (a.id || 0) - (b.id || 0);
-          return a.estado ? -1 : 1;
+          if (a.estado !== b.estado) return a.estado ? -1 : 1;
+          const ordenA = a.orden ?? 0;
+          const ordenB = b.orden ?? 0;
+          if (ordenA !== ordenB) return ordenA - ordenB;
+          return (a.id || 0) - (b.id || 0);
         });
         this.servicios = data;
         this.loading = false;
@@ -124,7 +127,8 @@ export class ServiciosComponent implements OnInit {
       costoMaterial: 0,
       categoriaId: 0,
       especialidadRequeridaId: 0,
-      insumosIds: []
+      insumosIds: [],
+      orden: 0
     };
   }
 
@@ -139,6 +143,7 @@ export class ServiciosComponent implements OnInit {
   editServicio(serv: Servicio) {
     this.servicio = { 
       ...serv,
+      orden: serv.orden ?? 0,
       comisionPorcentaje: (serv.comisionPorcentaje !== undefined && serv.comisionPorcentaje !== null) ? serv.comisionPorcentaje : 0,
       insumosIds: serv.insumos?.map(i => i.id!) || []
     };
@@ -189,6 +194,7 @@ export class ServiciosComponent implements OnInit {
     this.submitted = true;
     this.servicio.categoriaId = (this.categoriaSeleccionada && this.categoriaSeleccionada.data) ? this.categoriaSeleccionada.data.id : 0;
     this.servicio.comisionPorcentaje = (this.servicio.comisionPorcentaje !== undefined && this.servicio.comisionPorcentaje !== null) ? this.servicio.comisionPorcentaje : 0;
+    this.servicio.orden = (this.servicio.orden !== undefined && this.servicio.orden !== null) ? this.servicio.orden : 0;
     
     if (this.servicio.nombre.trim() && this.servicio.precioBase >= 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
       if (this.isEdit && this.servicio.id) {

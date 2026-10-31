@@ -20,4 +20,17 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     java.util.List<Ticket> findAllByOrderByFechaEmisionDesc();
     
     java.util.List<Ticket> findByEstadoOrderByFechaEmisionDesc(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket estado);
+    
+    java.util.List<Ticket> findByEstadoAndActivoTrueOrderByFechaEmisionDesc(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket estado);
+    
+    long countByEstadoAndActivoTrue(pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket estado);
+
+    @Query("SELECT t FROM Ticket t WHERE t.activo = true AND t.estado = pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO AND t.fechaEmision >= :inicio AND t.fechaEmision <= :fin ORDER BY t.fechaEmision DESC")
+    java.util.List<Ticket> findVentasByFechaEmisionBetween(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT COALESCE(SUM(t.total), 0) FROM Ticket t WHERE t.activo = true AND t.estado = pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO AND t.fechaEmision >= :inicio AND t.fechaEmision <= :fin")
+    BigDecimal sumVentasByFechaEmisionBetween(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado = pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO AND t.fechaEmision >= :inicio AND t.fechaEmision <= :fin")
+    long countVentasByFechaEmisionBetween(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
 }

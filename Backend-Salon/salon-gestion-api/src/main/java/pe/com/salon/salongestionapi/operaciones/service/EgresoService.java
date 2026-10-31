@@ -13,6 +13,7 @@ import pe.com.salon.salongestionapi.security.repository.UsuarioRepository;
 import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Service
 @RequiredArgsConstructor
 public class EgresoService {
+
+    private static final ZoneId ZONE_PERU = ZoneId.of("America/Lima");
 
     private final EgresoRepository egresoRepository;
     private final SesionCajaRepository sesionCajaRepository;
@@ -37,7 +40,7 @@ public class EgresoService {
         egreso.setMonto(request.getMonto());
         egreso.setCategoria(request.getCategoria());
         egreso.setMotivo(request.getMotivo());
-        egreso.setFechaHora(LocalDateTime.now());
+        egreso.setFechaHora(LocalDateTime.now(ZONE_PERU));
         egreso.setSesionCaja(sesionAbierta);
         egreso.setUsuario(usuario);
 

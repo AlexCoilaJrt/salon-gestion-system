@@ -80,6 +80,26 @@ export class CajaService {
     return this.http.put<any>(`http://localhost:8080/api/operaciones/tickets/${id}/pagar`, request);
   }
 
+  eliminarTicketPendiente(id: number): Observable<void> {
+    return this.http.delete<void>(`http://localhost:8080/api/operaciones/tickets/${id}`);
+  }
+
+  actualizarPreciosTicket(id: number, request: { detalles: { id: number; precioUnitario: number; cantidad?: number }[] }): Observable<any> {
+    return this.http.put<any>(`http://localhost:8080/api/operaciones/tickets/${id}/precios`, request);
+  }
+
+  obtenerTotalesPeriodo(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/totales-periodo`);
+  }
+
+  obtenerMovimientosPeriodo(periodo: string, fecha?: string): Observable<any> {
+    let url = `${this.apiUrl}/movimientos?periodo=${periodo}`;
+    if (fecha) {
+      url += `&fecha=${fecha}`;
+    }
+    return this.http.get<any>(url);
+  }
+
   obtenerServiciosFrecuentes(): Observable<any[]> {
     return this.http.get<any[]>('http://localhost:8080/api/analitica/dashboard/servicios-demandados');
   }

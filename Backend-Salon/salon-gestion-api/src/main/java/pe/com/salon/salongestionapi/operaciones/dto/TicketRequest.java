@@ -24,6 +24,9 @@ public class TicketRequest {
     // Optional: Service ID selected by the client to apply the loyalty stamp to
     private Long servicioSelloId;
 
+    // Optional: List of Service IDs to apply stamps to (allows all, multiple or specific services)
+    private List<Long> serviciosSellosIds;
+
     // Optional: List of Cartilla IDs that are being redeemed in this ticket
     private List<Long> premiosFidelizacionIds;
 }

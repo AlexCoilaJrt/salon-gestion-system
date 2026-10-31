@@ -298,15 +298,21 @@
         <div class="p-badge">HOJA DE RUTA &amp; CONTROL DE SERVICIOS</div>
 
 
-        <!-- CLIENTA / MESA -->
-        <div class="p-fields">
-          <div class="p-field">
+        <!-- CLIENTA / CATEGORÍA Y MESA -->
+        <div class="p-fields" style="align-items: flex-end;">
+          <div class="p-field" style="flex: 1.2;">
             <div class="p-field-lbl">CLIENTA:</div>
             <div class="p-field-val">{{ clienteDisplay() }}</div>
           </div>
-          <div class="p-field">
-            <div class="p-field-lbl">MESA / SILLÓN:</div>
-            <div class="p-field-val">{{ mesaSillon() }}</div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+            <div class="p-field">
+              <div class="p-field-lbl">CATEGORÍA:</div>
+              <div class="p-field-val font-bold uppercase">{{ cartillaSeleccionada()?.nombre }}</div>
+            </div>
+            <div class="p-field">
+              <div class="p-field-lbl">MESA / SILLÓN:</div>
+              <div class="p-field-val">{{ mesaSillon() }}</div>
+            </div>
           </div>
         </div>
 
@@ -321,16 +327,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of cartillaSeleccionada()!.items; let i = index"
-                class="p-row" [class.p-row-off]="!item.seleccionado"
+            <tr *ngFor="let item of itemsAtendidos(); let i = index"
+                class="p-row"
                 (click)="toggleItem(item)">
-              <td class="tc">
-                <span *ngIf="item.seleccionado">{{ i + 1 }}</span>
-                <span *ngIf="!item.seleccionado" class="row-cross">✕</span>
-              </td>
-              <td [class.p-row-strikethrough]="!item.seleccionado">
+              <td class="tc">{{ i + 1 }}</td>
+              <td>
                 {{ item.nombre }}
-                <span *ngIf="item.seleccionado && item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
+                <span *ngIf="item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
               </td>
               <td class="tc" *ngIf="mostrarPrecios()">S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}</td>
               <td class="tc" *ngIf="!mostrarPrecios()"></td>
@@ -348,7 +351,7 @@
 
         <!-- TABLA CON SUBCATEGORÍAS -->
         <ng-container *ngIf="cartillaSeleccionada()!.tieneSubCategorias">
-          <ng-container *ngFor="let sub of cartillaSeleccionada()!.subCategorias">
+          <ng-container *ngFor="let sub of subCategoriasAtendidas()">
             <div class="p-sub-lbl">{{ sub.nombre }}</div>
             <table class="p-tabla">
               <thead>
@@ -361,15 +364,12 @@
               </thead>
               <tbody>
                 <tr *ngFor="let item of sub.items; let i = index"
-                    class="p-row" [class.p-row-off]="!item.seleccionado"
+                    class="p-row"
                     (click)="toggleItem(item)">
-                  <td class="tc">
-                    <span *ngIf="item.seleccionado">{{ i + 1 }}</span>
-                    <span *ngIf="!item.seleccionado" class="row-cross">✕</span>
-                  </td>
-                  <td [class.p-row-strikethrough]="!item.seleccionado">
+                  <td class="tc">{{ i + 1 }}</td>
+                  <td>
                     {{ item.nombre }}
-                    <span *ngIf="item.seleccionado && item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
+                    <span *ngIf="item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
                   </td>
                   <td class="tc" *ngIf="mostrarPrecios()">S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}</td>
                   <td class="tc" *ngIf="!mostrarPrecios()"></td>

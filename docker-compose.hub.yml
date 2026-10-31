@@ -7,6 +7,7 @@ services:
     container_name: salon_postgres
     restart: unless-stopped
     environment:
+      TZ: America/Lima
       POSTGRES_DB: ${POSTGRES_DB:-salon_gestion_db}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
@@ -31,6 +32,8 @@ services:
     container_name: salon_backend
     restart: unless-stopped
     environment:
+      TZ: America/Lima
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=America/Lima"
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-salon_gestion_db}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}

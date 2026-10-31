@@ -53,6 +53,7 @@ public class Ticket {
 
     // Relación Bidireccional para gestionar los detalles desde el Ticket
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<TicketDetalle> detalles = new ArrayList<>();
     
     public void addDetalle(TicketDetalle detalle) {

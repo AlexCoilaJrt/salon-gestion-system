@@ -24,6 +24,7 @@ export interface CartillaItem {
   seleccionado: boolean;
   cantidad: number;
   personalizado?: boolean;
+  orden?: number;
 }
 
 export interface SubCategoria {
@@ -123,6 +124,25 @@ export class GenerarOrdenComponent implements OnInit {
     return c ? c.nombreCompleto : (this.nombreClienteManual() || '');
   });
 
+  itemsAtendidos = computed(() => {
+    const c = this.cartillaSeleccionada();
+    if (!c) return [];
+    const seleccionados = c.items.filter(i => i.seleccionado);
+    return seleccionados.length > 0 ? seleccionados : c.items;
+  });
+
+  subCategoriasAtendidas = computed(() => {
+    const c = this.cartillaSeleccionada();
+    if (!c || !c.tieneSubCategorias) return [];
+    const subsConAtendidos = c.subCategorias
+      .map(sub => ({
+        ...sub,
+        items: sub.items.filter(i => i.seleccionado)
+      }))
+      .filter(sub => sub.items.length > 0);
+    return subsConAtendidos.length > 0 ? subsConAtendidos : c.subCategorias;
+  });
+
   ngOnInit(): void {
     this.agendaService.obtenerClientes().subscribe(res => this.clientes.set(res));
     this.cargarCartillas();
@@ -146,8 +166,14 @@ export class GenerarOrdenComponent implements OnInit {
       servicios: this.catalogoService.getServicios()
     }).subscribe(({ categorias, servicios }) => {
       const activos = servicios.filter(s => s.estado !== false);
-      const padres = categorias.filter(c => !c.padreId && c.estado !== false);
-      const hijos  = categorias.filter(c => !!c.padreId && c.estado !== false);
+      activos.sort((a, b) => {
+        const ordenA = a.orden ?? 0;
+        const ordenB = b.orden ?? 0;
+        if (ordenA !== ordenB) return ordenA - ordenB;
+        return (a.id ?? 0) - (b.id ?? 0);
+      });
+      const padres = categorias.filter(c => !c.padreId && c.estado !== false).sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
+      const hijos  = categorias.filter(c => !!c.padreId && c.estado !== false).sort((a, b) => (a.id ?? 0) - (b.id ?? 0));
 
       const lista: Cartilla[] = padres.map(padre => {
         const misHijos = hijos.filter(h => h.padreId === padre.id);
@@ -192,7 +218,8 @@ export class GenerarOrdenComponent implements OnInit {
       precioOriginal: s.precioBase,
       seleccionado: false,
       cantidad: 1,
-      personalizado: false
+      personalizado: false,
+      orden: s.orden ?? 0
     };
   }
 
@@ -271,8 +298,10 @@ export class GenerarOrdenComponent implements OnInit {
     const mostrarP = this.mostrarPrecios();
     const filasExtra = this.incluirFilasExtra() ? this.numFilasExtra() : 0;
 
-    const buildRows = (items: CartillaItem[]) =>
-      items.map((item, i) => {
+    const buildRows = (items: CartillaItem[]) => {
+      const atendidos = items.filter(i => i.seleccionado);
+      const itemsAMostrar = atendidos.length > 0 ? atendidos : items;
+      return itemsAMostrar.map((item, i) => {
         const qtyLabel = item.cantidad > 1 ? ` <span style="font-weight:700; color:#555">(x${item.cantidad})</span>` : '';
         const priceVal = mostrarP ? 'S/ ' + (item.precio * item.cantidad).toFixed(2) : '';
         return `<tr>
@@ -285,19 +314,30 @@ export class GenerarOrdenComponent implements OnInit {
       Array.from({ length: Math.max(0, filasExtra) }).map(() =>
         `<tr><td class="tc"></td><td class="italic text-gray">Adicional...</td><td class="tc"></td><td class="firma-col"></td></tr>`
       ).join('');
+    };
 
-    const buildSubTables = () => cartilla.subCategorias.map(sub =>
-      `<p class="sub-lbl">${sub.nombre}</p>
-       <table>
-         <thead><tr>
-           <th class="tc" style="width:28px">N°</th>
-           <th>Servicios</th>
-           <th class="tc" style="width:52px">P.U</th>
-           <th style="width:110px">Especialista</th>
-         </tr></thead>
-         <tbody>${buildRows(sub.items)}</tbody>
-       </table>`
-    ).join('');
+    const buildSubTables = () => {
+      const subsConAtendidos = cartilla.subCategorias
+        .map(sub => ({
+          ...sub,
+          items: sub.items.filter(i => i.seleccionado)
+        }))
+        .filter(sub => sub.items.length > 0);
+      const subsAMostrar = subsConAtendidos.length > 0 ? subsConAtendidos : cartilla.subCategorias;
+
+      return subsAMostrar.map(sub =>
+        `<p class="sub-lbl">${sub.nombre}</p>
+         <table>
+           <thead><tr>
+             <th class="tc" style="width:28px">N°</th>
+             <th>Servicios</th>
+             <th class="tc" style="width:52px">P.U</th>
+             <th style="width:110px">${cartilla.nombre.toUpperCase()}</th>
+           </tr></thead>
+           <tbody>${buildRows(sub.items)}</tbody>
+         </table>`
+      ).join('');
+    };
 
     const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
 <title>${cartilla.nombre}</title>
@@ -395,10 +435,13 @@ tr:nth-child(even) td { background: #f9f9f9; }
 
 <div class="badge">HOJA DE RUTA &amp; CONTROL DE SERVICIOS · ${cartilla.nombre.toUpperCase()}</div>
 
-<!-- CAMPOS CLIENTA / MESA -->
-<div class="fields">
-  <div class="field"><div class="field-lbl">CLIENTA:</div>${cliente}</div>
-  <div class="field"><div class="field-lbl">MESA / SILLÓN:</div>${mesa}</div>
+<!-- CAMPOS CLIENTA / CATEGORÍA Y MESA -->
+<div class="fields" style="align-items: flex-end;">
+  <div class="field" style="flex: 1.2;"><div class="field-lbl">CLIENTA:</div>${cliente}</div>
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 2mm;">
+    <div class="field" style="border-bottom: 1px solid #555;"><div class="field-lbl">CATEGORÍA:</div><strong style="text-transform: uppercase;">${cartilla.nombre}</strong></div>
+    <div class="field" style="border-bottom: 1px solid #555;"><div class="field-lbl">MESA / SILLÓN:</div>${mesa}</div>
+  </div>
 </div>
 
 <!-- TABLA SERVICIOS -->

@@ -20,14 +20,14 @@ public class CategoriaService {
 
     @Transactional(readOnly = true)
     public List<CategoriaResponse> listarActivas() {
-        return categoriaRepository.findByEstadoTrue().stream()
+        return categoriaRepository.findByEstadoTrueOrderByIdAsc().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<CategoriaResponse> listarTodas() {
-        return categoriaRepository.findAll().stream()
+        return categoriaRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "id")).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

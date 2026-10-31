@@ -50,6 +50,9 @@ public class Servicio {
     @Column(nullable = false)
     private Boolean estado = true;
 
+    @Column(name = "orden")
+    private Integer orden = 0;
+
     // Relación con RRHH: Un servicio requiere de un especialista en particular
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "especialidad_id", nullable = false)
