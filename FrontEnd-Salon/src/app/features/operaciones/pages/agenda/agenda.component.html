@@ -192,7 +192,27 @@
             <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Nombres *</label><input type="text" [(ngModel)]="formNuevoCliente.nombres" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
             <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Apellidos *</label><input type="text" [(ngModel)]="formNuevoCliente.apellidos" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
             <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Teléfono</label><input type="text" [(ngModel)]="formNuevoCliente.telefono" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
-            <div class="flex flex-col gap-1"><label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Email</label><input type="email" [(ngModel)]="formNuevoCliente.email" class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium"></div>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Email (Opcional)</label>
+                @if (isEmailInvalido(formNuevoCliente.email)) {
+                  <span class="text-[10px] text-amber-500 font-bold flex items-center gap-1">
+                    <i class="pi pi-exclamation-triangle text-[10px]"></i> Inválido
+                  </span>
+                }
+              </div>
+              <input 
+                type="email" 
+                [(ngModel)]="formNuevoCliente.email" 
+                placeholder="ej: cliente@gmail.com" 
+                [class.!border-amber-500]="isEmailInvalido(formNuevoCliente.email)"
+                class="w-full p-2 text-sm border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-[#bca028] transition-colors font-medium">
+              @if (isEmailInvalido(formNuevoCliente.email)) {
+                <span class="text-[11px] text-amber-500 dark:text-amber-400 font-medium mt-0.5 flex items-center gap-1">
+                  <i class="pi pi-info-circle text-[10px]"></i> Use punto "." en lugar de coma ","
+                </span>
+              }
+            </div>
           </div>
         }
       </div>

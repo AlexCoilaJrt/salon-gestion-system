@@ -38,6 +38,7 @@ public class IncentivoServiceImpl implements IncentivoService {
     private final ComisionRepository comisionRepository;
     private final pe.com.salon.salongestionapi.operaciones.repository.TicketDetalleRepository ticketDetalleRepository;
     private final MotorComisionService motorComisionService;
+    private final pe.com.salon.salongestionapi.rrhh.repository.AdelantoRepository adelantoRepository;
 
     @Override
     @Transactional(readOnly = true)
@@ -124,18 +125,19 @@ public class IncentivoServiceImpl implements IncentivoService {
         List<Empleado> empleadosActivos = empleadoRepository.findAll().stream()
                 .filter(e -> e.getEstado() != null && e.getEstado())
                 .collect(Collectors.toList());
-        
+
         List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(finRango);
-        
+
         for (Empleado empleado : empleadosActivos) {
             MonitorComisionResponse response = new MonitorComisionResponse();
             response.setEmpleadoId(empleado.getId());
             response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
-            
+
             // Determinar Asistencia
             boolean asistenciaActiva = false;
             LocalDate fechaAsistencia = fFin.isEqual(LocalDate.now()) ? LocalDate.now() : fFin;
-            java.util.Optional<RegistroAsistencia> asistenciaOpt = asistenciaRepository.findByEmpleadoIdAndFecha(empleado.getId(), fechaAsistencia);
+            java.util.Optional<RegistroAsistencia> asistenciaOpt = asistenciaRepository
+                    .findByEmpleadoIdAndFecha(empleado.getId(), fechaAsistencia);
             if (asistenciaOpt.isPresent()) {
                 RegistroAsistencia asis = asistenciaOpt.get();
                 if (fechaAsistencia.isEqual(LocalDate.now())) {
@@ -146,19 +148,21 @@ public class IncentivoServiceImpl implements IncentivoService {
             }
             response.setAsistenciaActiva(asistenciaActiva);
             response.setEnTurno(asistenciaActiva);
-            
+
             // Determinar Comisión Base
             BigDecimal basePorc = BigDecimal.ZERO;
             BigDecimal baseMonto = BigDecimal.ZERO;
-            
+
             if (empleado.getEspecialidades() != null) {
                 for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
                     if (esp.getEstado()) {
-                        if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
+                        if ("FIJO".equalsIgnoreCase(esp.getTipoPago())
+                                || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
                             if (esp.getMontoFijo() != null) {
                                 baseMonto = baseMonto.add(esp.getMontoFijo());
                             }
-                        } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
+                        } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago())
+                                || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
                             if (esp.getPorcentajeComision() != null) {
                                 basePorc = basePorc.add(esp.getPorcentajeComision());
                             }
@@ -168,12 +172,12 @@ public class IncentivoServiceImpl implements IncentivoService {
             }
             response.setBasePorcentaje(basePorc);
             response.setBaseMontoFijo(baseMonto);
-            
+
             // Aplicar Incentivos
             BigDecimal totalPorc = basePorc;
             BigDecimal totalMonto = baseMonto;
             List<IncentivoAplicado> aplicados = new ArrayList<>();
-            
+
             if (asistenciaActiva) {
                 for (IncentivoComision inc : incentivosActivos) {
                     IncentivoAplicado app = new IncentivoAplicado();
@@ -181,7 +185,7 @@ public class IncentivoServiceImpl implements IncentivoService {
                     app.setTipo(inc.getTipoIncentivo().name());
                     app.setValor(inc.getValor());
                     aplicados.add(app);
-                    
+
                     if (inc.getTipoIncentivo() == TipoComision.PORCENTAJE) {
                         totalPorc = totalPorc.add(inc.getValor());
                     } else {
@@ -189,25 +193,27 @@ public class IncentivoServiceImpl implements IncentivoService {
                     }
                 }
             }
-            
+
             response.setIncentivosAplicados(aplicados);
             response.setTotalComisionPorcentaje(totalPorc);
             response.setTotalComisionMontoFijo(totalMonto);
-            
+
             // Calcular ventas del rango solicitado (Día, Semana o Rango)
-            BigDecimal ventasPeriodo = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioRango, finRango);
+            BigDecimal ventasPeriodo = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioRango,
+                    finRango);
             response.setVentasHoy(ventasPeriodo != null ? ventasPeriodo : BigDecimal.ZERO);
-            
-            List<TicketDetalle> detallesPeriodo = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(), inicioRango, finRango);
+
+            List<TicketDetalle> detallesPeriodo = ticketDetalleRepository.findByEmpleadoAndFechaRango(empleado.getId(),
+                    inicioRango, finRango);
             List<MonitorComisionResponse.DetalleServicio> detalleServicios = new ArrayList<>();
             BigDecimal comisionGanadaTotal = BigDecimal.ZERO;
-            
-            for(TicketDetalle detalle : detallesPeriodo) {
+
+            for (TicketDetalle detalle : detallesPeriodo) {
                 Long especialidadId = null;
                 String servicioNombre = "Producto / Otro";
                 String categoriaNombre = "-";
                 String especialidadAplicada = "-";
-                
+
                 if (detalle.getServicio() != null) {
                     servicioNombre = detalle.getServicio().getNombre();
                     if (detalle.getServicio().getCategoria() != null) {
@@ -218,64 +224,68 @@ public class IncentivoServiceImpl implements IncentivoService {
                         especialidadAplicada = detalle.getServicio().getEspecialidadRequerida().getNombre();
                     }
                 }
-                
+
                 LocalDate fechaVenta = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null)
                         ? detalle.getTicket().getFechaEmision().toLocalDate()
                         : fFin;
 
                 BigDecimal comisionVenta = motorComisionService.calcularComision(
-                    detalle.getServicio(), 
-                    empleado.getId(), 
-                    especialidadId, 
-                    detalle.getSubtotal(), 
-                    fechaVenta
-                );
-                
-                BigDecimal porcentajeExtra = totalPorc.subtract(basePorc); 
+                        detalle.getServicio(),
+                        empleado.getId(),
+                        especialidadId,
+                        detalle.getSubtotal(),
+                        fechaVenta);
+
+                BigDecimal porcentajeExtra = totalPorc.subtract(basePorc);
                 BigDecimal gananciaFinalLinea = comisionVenta;
                 if (comisionVenta.compareTo(BigDecimal.ZERO) > 0) {
                     if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
                         gananciaFinalLinea = gananciaFinalLinea.add(
-                            detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
-                        );
+                                detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2,
+                                        java.math.RoundingMode.HALF_UP));
                     }
-                    gananciaFinalLinea = gananciaFinalLinea.add(totalMonto.subtract(baseMonto)); 
-                } 
-                
+                    gananciaFinalLinea = gananciaFinalLinea.add(totalMonto.subtract(baseMonto));
+                }
+
                 comisionGanadaTotal = comisionGanadaTotal.add(gananciaFinalLinea);
-                
+
                 MonitorComisionResponse.DetalleServicio ds = new MonitorComisionResponse.DetalleServicio();
                 ds.setServicioNombre(servicioNombre);
                 ds.setCategoriaNombre(categoriaNombre);
                 ds.setEspecialidadAplicada(especialidadAplicada);
                 // El Tipo Pago en el sub-servicio refleja si realmente ganó comisión por él.
-                boolean esSoloFijo = basePorc.compareTo(BigDecimal.ZERO) == 0 && baseMonto.compareTo(BigDecimal.ZERO) > 0;
-                ds.setTipoPago(esSoloFijo || gananciaFinalLinea.compareTo(BigDecimal.ZERO) == 0 ? "Sueldo Fijo" : "Comisión");
+                boolean esSoloFijo = basePorc.compareTo(BigDecimal.ZERO) == 0
+                        && baseMonto.compareTo(BigDecimal.ZERO) > 0;
+                ds.setTipoPago(
+                        esSoloFijo || gananciaFinalLinea.compareTo(BigDecimal.ZERO) == 0 ? "Sueldo Fijo" : "Comisión");
                 ds.setPorcentajeAplicado(BigDecimal.ZERO);
                 if (detalle.getSubtotal().compareTo(BigDecimal.ZERO) > 0) {
-                    ds.setPorcentajeAplicado(gananciaFinalLinea.multiply(new BigDecimal("100")).divide(detalle.getSubtotal(), 2, java.math.RoundingMode.HALF_UP));
+                    ds.setPorcentajeAplicado(gananciaFinalLinea.multiply(new BigDecimal("100"))
+                            .divide(detalle.getSubtotal(), 2, java.math.RoundingMode.HALF_UP));
                 }
                 ds.setPrecioCobrado(detalle.getSubtotal());
                 ds.setComisionGanada(gananciaFinalLinea);
-                LocalDateTime fechaHoraVenta = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null)
-                        ? detalle.getTicket().getFechaEmision()
-                        : inicioRango;
+                LocalDateTime fechaHoraVenta = (detalle.getTicket() != null
+                        && detalle.getTicket().getFechaEmision() != null)
+                                ? detalle.getTicket().getFechaEmision()
+                                : inicioRango;
                 ds.setFechaHora(fechaHoraVenta);
                 detalleServicios.add(ds);
             }
 
             response.setComisionesGanadasHoy(comisionGanadaTotal);
             response.setDetallesServicios(detalleServicios);
-            
+
             monitorList.add(response);
         }
-        
+
         return monitorList;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> getLiquidaciones(LocalDate fechaInicio, LocalDate fechaFin) {
+    public List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> getLiquidaciones(LocalDate fechaInicio,
+            LocalDate fechaFin) {
         List<pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse> liquidaciones = new ArrayList<>();
         List<Empleado> empleadosActivos = empleadoRepository.findAll().stream()
                 .filter(e -> e.getEstado() != null && e.getEstado())
@@ -286,7 +296,8 @@ public class IncentivoServiceImpl implements IncentivoService {
         List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
 
         for (Empleado empleado : empleadosActivos) {
-            liquidaciones.add(calcularLiquidacion(empleado, fechaInicio, fechaFin, inicioPeriodo, finPeriodo, incentivosActivos));
+            liquidaciones.add(
+                    calcularLiquidacion(empleado, fechaInicio, fechaFin, inicioPeriodo, finPeriodo, incentivosActivos));
         }
 
         return liquidaciones;
@@ -294,27 +305,32 @@ public class IncentivoServiceImpl implements IncentivoService {
 
     @Override
     @Transactional(readOnly = true)
-    public pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacionEmpleado(Long empleadoId, LocalDate fechaInicio, LocalDate fechaFin) {
+    public pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacionEmpleado(Long empleadoId,
+            LocalDate fechaInicio, LocalDate fechaFin) {
         Empleado empleado = empleadoRepository.findById(empleadoId)
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado con id: " + empleadoId));
         List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
-        return calcularLiquidacion(empleado, fechaInicio, fechaFin, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59), incentivosActivos);
+        return calcularLiquidacion(empleado, fechaInicio, fechaFin, fechaInicio.atStartOfDay(),
+                fechaFin.atTime(23, 59, 59), incentivosActivos);
     }
 
-    private pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacion(Empleado empleado, LocalDate fechaInicio, LocalDate fechaFin,
-                                                                                         LocalDateTime inicioPeriodo, LocalDateTime finPeriodo,
-                                                                                         List<IncentivoComision> incentivosActivos) {
+    private pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacion(Empleado empleado,
+            LocalDate fechaInicio, LocalDate fechaFin,
+            LocalDateTime inicioPeriodo, LocalDateTime finPeriodo,
+            List<IncentivoComision> incentivosActivos) {
         pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse response = new pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse();
         response.setEmpleadoId(empleado.getId());
         response.setEmpleadoNombreCompleto(empleado.getNombres() + " " + empleado.getApellidos());
 
         // 1. Calcular Sueldo Fijo Proporcional
         BigDecimal sueldoFijo = empleado.getSueldoFijo() != null ? empleado.getSueldoFijo() : BigDecimal.ZERO;
-        
-        // Fallback: Si el sueldo fijo está en 0 en la entidad Empleado, buscar en Especialidades
+
+        // Fallback: Si el sueldo fijo está en 0 en la entidad Empleado, buscar en
+        // Especialidades
         if (sueldoFijo.compareTo(BigDecimal.ZERO) == 0 && empleado.getEspecialidades() != null) {
             for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : empleado.getEspecialidades()) {
-                if (esp.getEstado() && ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago()))) {
+                if (esp.getEstado() && ("FIJO".equalsIgnoreCase(esp.getTipoPago())
+                        || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago()))) {
                     if (esp.getMontoFijo() != null) {
                         sueldoFijo = sueldoFijo.add(esp.getMontoFijo());
                     }
@@ -339,47 +355,58 @@ public class IncentivoServiceImpl implements IncentivoService {
                 }
             }
         }
-        
+
         response.setDiasAsistidos((int) diasTrabajados);
         response.setSueldoFijoProporcional(sueldoFijoProporcional);
 
         // 2. Ventas en el periodo
-        BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo, finPeriodo);
+        BigDecimal ventas = ticketDetalleRepository.sumVentasEmpleadoEnPeriodo(empleado.getId(), inicioPeriodo,
+                finPeriodo);
         response.setTotalVentas(ventas != null ? ventas : BigDecimal.ZERO);
 
-        // 3. Comisiones exactas por servicio (mismo cálculo que el desglose de la liquidación)
-        BigDecimal comisionGanadaTotal = calcularLineasLiquidacion(empleado.getId(), inicioPeriodo, finPeriodo, incentivosActivos)
+        // 3. Comisiones exactas por servicio (mismo cálculo que el desglose de la
+        // liquidación)
+        BigDecimal comisionGanadaTotal = calcularLineasLiquidacion(empleado.getId(), inicioPeriodo, finPeriodo,
+                incentivosActivos)
                 .stream()
                 .map(DetalleLiquidacionResponse::getComision)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         response.setTotalComision(comisionGanadaTotal);
 
-        // 4. Descuentos y Total
-        response.setDescuentosAdelantos(BigDecimal.ZERO);
-        BigDecimal totalPagar = response.getSueldoFijoProporcional().add(response.getTotalComision()).subtract(response.getDescuentosAdelantos());
-        response.setTotalPagar(totalPagar);
+        // 4. Descuentos y Total (suma de adelantos activos en el periodo)
+        BigDecimal totalAdelantos = adelantoRepository.sumAdelantosEnPeriodo(empleado.getId(), fechaInicio, fechaFin);
+        response.setDescuentosAdelantos(totalAdelantos != null ? totalAdelantos : BigDecimal.ZERO);
+        BigDecimal totalPagar = response.getSueldoFijoProporcional()
+                .add(response.getTotalComision())
+                .subtract(response.getDescuentosAdelantos());
+        response.setTotalPagar(totalPagar.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : totalPagar);
 
         return response;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DetalleLiquidacionResponse> getDetalleLiquidacion(Long empleadoId, LocalDate fechaInicio, LocalDate fechaFin) {
+    public List<DetalleLiquidacionResponse> getDetalleLiquidacion(Long empleadoId, LocalDate fechaInicio,
+            LocalDate fechaFin) {
         List<IncentivoComision> incentivosActivos = incentivoRepository.findActiveIncentivos(LocalDateTime.now());
-        return calcularLineasLiquidacion(empleadoId, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59), incentivosActivos);
+        return calcularLineasLiquidacion(empleadoId, fechaInicio.atStartOfDay(), fechaFin.atTime(23, 59, 59),
+                incentivosActivos);
     }
 
     /**
-     * Calcula, línea por línea, la comisión de cada servicio/producto vendido por el empleado en el periodo.
-     * Lo usan tanto el total de la liquidación como su desglose, para que siempre cuadren.
+     * Calcula, línea por línea, la comisión de cada servicio/producto vendido por
+     * el empleado en el periodo.
+     * Lo usan tanto el total de la liquidación como su desglose, para que siempre
+     * cuadren.
      */
     private List<DetalleLiquidacionResponse> calcularLineasLiquidacion(Long empleadoId, LocalDateTime inicioPeriodo,
-                                                                       LocalDateTime finPeriodo, List<IncentivoComision> incentivosActivos) {
+            LocalDateTime finPeriodo, List<IncentivoComision> incentivosActivos) {
         BigDecimal porcentajeExtra = BigDecimal.ZERO;
         BigDecimal montoFijoExtra = BigDecimal.ZERO;
         // Para ser exactos, los incentivos extra aplican si asistió.
-        // Como esto es mensual, sumamos incentivos que aplicaban. Simplificamos usando los incentivos actuales.
+        // Como esto es mensual, sumamos incentivos que aplicaban. Simplificamos usando
+        // los incentivos actuales.
         for (IncentivoComision inc : incentivosActivos) {
             if (inc.getTipoIncentivo() == TipoComision.PORCENTAJE) {
                 porcentajeExtra = porcentajeExtra.add(inc.getValor());
@@ -389,27 +416,29 @@ public class IncentivoServiceImpl implements IncentivoService {
         }
 
         List<DetalleLiquidacionResponse> lineas = new ArrayList<>();
-        for (TicketDetalle detalle : ticketDetalleRepository.findByEmpleadoAndFechaRango(empleadoId, inicioPeriodo, finPeriodo)) {
+        for (TicketDetalle detalle : ticketDetalleRepository.findByEmpleadoAndFechaRango(empleadoId, inicioPeriodo,
+                finPeriodo)) {
             Long especialidadId = null;
             if (detalle.getServicio() != null && detalle.getServicio().getEspecialidadRequerida() != null) {
                 especialidadId = detalle.getServicio().getEspecialidadRequerida().getId();
             }
 
-            LocalDate fechaServicio = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null) ? detalle.getTicket().getFechaEmision().toLocalDate() : LocalDate.now();
+            LocalDate fechaServicio = (detalle.getTicket() != null && detalle.getTicket().getFechaEmision() != null)
+                    ? detalle.getTicket().getFechaEmision().toLocalDate()
+                    : LocalDate.now();
             BigDecimal comisionVenta = motorComisionService.calcularComision(
-                detalle.getServicio(),
-                empleadoId,
-                especialidadId,
-                detalle.getSubtotal(),
-                fechaServicio
-            );
+                    detalle.getServicio(),
+                    empleadoId,
+                    especialidadId,
+                    detalle.getSubtotal(),
+                    fechaServicio);
 
             BigDecimal gananciaLinea = comisionVenta;
             if (comisionVenta.compareTo(BigDecimal.ZERO) > 0) {
                 if (porcentajeExtra.compareTo(BigDecimal.ZERO) > 0 && detalle.getSubtotal() != null) {
                     gananciaLinea = gananciaLinea.add(
-                        detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP)
-                    );
+                            detalle.getSubtotal().multiply(porcentajeExtra).divide(new BigDecimal("100"), 2,
+                                    java.math.RoundingMode.HALF_UP));
                 }
                 gananciaLinea = gananciaLinea.add(montoFijoExtra);
             }

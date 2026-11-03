@@ -57,8 +57,9 @@ public class EmpleadoService {
     }
 
     public EmpleadoResponse crearEmpleado(EmpleadoRequest request) {
-        if (request.getEmail() != null && empleadoRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("El correo electrónico ya está registrado: " + request.getEmail());
+        String emailVal = (request.getEmail() != null && !request.getEmail().trim().isEmpty()) ? request.getEmail().trim() : null;
+        if (emailVal != null && empleadoRepository.existsByEmail(emailVal)) {
+            throw new BadRequestException("El correo electrónico ya está registrado: " + emailVal);
         }
         if (request.getDni() != null && empleadoRepository.existsByDni(request.getDni())) {
             throw new BadRequestException("El DNI ya está registrado: " + request.getDni());
@@ -68,7 +69,7 @@ public class EmpleadoService {
         empleado.setNombres(request.getNombres());
         empleado.setApellidos(request.getApellidos());
         empleado.setDni(request.getDni());
-        empleado.setEmail(request.getEmail());
+        empleado.setEmail(emailVal);
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         empleado.setFechaIngreso(request.getFechaIngreso());
@@ -104,9 +105,9 @@ public class EmpleadoService {
         Empleado empleado = empleadoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + id));
 
-        if (request.getEmail() != null && !request.getEmail().equals(empleado.getEmail()) 
-            && empleadoRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("El correo electrónico ya está registrado por otro empleado: " + request.getEmail());
+        String emailVal = (request.getEmail() != null && !request.getEmail().trim().isEmpty()) ? request.getEmail().trim() : null;
+        if (emailVal != null && !emailVal.equalsIgnoreCase(empleado.getEmail()) && empleadoRepository.existsByEmail(emailVal)) {
+            throw new BadRequestException("El correo electrónico ya está registrado por otro empleado: " + emailVal);
         }
         
         if (request.getDni() != null && !request.getDni().equals(empleado.getDni()) 
@@ -117,7 +118,7 @@ public class EmpleadoService {
         empleado.setNombres(request.getNombres());
         empleado.setApellidos(request.getApellidos());
         empleado.setDni(request.getDni());
-        empleado.setEmail(request.getEmail());
+        empleado.setEmail(emailVal);
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         empleado.setFechaIngreso(request.getFechaIngreso());

@@ -31,7 +31,7 @@
       <tr>
         <td class="text-center">
           <span class="inline-flex items-center justify-center w-7 h-7 text-xs font-bold rounded-full bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-700/50">
-            {{ serv.orden ?? 0 }}
+            {{ serv.orden && serv.orden > 0 ? serv.orden : (serv.id ?? 1) }}
           </span>
         </td>
         <td class="text-center">
@@ -104,8 +104,8 @@
 
       <div class="field mb-4">
         <label for="orden" class="font-semibold block mb-2 dark:text-gray-200">Orden en Cartilla</label>
-        <p-inputNumber id="orden" [(ngModel)]="servicio.orden" [showButtons]="true" [min]="0" [step]="1" placeholder="0"></p-inputNumber>
-        <small class="text-gray-500 block mt-1">1 = primero al inicio de la cartilla.</small>
+        <p-inputNumber id="orden" [(ngModel)]="servicio.orden" [showButtons]="true" [min]="1" [step]="1" placeholder="Automático (al final)"></p-inputNumber>
+        <small class="text-gray-500 block mt-1">Opcional. Posición fija en la cartilla (1 = primero). Si lo dejas vacío, irá automáticamente al final.</small>
       </div>
       
       <div class="field mb-4">

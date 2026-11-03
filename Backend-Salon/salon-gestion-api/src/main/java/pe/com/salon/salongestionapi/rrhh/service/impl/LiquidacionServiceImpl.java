@@ -105,12 +105,16 @@ public class LiquidacionServiceImpl implements LiquidacionService {
         LiquidacionResponse calculo = incentivoService.calcularLiquidacionEmpleado(
                 liquidacion.getEmpleado().getId(), liquidacion.getFechaInicio(), liquidacion.getFechaFin());
 
-        BigDecimal descuentos = liquidacion.getDescuentos() != null ? liquidacion.getDescuentos() : BigDecimal.ZERO;
+        BigDecimal descuentos = calculo.getDescuentosAdelantos() != null ? calculo.getDescuentosAdelantos() : BigDecimal.ZERO;
         BigDecimal total = calculo.getSueldoFijoProporcional().add(calculo.getTotalComision()).subtract(descuentos);
+        if (total.compareTo(BigDecimal.ZERO) < 0) {
+            total = BigDecimal.ZERO;
+        }
 
         boolean cambio = !mismoMonto(liquidacion.getTotalVentas(), calculo.getTotalVentas())
                 || !mismoMonto(liquidacion.getTotalComision(), calculo.getTotalComision())
                 || !mismoMonto(liquidacion.getSueldoFijoProporcional(), calculo.getSueldoFijoProporcional())
+                || !mismoMonto(liquidacion.getDescuentos(), descuentos)
                 || !mismoMonto(liquidacion.getTotalAPagar(), total);
         if (!cambio) {
             return liquidacion;
@@ -120,6 +124,7 @@ public class LiquidacionServiceImpl implements LiquidacionService {
         liquidacion.setTotalComision(calculo.getTotalComision());
         liquidacion.setSueldoFijoProporcional(calculo.getSueldoFijoProporcional());
         liquidacion.setDiasAsistidos(calculo.getDiasAsistidos());
+        liquidacion.setDescuentos(descuentos);
         liquidacion.setTotalAPagar(total);
         return liquidacionRepository.save(liquidacion);
     }

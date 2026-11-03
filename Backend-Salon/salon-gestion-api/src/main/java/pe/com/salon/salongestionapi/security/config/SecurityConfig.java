@@ -125,7 +125,7 @@ public class SecurityConfig {
                 writeRule(auth, new String[]{"/api/rrhh/turnos/**"}, TURNOS);
                 writeRule(auth, new String[]{"/api/v1/comisiones/**", "/api/finanzas/tramos-comision/**"}, COMISIONES);
                 writeRule(auth, new String[]{"/api/v1/incentivos/**"}, INCENTIVOS, MONITOR_COMISIONES);
-                writeRule(auth, new String[]{"/api/rrhh/liquidaciones/**", "/api/finanzas/liquidaciones/**"}, LIQUIDACIONES);
+                writeRule(auth, new String[]{"/api/rrhh/liquidaciones/**", "/api/finanzas/liquidaciones/**", "/api/rrhh/adelantos/**"}, LIQUIDACIONES);
 
                 // El resto de rutas requieren token (usuarios/roles/permisos se controlan con @PreAuthorize)
                 auth.anyRequest().authenticated();

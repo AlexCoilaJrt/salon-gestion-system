@@ -63,8 +63,8 @@ export class ServiciosComponent implements OnInit {
       next: (data) => {
         data.sort((a, b) => {
           if (a.estado !== b.estado) return a.estado ? -1 : 1;
-          const ordenA = a.orden ?? 0;
-          const ordenB = b.orden ?? 0;
+          const ordenA = (a.orden !== undefined && a.orden !== null && a.orden > 0) ? a.orden : (a.id ?? 9999);
+          const ordenB = (b.orden !== undefined && b.orden !== null && b.orden > 0) ? b.orden : (b.id ?? 9999);
           if (ordenA !== ordenB) return ordenA - ordenB;
           return (a.id || 0) - (b.id || 0);
         });
@@ -128,7 +128,7 @@ export class ServiciosComponent implements OnInit {
       categoriaId: 0,
       especialidadRequeridaId: 0,
       insumosIds: [],
-      orden: 0
+      orden: undefined
     };
   }
 
@@ -143,7 +143,7 @@ export class ServiciosComponent implements OnInit {
   editServicio(serv: Servicio) {
     this.servicio = { 
       ...serv,
-      orden: serv.orden ?? 0,
+      orden: (serv.orden !== undefined && serv.orden !== null && serv.orden > 0) ? serv.orden : (serv.id ?? 1),
       comisionPorcentaje: (serv.comisionPorcentaje !== undefined && serv.comisionPorcentaje !== null) ? serv.comisionPorcentaje : 0,
       insumosIds: serv.insumos?.map(i => i.id!) || []
     };
@@ -194,7 +194,20 @@ export class ServiciosComponent implements OnInit {
     this.submitted = true;
     this.servicio.categoriaId = (this.categoriaSeleccionada && this.categoriaSeleccionada.data) ? this.categoriaSeleccionada.data.id : 0;
     this.servicio.comisionPorcentaje = (this.servicio.comisionPorcentaje !== undefined && this.servicio.comisionPorcentaje !== null) ? this.servicio.comisionPorcentaje : 0;
-    this.servicio.orden = (this.servicio.orden !== undefined && this.servicio.orden !== null) ? this.servicio.orden : 0;
+    
+    // Preservar posición fija:
+    if (this.isEdit) {
+      // Si estamos editando y el orden quedó vacío o en 0, conservamos su orden original
+      if (!this.servicio.orden || this.servicio.orden <= 0) {
+        const original = this.servicios.find(s => s.id === this.servicio.id);
+        this.servicio.orden = (original?.orden && original.orden > 0) ? original.orden : (original?.id ?? 1);
+      }
+    } else {
+      // Al crear, si no se ingresó orden o es <= 0, dejamos undefined para que el backend lo asigne automáticamente al final
+      if (!this.servicio.orden || this.servicio.orden <= 0) {
+        this.servicio.orden = undefined;
+      }
+    }
     
     if (this.servicio.nombre.trim() && this.servicio.precioBase >= 0 && this.servicio.categoriaId && this.servicio.especialidadRequeridaId) {
       if (this.isEdit && this.servicio.id) {

@@ -9,15 +9,33 @@ import { CalendarModule } from 'primeng/calendar';
 import { TooltipModule } from 'primeng/tooltip';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { DropdownModule } from 'primeng/dropdown';
+import { CheckboxModule } from 'primeng/checkbox';
 import { MessageService } from 'primeng/api';
 import { forkJoin } from 'rxjs';
 import { LiquidacionesService, LiquidacionResponse, DetalleLiquidacion } from './liquidaciones.service';
 import { IncentivoService } from '../services/incentivo.service';
+import { AdelantoService, AdelantoResponse, AdelantoRequest } from '../services/adelanto.service';
 
 @Component({
   selector: 'app-liquidaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, ToastModule, CalendarModule, TooltipModule, DialogModule, InputTextModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    TagModule,
+    ToastModule,
+    CalendarModule,
+    TooltipModule,
+    DialogModule,
+    InputTextModule,
+    InputNumberModule,
+    DropdownModule,
+    CheckboxModule
+  ],
   providers: [MessageService],
   templateUrl: './liquidaciones.component.html'
 })
@@ -33,9 +51,32 @@ export class LiquidacionesComponent implements OnInit {
   busquedaDetalle = '';
   liquidacionSeleccionada: LiquidacionResponse | null = null;
 
+  // Gestión de Adelantos
+  displayModalAdelanto = false;
+  loadingAdelantos = false;
+  guardandoAdelanto = false;
+  adelantosEmpleado: AdelantoResponse[] = [];
+  liquidacionAdelanto: LiquidacionResponse | null = null;
+
+  nuevoAdelanto = {
+    monto: null as number | null,
+    fecha: new Date(),
+    metodoPago: 'EFECTIVO',
+    motivo: '',
+    descontarDeCaja: false
+  };
+
+  metodosPago = [
+    { label: 'Efectivo', value: 'EFECTIVO' },
+    { label: 'Yape', value: 'YAPE' },
+    { label: 'Plin', value: 'PLIN' },
+    { label: 'Transferencia Bancaria', value: 'TRANSFERENCIA' }
+  ];
+
   constructor(
     private liquidacionesService: LiquidacionesService,
     private incentivoService: IncentivoService,
+    private adelantoService: AdelantoService,
     private messageService: MessageService
   ) {}
 
@@ -137,6 +178,106 @@ export class LiquidacionesComponent implements OnInit {
     });
   }
 
+  // --- Métodos de Adelantos ---
+  abrirModalAdelantos(liq: LiquidacionResponse): void {
+    this.liquidacionAdelanto = liq;
+    this.nuevoAdelanto = {
+      monto: null,
+      fecha: new Date(),
+      metodoPago: 'EFECTIVO',
+      motivo: '',
+      descontarDeCaja: false
+    };
+    this.displayModalAdelanto = true;
+    this.cargarAdelantos(liq.empleadoId, liq.fechaInicio, liq.fechaFin);
+  }
+
+  cargarAdelantos(empleadoId: number, fechaInicio: string, fechaFin: string): void {
+    this.loadingAdelantos = true;
+    this.adelantoService.obtenerAdelantos(empleadoId, fechaInicio, fechaFin).subscribe({
+      next: (data) => {
+        this.adelantosEmpleado = data;
+        this.loadingAdelantos = false;
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los adelantos.' });
+        this.loadingAdelantos = false;
+      }
+    });
+  }
+
+  guardarNuevoAdelanto(): void {
+    if (!this.liquidacionAdelanto) return;
+    if (!this.nuevoAdelanto.monto || this.nuevoAdelanto.monto <= 0) {
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Ingresa un monto válido para el adelanto.' });
+      return;
+    }
+    if (!this.nuevoAdelanto.motivo.trim()) {
+      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Ingresa el motivo del adelanto.' });
+      return;
+    }
+
+    this.guardandoAdelanto = true;
+    const req: AdelantoRequest = {
+      empleadoId: this.liquidacionAdelanto.empleadoId,
+      monto: this.nuevoAdelanto.monto,
+      fecha: this.formatDate(this.nuevoAdelanto.fecha || new Date()),
+      metodoPago: this.nuevoAdelanto.metodoPago,
+      motivo: this.nuevoAdelanto.motivo.trim(),
+      descontarDeCaja: this.nuevoAdelanto.descontarDeCaja
+    };
+
+    this.adelantoService.registrarAdelanto(req).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Registrado',
+          detail: `Adelanto de S/ ${req.monto.toFixed(2)} registrado correctamente.`
+        });
+        this.guardandoAdelanto = false;
+        this.nuevoAdelanto.monto = null;
+        this.nuevoAdelanto.motivo = '';
+        this.nuevoAdelanto.descontarDeCaja = false;
+        this.cargarAdelantos(this.liquidacionAdelanto!.empleadoId, this.liquidacionAdelanto!.fechaInicio, this.liquidacionAdelanto!.fechaFin);
+        this.cargarLiquidaciones(); // Recarga y actualiza de inmediato la tabla principal
+      },
+      error: (err) => {
+        this.guardandoAdelanto = false;
+        const msg = err.error?.message || 'Error al registrar el adelanto.';
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
+      }
+    });
+  }
+
+  anularAdelanto(adelanto: AdelantoResponse): void {
+    if (!confirm(`¿Estás seguro de anular el adelanto de S/ ${adelanto.monto.toFixed(2)}?`)) {
+      return;
+    }
+
+    this.adelantoService.anularAdelanto(adelanto.id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'info', summary: 'Anulado', detail: 'Adelanto anulado correctamente.' });
+        if (this.liquidacionAdelanto) {
+          this.cargarAdelantos(this.liquidacionAdelanto.empleadoId, this.liquidacionAdelanto.fechaInicio, this.liquidacionAdelanto.fechaFin);
+        }
+        this.cargarLiquidaciones();
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo anular el adelanto.' });
+      }
+    });
+  }
+
+  get totalAdelantosActivos(): number {
+    return this.adelantosEmpleado.reduce((acc, curr) => acc + (curr.monto || 0), 0);
+  }
+
+  get saldoRestanteAdelanto(): number {
+    if (!this.liquidacionAdelanto) return 0;
+    const ganancia = (this.liquidacionAdelanto.totalComision || 0) + (this.liquidacionAdelanto.sueldoFijoProporcional || 0);
+    return Math.max(0, ganancia - this.totalAdelantosActivos);
+  }
+
   // Filtra por servicio/producto, cliente o número de ticket (sin distinguir mayúsculas ni tildes)
   get detalleFiltrado(): DetalleLiquidacion[] {
     const termino = this.normalizar(this.busquedaDetalle);
@@ -170,7 +311,7 @@ export class LiquidacionesComponent implements OnInit {
     return (texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
   }
 
-  private formatDate(date: Date): string {
+  public formatDate(date: Date): string {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');

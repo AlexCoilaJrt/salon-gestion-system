@@ -332,14 +332,36 @@ export class PosComponent implements OnInit {
     this.showNuevoClienteDialog.set(true);
   }
 
+  isEmailInvalido(email?: string): boolean {
+    if (!email || !email.trim()) return false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return !emailRegex.test(email.trim());
+  }
+
   guardarNuevoCliente() {
-    if (!this.nuevoCliente.nombres || !this.nuevoCliente.apellidos) {
-      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Nombres y apellidos son obligatorios' });
+    if (!this.nuevoCliente.nombres?.trim() || !this.nuevoCliente.apellidos?.trim()) {
+      this.messageService.add({ severity: 'warn', summary: 'Atención: Datos incompletos', detail: 'Nombres y apellidos son obligatorios' });
+      return;
+    }
+
+    if (this.isEmailInvalido(this.nuevoCliente.email)) {
+      this.messageService.add({ 
+        severity: 'warn', 
+        summary: 'Atención: Correo no válido', 
+        detail: 'El correo electrónico tiene un formato incorrecto. Verifique no haber puesto una coma en vez de un punto (ej: maria@gmail.com).' 
+      });
       return;
     }
 
     this.isProcessing.set(true);
-    this.agendaService.crearCliente(this.nuevoCliente).subscribe({
+    const payload = {
+      ...this.nuevoCliente,
+      nombres: this.nuevoCliente.nombres.trim(),
+      apellidos: this.nuevoCliente.apellidos.trim(),
+      telefono: this.nuevoCliente.telefono?.trim() || undefined,
+      email: this.nuevoCliente.email?.trim() || undefined
+    };
+    this.agendaService.crearCliente(payload).subscribe({
       next: (res) => {
         // Añadir a la lista local y seleccionarlo
         this.clientes.update(current => [...current, res]);
@@ -350,7 +372,8 @@ export class PosComponent implements OnInit {
         this.isProcessing.set(false);
       },
       error: (err) => {
-        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo registrar el cliente' });
+        const detail = err.error?.errores ? Object.values(err.error.errores).join('. ') : (err.error?.message || 'No se pudo registrar el cliente');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
         this.isProcessing.set(false);
       }
     });

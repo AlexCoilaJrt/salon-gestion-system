@@ -172,6 +172,11 @@ export class CajaComponent implements OnInit {
     );
   }
 
+  padOrder(id: any): string {
+    if (!id && id !== 0) return '0000';
+    return String(id).padStart(4, '0');
+  }
+
   cambiarVista(vista: 'pos' | 'espera' | 'dashboard') {
     this.vistaActual = vista;
     if (vista === 'dashboard') {

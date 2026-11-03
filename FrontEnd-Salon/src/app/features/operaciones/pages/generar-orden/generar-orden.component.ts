@@ -73,6 +73,11 @@ export class GenerarOrdenComponent implements OnInit {
   numFilasExtra = signal(2);
   mostrarFirmas = signal(false);
   mostrarCodigoBarras = signal(false);
+  mostrarOpcionesImpresion = signal(false); // Por defecto replegado (cerrado)
+
+  toggleOpcionesImpresion(): void {
+    this.mostrarOpcionesImpresion.update(v => !v);
+  }
 
   isProcessing = signal(false);
   ticketGenerado = signal<any>(null);
@@ -167,8 +172,8 @@ export class GenerarOrdenComponent implements OnInit {
     }).subscribe(({ categorias, servicios }) => {
       const activos = servicios.filter(s => s.estado !== false);
       activos.sort((a, b) => {
-        const ordenA = a.orden ?? 0;
-        const ordenB = b.orden ?? 0;
+        const ordenA = (a.orden !== undefined && a.orden !== null && a.orden > 0) ? a.orden : (a.id ?? 9999);
+        const ordenB = (b.orden !== undefined && b.orden !== null && b.orden > 0) ? b.orden : (b.id ?? 9999);
         if (ordenA !== ordenB) return ordenA - ordenB;
         return (a.id ?? 0) - (b.id ?? 0);
       });
@@ -219,14 +224,32 @@ export class GenerarOrdenComponent implements OnInit {
       seleccionado: false,
       cantidad: 1,
       personalizado: false,
-      orden: s.orden ?? 0
+      orden: (s.orden !== undefined && s.orden !== null && s.orden > 0) ? s.orden : (s.id ?? 1)
     };
   }
 
+  isItemSeleccionado(item: CartillaItem): boolean {
+    return this.seleccionados().some(s => s.servicioId === item.servicioId);
+  }
+
+  getItemSeleccionado(item: CartillaItem): CartillaItem | undefined {
+    return this.seleccionados().find(s => s.servicioId === item.servicioId);
+  }
+
   toggleItem(item: CartillaItem): void {
-    item.seleccionado = !item.seleccionado;
-    const allSelected = this.todosLosItems().filter(i => i.seleccionado);
-    this.seleccionados.set(allSelected);
+    const all = this.todosLosItems();
+    const match = all.find(x => x.servicioId === item.servicioId) || item;
+    const yaEsta = this.isItemSeleccionado(match);
+
+    if (yaEsta) {
+      match.seleccionado = false;
+      this.seleccionados.set(this.seleccionados().filter(s => s.servicioId !== match.servicioId));
+    } else {
+      match.seleccionado = true;
+      if (!match.cantidad) match.cantidad = 1;
+      if (match.precioOriginal === undefined) match.precioOriginal = match.precio;
+      this.seleccionados.set([...this.seleccionados(), match]);
+    }
   }
 
   onCartillaChange(c: Cartilla): void {
@@ -299,16 +322,17 @@ export class GenerarOrdenComponent implements OnInit {
     const filasExtra = this.incluirFilasExtra() ? this.numFilasExtra() : 0;
 
     const buildRows = (items: CartillaItem[]) => {
-      const atendidos = items.filter(i => i.seleccionado);
-      const itemsAMostrar = atendidos.length > 0 ? atendidos : items;
-      return itemsAMostrar.map((item, i) => {
-        const qtyLabel = item.cantidad > 1 ? ` <span style="font-weight:700; color:#555">(x${item.cantidad})</span>` : '';
-        const priceVal = mostrarP ? 'S/ ' + (item.precio * item.cantidad).toFixed(2) : '';
-        return `<tr>
-          <td class="tc">${i + 1}</td>
-          <td>${item.nombre}${qtyLabel}</td>
-          <td class="tc">${priceVal}</td>
-          <td class="firma-col"></td>
+      return items.map((item, i) => {
+        const isSel = this.isItemSeleccionado(item);
+        const actual = this.getItemSeleccionado(item) || item;
+        const qtyLabel = actual.cantidad > 1 ? ` <span style="font-weight:700; color:#555">(x${actual.cantidad})</span>` : '';
+        const priceVal = mostrarP ? 'S/ ' + (actual.precio * actual.cantidad).toFixed(2) : '';
+        const bgStyle = isSel ? ' style="background-color: #fef08a !important; font-weight: 700;"' : '';
+        return `<tr${bgStyle}>
+          <td class="tc"${bgStyle}>${i + 1}</td>
+          <td${bgStyle}>${item.nombre}${qtyLabel}</td>
+          <td class="tc"${bgStyle}>${priceVal}</td>
+          <td class="firma-col"${bgStyle}></td>
         </tr>`;
       }).join('') +
       Array.from({ length: Math.max(0, filasExtra) }).map(() =>
@@ -317,15 +341,7 @@ export class GenerarOrdenComponent implements OnInit {
     };
 
     const buildSubTables = () => {
-      const subsConAtendidos = cartilla.subCategorias
-        .map(sub => ({
-          ...sub,
-          items: sub.items.filter(i => i.seleccionado)
-        }))
-        .filter(sub => sub.items.length > 0);
-      const subsAMostrar = subsConAtendidos.length > 0 ? subsConAtendidos : cartilla.subCategorias;
-
-      return subsAMostrar.map(sub =>
+      return cartilla.subCategorias.map(sub =>
         `<p class="sub-lbl">${sub.nombre}</p>
          <table>
            <thead><tr>

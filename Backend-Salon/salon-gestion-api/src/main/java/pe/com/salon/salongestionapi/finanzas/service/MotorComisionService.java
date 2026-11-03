@@ -150,28 +150,33 @@ public class MotorComisionService {
             }
         }
 
-        // Nivel 1 (Prioridad MÁXIMA para Servicios): comisión propia del Servicio (override directo)
-        // Si el servicio tiene un porcentaje configurado (incluso si es 0%), se respeta.
-        if (servicio != null) {
-            if (servicio.getComisionPorcentaje() != null) {
-                return servicio.getComisionPorcentaje();
-            }
-            // Si el servicio no tiene porcentaje definido (null), por defecto es 0% (no comisiona)
-            return BigDecimal.ZERO;
+        // Nivel 1: Comisión propia del Servicio (override directo sólo si es mayor a 0)
+        if (servicio != null && servicio.getComisionPorcentaje() != null 
+                && servicio.getComisionPorcentaje().compareTo(BigDecimal.ZERO) > 0) {
+            return servicio.getComisionPorcentaje();
         }
 
-        // Nivel 0: Regla desde la entidad Especialidad (Fijo vs Porcentaje) si no hay contexto de servicio
+        // Nivel 2: Comisión desde la Especialidad requerida por el servicio
         if (especialidadId != null) {
             pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp = especialidadRepository.findById(especialidadId).orElse(null);
             if (esp != null) {
                 if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
                     return BigDecimal.ZERO; // Especialidades de sueldo fijo NO ganan comisión
                 }
-                
-                if (("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago()))
-                        && esp.getPorcentajeComision() != null 
-                        && esp.getPorcentajeComision().compareTo(BigDecimal.ZERO) > 0) {
+                if (esp.getPorcentajeComision() != null && esp.getPorcentajeComision().compareTo(BigDecimal.ZERO) > 0) {
                     return esp.getPorcentajeComision();
+                }
+            }
+        }
+
+        // Nivel 3: Comisión desde las Especialidades asignadas al propio empleado
+        if (empleadoId != null) {
+            pe.com.salon.salongestionapi.rrhh.entity.Empleado emp = empleadoRepository.findById(empleadoId).orElse(null);
+            if (emp != null && emp.getEspecialidades() != null) {
+                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad espEmp : emp.getEspecialidades()) {
+                    if (espEmp.getPorcentajeComision() != null && espEmp.getPorcentajeComision().compareTo(BigDecimal.ZERO) > 0) {
+                        return espEmp.getPorcentajeComision();
+                    }
                 }
             }
         }
@@ -179,27 +184,32 @@ public class MotorComisionService {
         // Calcular monto acumulado del empleado en el mes actual (para tramos)
         BigDecimal acumuladoMes = calcularAcumuladoMes(empleadoId, fechaVenta);
 
-        // Nivel 2: TramoComision específico por Especialidad
+        // Nivel 4: TramoComision específico por Especialidad
         if (especialidadId != null) {
             Optional<TramoComision> tramo = tramoComisionRepository
                     .findTramoActivo(especialidadId, acumuladoMes);
             if (tramo.isPresent()) return tramo.get().getPorcentaje();
         }
 
-        // Nivel 3: TramoComision global (sin especialidad)
+        // Nivel 5: TramoComision global (sin especialidad)
         Optional<TramoComision> tramoGlobal = tramoComisionRepository
                 .findTramoGlobalActivo(acumuladoMes);
         if (tramoGlobal.isPresent()) return tramoGlobal.get().getPorcentaje();
 
-        // Nivel 4: ReglaComision fija por Especialidad
+        // Nivel 6: ReglaComision fija por Especialidad
         if (especialidadId != null) {
             Optional<ReglaComision> regla = reglaComisionRepository
                     .findByEspecialidadIdAndEstadoTrue(especialidadId);
             if (regla.isPresent()) return regla.get().getPorcentaje();
         }
 
-        // Nivel 5: Default dinámico desde la configuración
-        return configuracionService.getBigDecimal(ConfiguracionService.COMISION_DEFAULT_SERVICIOS);
+        // Nivel 7: Default dinámico desde la configuración
+        BigDecimal defaultServicios = configuracionService.getBigDecimal(ConfiguracionService.COMISION_DEFAULT_SERVICIOS);
+        if (defaultServicios != null && defaultServicios.compareTo(BigDecimal.ZERO) > 0) {
+            return defaultServicios;
+        }
+
+        return BigDecimal.ZERO;
     }
 
     /**

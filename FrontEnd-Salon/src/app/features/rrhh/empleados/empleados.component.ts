@@ -56,7 +56,7 @@ export class EmpleadosComponent implements OnInit {
       nombres: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
       apellidos: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(60)]],
       dni: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
-      email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
+      email: ['', [Validators.email, Validators.maxLength(100)]],
       telefono: ['', [Validators.required, Validators.pattern('^[0-9]{9}$')]],
       fechaNacimiento: ['', Validators.required],
       fechaIngreso: [this.today, Validators.required],

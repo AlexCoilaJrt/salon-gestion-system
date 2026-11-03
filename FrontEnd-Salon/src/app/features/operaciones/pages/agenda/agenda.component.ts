@@ -152,10 +152,24 @@ export class AgendaComponent implements OnInit {
     this.showModal.set(true);
   }
 
+  isEmailInvalido(email?: string): boolean {
+    if (!email || !email.trim()) return false;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return !emailRegex.test(email.trim());
+  }
+
   guardarCita() {
     if (this.isNuevoCliente()) {
-      if (!this.formNuevoCliente.nombres || !this.formNuevoCliente.apellidos) {
-        this.messageService.add({ severity: 'warn', summary: 'Campos incompletos', detail: 'Por favor, ingrese nombres y apellidos del cliente.' });
+      if (!this.formNuevoCliente.nombres?.trim() || !this.formNuevoCliente.apellidos?.trim()) {
+        this.messageService.add({ severity: 'warn', summary: 'Atención: Datos incompletos', detail: 'Por favor, ingrese nombres y apellidos del nuevo cliente.' });
+        return;
+      }
+      if (this.isEmailInvalido(this.formNuevoCliente.email)) {
+        this.messageService.add({ 
+          severity: 'warn', 
+          summary: 'Atención: Correo no válido', 
+          detail: 'El correo electrónico tiene un formato incorrecto. Verifique no haber puesto una coma en vez de un punto (ej: usuario@gmail.com).' 
+        });
         return;
       }
     } else {
@@ -173,14 +187,22 @@ export class AgendaComponent implements OnInit {
     this.isProcessing.set(true);
 
     if (this.isNuevoCliente()) {
-      this.agendaService.crearCliente(this.formNuevoCliente).subscribe({
+      const payloadCliente = {
+        ...this.formNuevoCliente,
+        nombres: this.formNuevoCliente.nombres.trim(),
+        apellidos: this.formNuevoCliente.apellidos.trim(),
+        telefono: this.formNuevoCliente.telefono?.trim() || undefined,
+        email: this.formNuevoCliente.email?.trim() || undefined
+      };
+      this.agendaService.crearCliente(payloadCliente).subscribe({
         next: (cliente) => {
           this.formCita.clienteId = cliente.id;
           this.clientes.update(c => [...c, cliente]);
           this.enviarCitaBackend();
         },
         error: (err) => {
-          this.messageService.add({ severity: 'error', summary: 'Error al crear cliente', detail: err.error?.message || 'Hubo un problema.' });
+          const detail = err.error?.errores ? Object.values(err.error.errores).join('. ') : (err.error?.message || 'Hubo un problema al crear el cliente.');
+          this.messageService.add({ severity: 'error', summary: 'Error al crear cliente', detail });
           this.isProcessing.set(false);
         }
       });

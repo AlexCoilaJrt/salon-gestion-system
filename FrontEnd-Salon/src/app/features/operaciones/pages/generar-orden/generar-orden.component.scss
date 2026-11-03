@@ -198,6 +198,129 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   color: $on-surface;
 }
 
+// Panel Desplegable de Formato e Impresión
+.print-toggle-box {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $surface-low;
+  border: 1.5px solid rgba($primary, 0.6);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+  margin-top: 0.35rem;
+  margin-bottom: 0.35rem;
+  text-align: left;
+  outline: none;
+  font-family: inherit;
+  color: inherit;
+
+  &:hover {
+    background: rgba($primary, 0.08);
+    border-color: $primary;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  }
+
+  &.is-open {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-bottom: 1px dashed rgba($primary, 0.4);
+    background: rgba($primary, 0.06);
+    margin-bottom: 0;
+  }
+}
+
+.print-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.print-toggle-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba($primary, 0.15);
+  color: $primary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  border: 1px solid rgba($primary, 0.25);
+}
+
+.print-toggle-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.print-toggle-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: $on-surface;
+  letter-spacing: 0.02em;
+  display: block;
+}
+
+.print-toggle-desc {
+  font-size: 0.68rem;
+  color: $on-surface-var;
+  font-weight: 500;
+  display: block;
+}
+
+.print-toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: $primary;
+  color: #000000;
+  font-weight: 800;
+  font-size: 0.7rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(188, 160, 40, 0.25);
+  flex-shrink: 0;
+
+  i {
+    font-size: 0.62rem;
+    font-weight: 900;
+  }
+}
+
+.print-options-panel {
+  background: $surface-low;
+  border: 1.5px solid rgba($primary, 0.6);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 0.75rem 0.85rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+  animation: slideDownFade 0.2s ease-out;
+
+  .config-row {
+    margin-bottom: 0;
+  }
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 // Section label
 .config-section-label {
   font-size: 0.65rem;
@@ -555,8 +678,22 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   }
 }
 .p-row {
-  transition: background 0.1s;
-  &:hover { background: #fff9e6; }
+  transition: background-color 0.15s ease;
+  &:hover { background: #fffbe6; }
+
+  &.p-row-selected {
+    background-color: #fef08a !important;
+    td {
+      background-color: #fef08a !important;
+      font-weight: 700;
+      color: #111111 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    &:hover td {
+      background-color: #fde047 !important;
+    }
+  }
 }
 .p-row-off {
   opacity: 0.4;
@@ -1116,6 +1253,13 @@ $font:           'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   .p-field-val  { font-size: 8pt !important; }
   .p-tabla th   { padding: 3px 4px !important; font-size: 7pt !important; }
   .p-tabla td   { padding: 3px 4px !important; font-size: 7.5pt !important; }
+  .p-row.p-row-selected td {
+    background-color: #fef08a !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   .p-row-extra td { height: 16px !important; }
   .p-obs        { min-height: 38px !important; }
   .p-total-row  { padding: 2px 5px !important; font-size: 6.5pt !important; }

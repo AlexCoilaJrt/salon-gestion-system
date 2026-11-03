@@ -135,64 +135,84 @@
       </div>
     </div>
 
-    <!-- Formato + Copias -->
-    <div class="config-row">
-      <div class="config-field flex-1">
-        <label class="config-label">Formato Físico</label>
-        <div class="format-chip"><i class="pi pi-check-circle mr-1"></i>A5 Vertical</div>
-      </div>
-      <div class="config-field" style="width: 110px;">
-        <label class="config-label">N° Copias</label>
-        <div class="copies-control">
-          <button class="copies-btn" (click)="numCopias.set(Math.max(1, numCopias() - 1))">−</button>
-          <span class="copies-num">{{ numCopias() }}</span>
-          <button class="copies-btn" (click)="numCopias.set(Math.min(10, numCopias() + 1))">+</button>
+    <!-- Panel Desplegable: Opciones de Formato e Impresión (Replegado por defecto) -->
+    <button type="button" class="print-toggle-box" [class.is-open]="mostrarOpcionesImpresion()" (click)="toggleOpcionesImpresion()">
+      <div class="print-toggle-left">
+        <div class="print-toggle-icon">
+          <i class="pi pi-print"></i>
+        </div>
+        <div class="print-toggle-text">
+          <span class="print-toggle-title">Formato y Opciones de Impresión</span>
+          <span class="print-toggle-desc">{{ numCopias() }} cop. · A5</span>
         </div>
       </div>
-    </div>
-
-    <!-- Opciones de impresión -->
-    <div class="config-section-label">OPCIONES DE IMPRESIÓN</div>
-
-    <div class="config-option-row">
-      <div class="config-option-left">
-        <i class="pi pi-dollar config-option-icon"></i>
-        <span>Imprimir Precios Unitarios (P.U)</span>
+      <div class="print-toggle-badge">
+        <span>{{ mostrarOpcionesImpresion() ? 'Replegar' : 'Desplegar' }}</span>
+        <i class="pi ml-1" [class.pi-chevron-up]="mostrarOpcionesImpresion()" [class.pi-chevron-down]="!mostrarOpcionesImpresion()"></i>
       </div>
-      <p-checkbox [(ngModel)]="mostrarPrecios" [binary]="true" styleClass="go-check"></p-checkbox>
-    </div>
+    </button>
 
-    <div class="config-option-row">
-      <div class="config-option-left">
-        <i class="pi pi-plus-circle config-option-icon"></i>
-        <span>Filas Libres para Adicionales</span>
+    <!-- Contenido que se despliega al hacer clic -->
+    <div class="print-options-panel" *ngIf="mostrarOpcionesImpresion()">
+      <!-- Formato + Copias -->
+      <div class="config-row">
+        <div class="config-field flex-1">
+          <label class="config-label">Formato Físico</label>
+          <div class="format-chip"><i class="pi pi-check-circle mr-1"></i>A5 Vertical</div>
+        </div>
+        <div class="config-field" style="width: 110px;">
+          <label class="config-label">N° Copias</label>
+          <div class="copies-control">
+            <button type="button" class="copies-btn" (click)="$event.stopPropagation(); numCopias.set(Math.max(1, numCopias() - 1))">−</button>
+            <span class="copies-num">{{ numCopias() }}</span>
+            <button type="button" class="copies-btn" (click)="$event.stopPropagation(); numCopias.set(Math.min(10, numCopias() + 1))">+</button>
+          </div>
+        </div>
       </div>
-      <p-checkbox [(ngModel)]="incluirFilasExtra" [binary]="true" styleClass="go-check"></p-checkbox>
-    </div>
 
-    <div class="config-option-row" *ngIf="incluirFilasExtra()">
-      <span class="config-option-sub">Cantidad de filas extra:</span>
-      <div class="copies-control small">
-        <button class="copies-btn" (click)="numFilasExtra.set(Math.max(1, numFilasExtra() - 1))">−</button>
-        <span class="copies-num">{{ numFilasExtra() }}</span>
-        <button class="copies-btn" (click)="numFilasExtra.set(Math.min(5, numFilasExtra() + 1))">+</button>
-      </div>
-    </div>
+      <!-- Opciones de impresión -->
+      <div class="config-section-label">OPCIONES DE IMPRESIÓN</div>
 
-    <div class="config-option-row">
-      <div class="config-option-left">
-        <i class="pi pi-pencil config-option-icon"></i>
-        <span>Imprimir Firmas al Pie</span>
+      <div class="config-option-row">
+        <div class="config-option-left">
+          <i class="pi pi-dollar config-option-icon"></i>
+          <span>Imprimir Precios Unitarios (P.U)</span>
+        </div>
+        <p-checkbox [(ngModel)]="mostrarPrecios" [binary]="true" styleClass="go-check"></p-checkbox>
       </div>
-      <p-checkbox [(ngModel)]="mostrarFirmas" [binary]="true" styleClass="go-check"></p-checkbox>
-    </div>
 
-    <div class="config-option-row">
-      <div class="config-option-left">
-        <i class="pi pi-barcode config-option-icon"></i>
-        <span>Imprimir Código de Barras</span>
+      <div class="config-option-row">
+        <div class="config-option-left">
+          <i class="pi pi-plus-circle config-option-icon"></i>
+          <span>Filas Libres para Adicionales</span>
+        </div>
+        <p-checkbox [(ngModel)]="incluirFilasExtra" [binary]="true" styleClass="go-check"></p-checkbox>
       </div>
-      <p-checkbox [(ngModel)]="mostrarCodigoBarras" [binary]="true" styleClass="go-check"></p-checkbox>
+
+      <div class="config-option-row" *ngIf="incluirFilasExtra()">
+        <span class="config-option-sub">Cantidad de filas extra:</span>
+        <div class="copies-control small">
+          <button type="button" class="copies-btn" (click)="$event.stopPropagation(); numFilasExtra.set(Math.max(1, numFilasExtra() - 1))">−</button>
+          <span class="copies-num">{{ numFilasExtra() }}</span>
+          <button type="button" class="copies-btn" (click)="$event.stopPropagation(); numFilasExtra.set(Math.min(5, numFilasExtra() + 1))">+</button>
+        </div>
+      </div>
+
+      <div class="config-option-row">
+        <div class="config-option-left">
+          <i class="pi pi-pencil config-option-icon"></i>
+          <span>Imprimir Firmas al Pie</span>
+        </div>
+        <p-checkbox [(ngModel)]="mostrarFirmas" [binary]="true" styleClass="go-check"></p-checkbox>
+      </div>
+
+      <div class="config-option-row">
+        <div class="config-option-left">
+          <i class="pi pi-barcode config-option-icon"></i>
+          <span>Imprimir Código de Barras</span>
+        </div>
+        <p-checkbox [(ngModel)]="mostrarCodigoBarras" [binary]="true" styleClass="go-check"></p-checkbox>
+      </div>
     </div>
 
     <!-- Info summary -->
@@ -327,15 +347,20 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of itemsAtendidos(); let i = index"
+            <tr *ngFor="let item of cartillaSeleccionada()!.items; let i = index"
                 class="p-row"
+                [class.p-row-selected]="isItemSeleccionado(item)"
                 (click)="toggleItem(item)">
               <td class="tc">{{ i + 1 }}</td>
               <td>
                 {{ item.nombre }}
-                <span *ngIf="item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
+                <span *ngIf="getItemSeleccionado(item)?.cantidad as cant">
+                  <span *ngIf="cant > 1" class="font-bold text-gray-800"> (x{{ cant }})</span>
+                </span>
               </td>
-              <td class="tc" *ngIf="mostrarPrecios()">S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}</td>
+              <td class="tc" *ngIf="mostrarPrecios()">
+                S/ {{ ((getItemSeleccionado(item)?.precio ?? item.precio) * (getItemSeleccionado(item)?.cantidad ?? 1)) | number:'1.2-2' }}
+              </td>
               <td class="tc" *ngIf="!mostrarPrecios()"></td>
               <td class="firma-col"></td>
             </tr>
@@ -351,7 +376,7 @@
 
         <!-- TABLA CON SUBCATEGORÍAS -->
         <ng-container *ngIf="cartillaSeleccionada()!.tieneSubCategorias">
-          <ng-container *ngFor="let sub of subCategoriasAtendidas()">
+          <ng-container *ngFor="let sub of cartillaSeleccionada()!.subCategorias">
             <div class="p-sub-lbl">{{ sub.nombre }}</div>
             <table class="p-tabla">
               <thead>
@@ -365,13 +390,18 @@
               <tbody>
                 <tr *ngFor="let item of sub.items; let i = index"
                     class="p-row"
+                    [class.p-row-selected]="isItemSeleccionado(item)"
                     (click)="toggleItem(item)">
                   <td class="tc">{{ i + 1 }}</td>
                   <td>
                     {{ item.nombre }}
-                    <span *ngIf="item.cantidad > 1" class="font-bold text-gray-700"> (x{{ item.cantidad }})</span>
+                    <span *ngIf="getItemSeleccionado(item)?.cantidad as cant">
+                      <span *ngIf="cant > 1" class="font-bold text-gray-800"> (x{{ cant }})</span>
+                    </span>
                   </td>
-                  <td class="tc" *ngIf="mostrarPrecios()">S/ {{ (item.precio * item.cantidad) | number:'1.2-2' }}</td>
+                  <td class="tc" *ngIf="mostrarPrecios()">
+                    S/ {{ ((getItemSeleccionado(item)?.precio ?? item.precio) * (getItemSeleccionado(item)?.cantidad ?? 1)) | number:'1.2-2' }}
+                  </td>
                   <td class="tc" *ngIf="!mostrarPrecios()"></td>
                   <td class="firma-col"></td>
                 </tr>

@@ -73,6 +73,12 @@ public class DataSeeder implements CommandLineRunner {
 
         try {
             jdbcTemplate.execute("ALTER TABLE empresas ALTER COLUMN logo_url TYPE TEXT;");
+            try {
+                jdbcTemplate.execute("UPDATE servicio SET orden = id WHERE orden IS NULL OR orden <= 0;");
+                log.info("Inicializacion de orden fijo en servicios ejecutada correctamente.");
+            } catch (Exception ex) {
+                log.warn("No se pudo inicializar orden en servicios: {}", ex.getMessage());
+            }
             log.info("Migración de logo_url a TEXT ejecutada correctamente.");
         } catch (Exception e) {
             log.warn("No se pudo alterar/agregar columnas o ya existían: {}", e.getMessage());

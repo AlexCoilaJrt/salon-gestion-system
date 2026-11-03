@@ -293,9 +293,23 @@
       <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Teléfono (Opcional)</label>
       <input type="text" pInputText [(ngModel)]="nuevoCliente.telefono" class="w-full text-sm" placeholder="Ej: 999 888 777">
     </div>
-    <div>
-      <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Email (Opcional)</label>
-      <input type="email" pInputText [(ngModel)]="nuevoCliente.email" class="w-full text-sm" placeholder="Ej: maria@email.com">
+        <div>
+      <div class="flex items-center justify-between mb-1">
+        <label class="block text-xs font-bold text-gray-700 dark:text-gray-300">Email (Opcional)</label>
+        <span *ngIf="isEmailInvalido(nuevoCliente.email)" class="text-[10px] text-amber-500 font-bold flex items-center gap-1">
+          <i class="pi pi-exclamation-triangle text-[10px]"></i> Inválido
+        </span>
+      </div>
+      <input 
+        type="email" 
+        pInputText 
+        [(ngModel)]="nuevoCliente.email" 
+        [class.!border-amber-500]="isEmailInvalido(nuevoCliente.email)"
+        class="w-full text-sm" 
+        placeholder="Ej: maria@email.com">
+      <p *ngIf="isEmailInvalido(nuevoCliente.email)" class="text-[11px] text-amber-500 dark:text-amber-400 mt-1 font-medium flex items-center gap-1">
+        <i class="pi pi-info-circle text-[10px]"></i> Use punto "." en vez de coma ","
+      </p>
     </div>
   </div>
   <ng-template pTemplate="footer">

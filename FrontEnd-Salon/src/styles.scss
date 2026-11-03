@@ -59,6 +59,13 @@ body.p-overflow-hidden {
     color: white !important;
   }
 
+  .paper-a5 .p-row.p-row-selected td {
+    background-color: #fef08a !important;
+    font-weight: 700 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   /* Posicionar la cartilla en la esquina superior-izquierda */
   .paper-a5 {
     position: fixed !important;
@@ -171,8 +178,22 @@ body.p-overflow-hidden {
   }
 }
 .p-row {
-  transition: background 0.1s;
-  &:hover { background: #fff9e6; }
+  transition: background-color 0.15s ease;
+  &:hover { background: #fffbe6; }
+
+  &.p-row-selected {
+    background-color: #fef08a !important;
+    td {
+      background-color: #fef08a !important;
+      font-weight: 700 !important;
+      color: #111111 !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    &:hover td {
+      background-color: #fde047 !important;
+    }
+  }
 }
 .p-row-off {
   opacity: 0.4;

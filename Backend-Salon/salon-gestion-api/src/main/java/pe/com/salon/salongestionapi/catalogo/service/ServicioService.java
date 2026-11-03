@@ -53,7 +53,17 @@ public class ServicioService {
         servicio.setCostoMaterial(request.getCostoMaterial() != null ? request.getCostoMaterial() : java.math.BigDecimal.ZERO);
         servicio.setImageUrl(request.getImageUrl());
         servicio.setEstado(true);
-        servicio.setOrden(request.getOrden() != null ? request.getOrden() : 0);
+
+        // Si se envía un orden explícito (> 0), se respeta.
+        // Si viene null o <= 0, se coloca automáticamente al final de su categoría.
+        if (request.getOrden() != null && request.getOrden() > 0) {
+            servicio.setOrden(request.getOrden());
+        } else {
+            Integer maxOrden = (request.getCategoriaId() != null)
+                    ? servicioRepository.findMaxOrdenByCategoriaId(request.getCategoriaId())
+                    : servicioRepository.findMaxOrden();
+            servicio.setOrden((maxOrden != null && maxOrden > 0 ? maxOrden : 0) + 1);
+        }
 
         Especialidad especialidad = especialidadRepository.findById(request.getEspecialidadRequeridaId())
                 .orElseThrow(() -> new ResourceNotFoundException("Especialidad no encontrada con id: " + request.getEspecialidadRequeridaId()));
@@ -85,8 +95,20 @@ public class ServicioService {
         if (request.getImageUrl() != null) {
             servicio.setImageUrl(request.getImageUrl());
         }
-        if (request.getOrden() != null) {
+
+        // Posición fija al actualizar:
+        // 1. Si el usuario envía explícitamente un orden positivo (> 0), se actualiza.
+        // 2. Si el servicio no tenía orden (null o <= 0), se calcula uno al final para estabilizarlo.
+        // 3. Si se envía null o <= 0, SE MANTIENE EL ORDEN ACTUAL para que NUNCA salte de posición.
+        if (request.getOrden() != null && request.getOrden() > 0) {
             servicio.setOrden(request.getOrden());
+        } else if (servicio.getOrden() == null || servicio.getOrden() <= 0) {
+            Long catId = (request.getCategoriaId() != null) ? request.getCategoriaId()
+                    : (servicio.getCategoria() != null ? servicio.getCategoria().getId() : null);
+            Integer maxOrden = (catId != null)
+                    ? servicioRepository.findMaxOrdenByCategoriaId(catId)
+                    : servicioRepository.findMaxOrden();
+            servicio.setOrden((maxOrden != null && maxOrden > 0 ? maxOrden : 0) + 1);
         }
 
         if (!servicio.getEspecialidadRequerida().getId().equals(request.getEspecialidadRequeridaId())) {
@@ -131,7 +153,7 @@ public class ServicioService {
         response.setCostoMaterial(servicio.getCostoMaterial());
         response.setImageUrl(servicio.getImageUrl());
         response.setEstado(servicio.getEstado());
-        response.setOrden(servicio.getOrden() != null ? servicio.getOrden() : 0);
+        response.setOrden(servicio.getOrden() != null && servicio.getOrden() > 0 ? servicio.getOrden() : (servicio.getId() != null ? servicio.getId().intValue() : 1));
         if (servicio.getEspecialidadRequerida() != null) {
             response.setEspecialidadRequeridaId(servicio.getEspecialidadRequerida().getId());
             response.setEspecialidadRequeridaNombre(servicio.getEspecialidadRequerida().getNombre());

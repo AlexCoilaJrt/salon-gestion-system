@@ -45,7 +45,7 @@
                </div>
                <div class="flex flex-col">
                  <span>{{empleado.nombres}} {{empleado.apellidos}}</span>
-                 <span class="text-xs text-gray-500 font-normal">{{empleado.email}}</span>
+                 <span class="text-xs text-gray-500 font-normal">{{empleado.email || 'Sin email'}}</span>
                </div>
             </div>
           </td>
@@ -116,8 +116,8 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email de Contacto <span class="text-red-500">*</span></label>
-        <input type="email" pInputText formControlName="email" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
+        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Email de Contacto <span class="text-xs text-gray-400 font-normal">(Opcional)</span></label>
+        <input type="email" pInputText formControlName="email" placeholder="Ej: empleado@gmail.com (Opcional)" class="w-full bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white border-none focus:ring-2 focus:ring-[#bca028]" />
         <small class="text-red-500" *ngIf="empleadoForm.get('email')?.invalid && empleadoForm.get('email')?.touched">Email inválido.</small>
       </div>
 

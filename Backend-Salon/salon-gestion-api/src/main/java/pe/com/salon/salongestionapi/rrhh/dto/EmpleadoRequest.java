@@ -18,7 +18,7 @@ public class EmpleadoRequest {
     @Pattern(regexp = "^[0-9]{8}$", message = "El DNI debe contener exactamente 8 dígitos numéricos")
     private String dni;
 
-    @NotBlank(message = "El email es obligatorio")
+
     @Email(message = "Debe ser un correo electrónico válido")
     @Size(max = 100, message = "El email no puede tener más de 100 caracteres")
     private String email;
