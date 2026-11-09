@@ -22,6 +22,19 @@ export interface LiquidacionResponse {
   totalPagar: number;
 }
 
+export interface MonitorComisionPageResponse {
+  content: MonitorComision[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  isLast: boolean;
+  totalVentasPeriodo: number;
+  totalComisionesPeriodo: number;
+  empleadosConVentas: number;
+  totalEmpleados: number;
+}
+
 export interface MonitorComision {
   empleadoId: number;
   empleadoNombreCompleto: string;
@@ -38,6 +51,7 @@ export interface MonitorComision {
 }
 
 export interface DetalleServicio {
+  ticketId?: number;
   servicioNombre: string;
   categoriaNombre: string;
   especialidadAplicada: string;
@@ -61,12 +75,21 @@ export class IncentivoService {
     return this.http.get<Incentivo[]>(this.apiUrl);
   }
 
-  getMonitorComisiones(fechaInicio?: string, fechaFin?: string): Observable<MonitorComision[]> {
-    let url = `${this.apiUrl}/monitor`;
+  getMonitorComisiones(
+    fechaInicio?: string, 
+    fechaFin?: string, 
+    search?: string, 
+    page: number = 0, 
+    size: number = 10
+  ): Observable<MonitorComisionPageResponse> {
+    let url = `${this.apiUrl}/monitor?page=${page}&size=${size}`;
     if (fechaInicio && fechaFin) {
-      url += `?fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
+      url += `&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`;
     }
-    return this.http.get<MonitorComision[]>(url);
+    if (search && search.trim()) {
+      url += `&search=${encodeURIComponent(search.trim())}`;
+    }
+    return this.http.get<MonitorComisionPageResponse>(url);
   }
 
   getLiquidaciones(fechaInicio: string, fechaFin: string): Observable<LiquidacionResponse[]> {

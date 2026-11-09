@@ -39,15 +39,15 @@
     </div>
   </div>
 
-  <!-- BARRA DE FILTROS: Hoy / Esta Semana / Selector por Día / Rango -->
-  <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3 bg-gray-50/70 dark:bg-[#252525]/60 rounded-xl border border-gray-100 dark:border-gray-800">
+  <!-- BARRA DE FILTROS: Hoy / Esta Semana / Selector por Día / Rango / Buscador -->
+  <div class="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3 p-3 bg-gray-50/70 dark:bg-[#252525]/60 rounded-xl border border-gray-100 dark:border-gray-800">
     <div class="flex flex-wrap items-center gap-2">
       <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mr-1">Filtrar:</span>
       
       <!-- Botón HOY -->
       <button type="button" (click)="setFiltroHoy()" 
               [ngClass]="modoFiltro === 'hoy' ? 'bg-[#bca028] text-white shadow-sm font-bold' : 'bg-white dark:bg-[#1e1e1e] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#bca028]'"
-              class="px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5">
+              class="px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer">
         <i class="pi pi-clock text-[11px]"></i> Hoy
       </button>
 
@@ -63,6 +63,19 @@
               [ngClass]="modoFiltro === 'mes' ? 'bg-[#bca028] text-white shadow-sm font-bold' : 'bg-white dark:bg-[#1e1e1e] text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-[#bca028]'"
               class="px-3.5 py-1.5 rounded-lg text-xs transition-all flex items-center gap-1.5 cursor-pointer">
         <i class="pi pi-calendar text-[11px]"></i> Este Mes
+      </button>
+    </div>
+
+    <!-- BUSCADOR CON LUPA DEDICADO (Espacio marcado en rojo) -->
+    <div class="relative flex-1 min-w-[220px] max-w-md">
+      <i class="pi pi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none text-xs"></i>
+      <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
+             placeholder="Buscar especialista o servicio..."
+             class="w-full bg-white dark:bg-[#1e1e1e] border border-gray-200 dark:border-gray-700 rounded-lg !pl-10 !pr-8 py-2 text-xs text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-[#bca028] transition-colors shadow-sm" />
+      <button *ngIf="searchTerm" (click)="limpiarBusqueda()" type="button"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs p-1 cursor-pointer"
+              title="Limpiar búsqueda">
+        <i class="pi pi-times"></i>
       </button>
     </div>
 
@@ -114,7 +127,7 @@
     <div class="p-3.5 bg-gradient-to-br from-gray-50 to-gray-100/50 dark:from-[#242424] dark:to-[#1e1e1e] rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between">
       <div>
         <div class="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Especialistas con Ventas</div>
-        <div class="text-xl font-black text-gray-900 dark:text-white mt-0.5">{{ empleadosConVentas }} <span class="text-xs font-normal text-gray-400">/ {{ nodes.length }} registrados</span></div>
+        <div class="text-xl font-black text-gray-900 dark:text-white mt-0.5">{{ empleadosConVentas }} <span class="text-xs font-normal text-gray-400">/ {{ empleadosActivosCount }} registrados</span></div>
       </div>
       <div class="w-10 h-10 rounded-xl bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 flex items-center justify-center text-lg font-bold">
         <i class="pi pi-users"></i>
@@ -149,10 +162,11 @@
 
   <!-- TABLA PRINCIPAL DE COMISIONES (TREETABLE) -->
   <div class="overflow-x-auto w-full">
-    <p-treeTable [value]="nodes" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-treetable-sm min-w-[850px]">
+    <p-treeTable [value]="nodes" [loading]="loading" [lazy]="true" (onLazyLoad)="onLazyLoad($event)" [totalRecords]="totalRecords" [rows]="pageSize" [paginator]="true" [rowsPerPageOptions]="[5, 10, 20, 50]" [showCurrentPageReport]="true" currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} especialistas" styleClass="p-treetable-sm min-w-[960px]">
       <ng-template pTemplate="header">
         <tr>
-          <th style="min-width: 240px">Empleado / Servicio</th>
+          <th style="min-width: 250px">Empleado / Servicio</th>
+          <th style="min-width: 150px" class="text-center">N° Orden</th>
           <th style="min-width: 140px">Estado / Categoría</th>
           <th style="min-width: 150px">Comisión Base / Tipo Pago</th>
           <th style="min-width: 160px">Incentivos / Precio Cobrado</th>
@@ -211,12 +225,24 @@
             </div>
 
             <!-- VISTA DE SERVICIO REALIZADO (FILA HIJA) -->
-            <div *ngIf="!rowData.isRoot" class="pl-8 py-1 flex items-center flex-wrap gap-2">
+            <div *ngIf="!rowData.isRoot" class="pl-8 py-1 flex items-center gap-2 flex-wrap">
               <i class="pi pi-check-circle text-emerald-500 text-xs shrink-0"></i>
-              <span class="font-semibold text-gray-800 dark:text-gray-200">{{ rowData.nombre }}</span> 
-              <span class="text-xs text-amber-700 dark:text-[#bca028] bg-amber-500/15 dark:bg-amber-500/25 px-2 py-0.5 rounded-md font-bold inline-flex items-center gap-1 border border-amber-500/30 shadow-sm">
+              <span class="font-semibold text-gray-800 dark:text-gray-200">{{ rowData.nombre }}</span>
+              <span class="text-xs text-amber-700 dark:text-[#bca028] bg-amber-500/15 dark:bg-amber-500/25 px-2 py-0.5 rounded-md font-bold inline-flex items-center gap-1 border border-amber-500/30">
                 <i class="pi pi-calendar text-[10px]"></i>
                 {{ rowData.fechaHora | date:'dd/MM/yyyy HH:mm' }}
+              </span>
+            </div>
+          </td>
+
+          <!-- N° Orden (COLUMNA DEDICADA DE ALTO CONTRASTE) -->
+          <td class="text-center">
+            <span *ngIf="rowData.isRoot" class="text-gray-400 dark:text-gray-600 font-normal">-</span>
+            <div *ngIf="!rowData.isRoot" class="flex justify-center">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white text-gray-950 font-black text-xs sm:text-sm tracking-wide border-2 border-gray-400 shadow-md select-none"
+                    title="Número de Orden / Ticket">
+                <i class="pi pi-receipt text-xs text-[#bca028] font-bold"></i>
+                <span>ORDEN #{{ padTicket(rowData.ticketId) }}</span>
               </span>
             </div>
           </td>
@@ -292,7 +318,7 @@
       
       <ng-template pTemplate="emptymessage">
         <tr>
-          <td colspan="7" class="text-center p-8 text-gray-500">
+          <td colspan="8" class="text-center p-8 text-gray-500">
             No se encontraron especialistas o ventas registradas para el período seleccionado.
           </td>
         </tr>

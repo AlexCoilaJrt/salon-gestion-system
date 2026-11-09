@@ -39,5 +39,19 @@ public class AdelantoController {
         AdelantoResponse response = adelantoService.anularAdelanto(id);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AdelantoResponse> actualizarAdelanto(
+            @PathVariable Long id,
+            @RequestBody AdelantoRequest request) {
+        AdelantoResponse response = adelantoService.actualizarAdelanto(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarAdelanto(@PathVariable Long id) {
+        adelantoService.eliminarAdelanto(id);
+        return ResponseEntity.noContent().build();
+    }
 }
 

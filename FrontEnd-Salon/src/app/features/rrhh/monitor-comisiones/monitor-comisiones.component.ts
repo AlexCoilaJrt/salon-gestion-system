@@ -18,6 +18,11 @@ import { IncentivoService, MonitorComision } from '../services/incentivo.service
 export class MonitorComisionesComponent implements OnInit {
   nodes: TreeNode[] = [];
   loading = false;
+  page: number = 0;
+  pageSize: number = 10;
+  totalRecords: number = 0;
+  searchTerm: string = '';
+  searchTimeout: any;
   
   // Modos de filtro: 'hoy' | 'semana' | 'mes' | 'dia' | 'rango'
   modoFiltro: 'hoy' | 'semana' | 'mes' | 'dia' | 'rango' = 'hoy';
@@ -52,6 +57,7 @@ export class MonitorComisionesComponent implements OnInit {
 
   setFiltroHoy(recargar: boolean = true): void {
     this.modoFiltro = 'hoy';
+    this.page = 0;
     const hoy = new Date();
     this.fechaSeleccionada = hoy;
     this.fechaCalendarDia = hoy;
@@ -66,6 +72,7 @@ export class MonitorComisionesComponent implements OnInit {
 
   setFiltroSemana(referencia: Date = new Date()): void {
     this.modoFiltro = 'semana';
+    this.page = 0;
     this.fechaSeleccionada = referencia;
     const curr = new Date(referencia);
     const day = curr.getDay(); // 0 es domingo
@@ -82,6 +89,7 @@ export class MonitorComisionesComponent implements OnInit {
 
   setFiltroMes(referencia: Date = new Date()): void {
     this.modoFiltro = 'mes';
+    this.page = 0;
     this.fechaSeleccionada = referencia;
     const primerDia = new Date(referencia.getFullYear(), referencia.getMonth(), 1);
     const ultimoDia = new Date(referencia.getFullYear(), referencia.getMonth() + 1, 0);
@@ -94,6 +102,7 @@ export class MonitorComisionesComponent implements OnInit {
   setFiltroDia(fecha: Date): void {
     if (!fecha) return;
     this.modoFiltro = 'dia';
+    this.page = 0;
     this.fechaSeleccionada = fecha;
     this.fechaCalendarDia = fecha;
     const str = this.formatDate(fecha);
@@ -117,6 +126,7 @@ export class MonitorComisionesComponent implements OnInit {
   onRangoChange(rango: Date[]): void {
     if (rango && rango[0] && rango[1]) {
       this.modoFiltro = 'rango';
+    this.page = 0;
       this.fechaInicioStr = this.formatDate(rango[0]);
       this.fechaFinStr = this.formatDate(rango[1]);
       this.actualizarFechaDisplay(rango[0], rango[1]);
@@ -189,15 +199,24 @@ export class MonitorComisionesComponent implements OnInit {
     return 'Ganancia Período (S/)';
   }
 
-  loadMonitor(): void {
+  loadMonitor(page: number = this.page, size: number = this.pageSize): void {
     this.loading = true;
-    this.incentivoService.getMonitorComisiones(this.fechaInicioStr, this.fechaFinStr).subscribe({
+    this.page = page;
+    this.pageSize = size;
+    this.incentivoService.getMonitorComisiones(
+      this.fechaInicioStr, 
+      this.fechaFinStr, 
+      this.searchTerm, 
+      this.page, 
+      this.pageSize
+    ).subscribe({
       next: (data) => {
-        this.nodes = this.transformToTreeNodes(data);
-        this.ventasTotalesPeriodo = data.reduce((acc, m) => acc + (m.ventasHoy || 0), 0);
-        this.comisionesTotalesPeriodo = data.reduce((acc, m) => acc + (m.comisionesGanadasHoy || 0), 0);
-        this.empleadosConVentas = data.filter(m => (m.ventasHoy || 0) > 0).length;
-        this.empleadosActivosCount = data.filter(m => m.asistenciaActiva).length;
+        this.nodes = this.transformToTreeNodes(data.content || []);
+        this.totalRecords = data.totalElements || 0;
+        this.ventasTotalesPeriodo = data.totalVentasPeriodo || 0;
+        this.comisionesTotalesPeriodo = data.totalComisionesPeriodo || 0;
+        this.empleadosConVentas = data.empleadosConVentas || 0;
+        this.empleadosActivosCount = data.totalEmpleados || 0;
         this.loading = false;
         this.cd.markForCheck();
       },
@@ -206,6 +225,31 @@ export class MonitorComisionesComponent implements OnInit {
         this.cd.markForCheck();
       }
     });
+  }
+
+  onLazyLoad(event: any): void {
+    const page = Math.floor((event.first ?? 0) / (event.rows ?? this.pageSize));
+    this.pageSize = event.rows ?? this.pageSize;
+    this.loadMonitor(page, this.pageSize);
+  }
+
+  onSearchChange(): void {
+    clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.page = 0;
+      this.loadMonitor(0, this.pageSize);
+    }, 400);
+  }
+
+  padTicket(id: number | string | undefined): string {
+    if (!id) return '----';
+    return String(id).padStart(4, '0');
+  }
+
+  limpiarBusqueda(): void {
+    this.searchTerm = '';
+    this.page = 0;
+    this.loadMonitor(0, this.pageSize);
   }
 
   expandirTodo(): void {
@@ -236,6 +280,7 @@ export class MonitorComisionesComponent implements OnInit {
     return monitores.map(monitor => {
       const children = monitor.detallesServicios ? monitor.detallesServicios.map(detalle => ({
         data: {
+          ticketId: detalle.ticketId,
           nombre: detalle.servicioNombre,
           categoriaNombre: detalle.categoriaNombre,
           especialidadAplicada: detalle.especialidadAplicada,

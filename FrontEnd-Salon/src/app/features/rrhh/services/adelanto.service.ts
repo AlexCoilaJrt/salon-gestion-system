@@ -49,5 +49,13 @@ export class AdelantoService {
   anularAdelanto(id: number): Observable<AdelantoResponse> {
     return this.http.put<AdelantoResponse>(`${this.apiUrl}/${id}/anular`, {});
   }
+
+  actualizarAdelanto(id: number, req: AdelantoRequest): Observable<AdelantoResponse> {
+    return this.http.put<AdelantoResponse>(`${this.apiUrl}/${id}`, req);
+  }
+
+  eliminarAdelanto(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
 }
 

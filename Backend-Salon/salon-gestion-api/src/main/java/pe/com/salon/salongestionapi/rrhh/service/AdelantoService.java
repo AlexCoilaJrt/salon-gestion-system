@@ -10,5 +10,7 @@ public interface AdelantoService {
     AdelantoResponse registrarAdelanto(AdelantoRequest request);
     List<AdelantoResponse> obtenerAdelantosPorEmpleadoYPeriodo(Long empleadoId, LocalDate inicio, LocalDate fin);
     AdelantoResponse anularAdelanto(Long id);
+    AdelantoResponse actualizarAdelanto(Long id, AdelantoRequest request);
+    void eliminarAdelanto(Long id);
 }
 

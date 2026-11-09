@@ -24,6 +24,7 @@ public class MonitorComisionResponse {
 
     @Data
     public static class DetalleServicio {
+        private Long ticketId;
         private String servicioNombre;
         private String categoriaNombre;
         private String especialidadAplicada;

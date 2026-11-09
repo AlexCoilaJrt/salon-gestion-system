@@ -30,10 +30,13 @@ public class IncentivoController {
     }
 
     @GetMapping("/monitor")
-    public ResponseEntity<List<pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionResponse>> getMonitorComisiones(
+    public ResponseEntity<pe.com.salon.salongestionapi.rrhh.dto.MonitorComisionPageResponse> getMonitorComisiones(
             @RequestParam(value = "fechaInicio", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaInicio,
-            @RequestParam(value = "fechaFin", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaFin) {
-        return ResponseEntity.ok(incentivoService.getMonitorComisiones(fechaInicio, fechaFin));
+            @RequestParam(value = "fechaFin", required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate fechaFin,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ResponseEntity.ok(incentivoService.getMonitorComisionesPaginado(fechaInicio, fechaFin, search, page, size));
     }
 
     @GetMapping("/liquidaciones")

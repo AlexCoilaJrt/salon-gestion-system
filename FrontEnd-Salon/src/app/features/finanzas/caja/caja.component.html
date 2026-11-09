@@ -105,7 +105,8 @@
             <div class="flex justify-between items-start gap-2 mb-2">
               <div class="font-bold text-gray-800 dark:text-gray-100 text-sm line-clamp-2 leading-tight flex-1 pr-1" [title]="tp.clienteNombreCompleto">{{ tp.clienteNombreCompleto }}</div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-sm sm:text-base text-orange-600 dark:text-orange-400 font-black bg-orange-100 dark:bg-orange-500/20 px-2.5 py-0.5 rounded-lg border border-orange-300 dark:border-orange-500/60 shadow-sm tracking-wider shrink-0">
+                <span class="text-base sm:text-lg text-red-600 dark:text-red-300 font-black bg-red-100 dark:bg-red-900/40 px-2.5 py-0.5 rounded-xl border border-red-300 dark:border-red-800 shadow-sm tracking-wider shrink-0"
+                      title="Número de Orden en Espera">
                   #{{ padOrder(tp.id) }}
                 </span>
                 <button *ngIf="isAdmin"
@@ -253,27 +254,32 @@
                   filterPlaceholder="Buscar especialista..."
                   [resetFilterOnHide]="true"
                   emptyFilterMessage="No se encontraron especialistas"
-                  styleClass="w-full text-xs p-dropdown-sm"
-                  panelStyleClass="text-xs shadow-xl"
+                  styleClass="w-full text-sm p-dropdown-sm"
+                  panelStyleClass="text-sm shadow-xl"
                   appendTo="body">
                   <ng-template pTemplate="selectedItem" let-selectedOption>
-                    <div class="flex items-center gap-1.5 truncate">
-                      <div class="w-4 h-4 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[9px] flex items-center justify-center font-bold shrink-0">
+                    <div class="flex items-center gap-2 truncate">
+                      <div class="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[10px] flex items-center justify-center font-bold shrink-0">
                         {{ (selectedOption.nombres?.charAt(0) || '') }}
                       </div>
-                      <span class="font-medium text-xs truncate text-gray-800 dark:text-white">
+                      <span class="font-bold text-sm truncate text-gray-800 dark:text-white">
                         {{ selectedOption.nombreCompleto || selectedOption.nombres }}
                       </span>
                     </div>
                   </ng-template>
                   <ng-template let-emp pTemplate="item">
-                    <div class="flex items-center gap-2 py-0.5">
-                      <div class="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[10px] flex items-center justify-center font-bold shrink-0">
+                    <div class="flex items-center gap-2.5 py-1.5">
+                      <div class="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-black shrink-0 shadow-sm border border-orange-200 dark:border-orange-800/50">
                         {{ (emp.nombres?.charAt(0) || '') + (emp.apellidos?.charAt(0) || '') }}
                       </div>
-                      <span class="font-semibold text-xs text-gray-800 dark:text-white truncate">
-                        {{ emp.nombreCompleto || emp.nombres }}
-                      </span>
+                      <div class="flex flex-col min-w-0">
+                        <span class="font-black text-sm sm:text-base text-gray-900 dark:text-gray-100 leading-snug">
+                          {{ emp.nombreCompleto || emp.nombres }}
+                        </span>
+                        <span *ngIf="emp.especialidadesNombres?.length" class="text-xs font-semibold text-amber-700 dark:text-[#bca028] truncate mt-0.5">
+                          {{ emp.especialidadesNombres.join(', ') }}
+                        </span>
+                      </div>
                     </div>
                   </ng-template>
                 </p-dropdown>
@@ -327,7 +333,25 @@
   </div>
 
   <!-- Modal de Cobro -->
-  <p-dialog header="Procesar Pago" [(visible)]="cobroDialog" [modal]="true" [style]="{width: '850px', 'max-width': '95vw'}" [contentStyle]="{'overflow-y': 'auto', 'overflow-x': 'hidden'}" [draggable]="false" [resizable]="false">
+  <p-dialog [(visible)]="cobroDialog" [modal]="true" [style]="{width: '850px', 'max-width': '95vw'}" [contentStyle]="{'overflow-y': 'auto', 'overflow-x': 'hidden'}" [draggable]="false" [resizable]="false">
+    <ng-template pTemplate="header">
+      <div class="flex items-center justify-between w-full pr-4 gap-3">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-credit-card text-[#bca028] text-lg sm:text-xl"></i>
+          <span class="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">Procesar Pago</span>
+        </div>
+        
+        <!-- NÚMERO DE ORDEN EN EL RECUADRO AMARILLO (COLOR Y TAMAÑO DESTACADO) -->
+        <div *ngIf="ticketPendienteId" class="inline-flex items-center gap-2 px-3.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/40 border-2 border-[#bca028]/60 shadow-sm"
+             title="Número de Orden de la Venta">
+          <i class="pi pi-receipt text-[#bca028] text-base sm:text-lg font-bold"></i>
+          <span class="text-[11px] sm:text-xs font-extrabold uppercase tracking-wider text-gray-600 dark:text-gray-300">ORDEN N°</span>
+          <span class="text-xl sm:text-2xl font-black text-[#bca028] tracking-wide select-none">
+            #{{ padOrder(ticketPendienteId) }}
+          </span>
+        </div>
+      </div>
+    </ng-template>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 items-start">
       
       <!-- COLUMNA IZQUIERDA: Servicios y Fidelización -->
@@ -365,14 +389,14 @@
               [resetFilterOnHide]="true"
               emptyFilterMessage="No se encontraron especialistas"
               styleClass="w-full text-sm p-dropdown-sm border-amber-500/40"
-              panelStyleClass="text-sm shadow-xl"
+              panelStyleClass="shadow-2xl"
               appendTo="body">
               <ng-template pTemplate="selectedItem" let-selectedOption>
                 <div class="flex items-center gap-2">
-                  <div class="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[10px] flex items-center justify-center font-bold shrink-0">
+                  <div class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-black shrink-0 border border-orange-200 dark:border-orange-800/40">
                     {{ (selectedOption.nombres?.charAt(0) || '') + (selectedOption.apellidos?.charAt(0) || '') }}
                   </div>
-                  <span class="font-medium text-xs text-gray-800 dark:text-white truncate">
+                  <span class="font-bold text-sm text-gray-800 dark:text-white truncate">
                     {{ selectedOption.nombreCompleto || selectedOption.nombres }}
                   </span>
                   <span class="text-[10px] bg-amber-500/20 text-[#bca028] px-1.5 py-0.5 rounded font-bold ml-auto shrink-0">
@@ -381,15 +405,15 @@
                 </div>
               </ng-template>
               <ng-template let-emp pTemplate="item">
-                <div class="flex items-center gap-2 py-1">
-                  <div class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-bold shrink-0">
+                <div class="flex items-center gap-2.5 py-1.5">
+                  <div class="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-black shrink-0 shadow-sm border border-orange-200 dark:border-orange-800/50">
                     {{ (emp.nombres?.charAt(0) || '') + (emp.apellidos?.charAt(0) || '') }}
                   </div>
                   <div class="flex flex-col min-w-0">
-                    <span class="font-bold text-xs text-gray-800 dark:text-white truncate">
+                    <span class="font-black text-sm sm:text-base text-gray-900 dark:text-gray-100 leading-snug">
                       {{ emp.nombreCompleto || emp.nombres }}
                     </span>
-                    <span *ngIf="emp.especialidadesNombres?.length" class="text-[10px] text-gray-400 truncate">
+                    <span *ngIf="emp.especialidadesNombres?.length" class="text-xs font-semibold text-amber-700 dark:text-[#bca028] truncate mt-0.5">
                       {{ emp.especialidadesNombres.join(', ') }}
                     </span>
                   </div>
@@ -419,28 +443,28 @@
                   [resetFilterOnHide]="true"
                   emptyFilterMessage="No se encontraron especialistas"
                   styleClass="w-full text-sm p-dropdown-sm"
-                  panelStyleClass="text-sm shadow-xl"
+                  panelStyleClass="shadow-2xl"
                   appendTo="body">
                   <ng-template pTemplate="selectedItem" let-selectedOption>
                     <div class="flex items-center gap-2">
-                      <div class="w-5 h-5 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-[10px] flex items-center justify-center font-bold shrink-0">
+                      <div class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-black shrink-0 border border-orange-200 dark:border-orange-800/40">
                         {{ (selectedOption.nombres?.charAt(0) || '') + (selectedOption.apellidos?.charAt(0) || '') }}
                       </div>
-                      <span class="font-medium text-xs text-gray-800 dark:text-white truncate">
+                      <span class="font-bold text-sm text-gray-800 dark:text-white truncate">
                         {{ selectedOption.nombreCompleto || selectedOption.nombres }}
                       </span>
                     </div>
                   </ng-template>
                   <ng-template let-emp pTemplate="item">
-                    <div class="flex items-center gap-2 py-1">
-                      <div class="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-bold shrink-0">
+                    <div class="flex items-center gap-2.5 py-1.5">
+                      <div class="w-7 h-7 rounded-full bg-orange-100 dark:bg-orange-900/60 text-orange-600 dark:text-orange-300 text-xs flex items-center justify-center font-black shrink-0 shadow-sm border border-orange-200 dark:border-orange-800/50">
                         {{ (emp.nombres?.charAt(0) || '') + (emp.apellidos?.charAt(0) || '') }}
                       </div>
                       <div class="flex flex-col min-w-0">
-                        <span class="font-bold text-xs text-gray-800 dark:text-white truncate">
+                        <span class="font-black text-sm sm:text-base text-gray-900 dark:text-gray-100 leading-snug">
                           {{ emp.nombreCompleto || emp.nombres }}
                         </span>
-                        <span *ngIf="emp.especialidadesNombres?.length" class="text-[10px] text-gray-400 truncate">
+                        <span *ngIf="emp.especialidadesNombres?.length" class="text-xs font-semibold text-amber-700 dark:text-[#bca028] truncate mt-0.5">
                           {{ emp.especialidadesNombres.join(', ') }}
                         </span>
                       </div>
@@ -756,6 +780,7 @@
                   dateFormat="dd/mm/yy"
                   [showIcon]="true"
                   placeholder="Elegir día..."
+                  appendTo="body"
                   styleClass="w-36 text-xs"
                   inputStyleClass="py-1 px-2 text-xs rounded-lg bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600">
       </p-calendar>

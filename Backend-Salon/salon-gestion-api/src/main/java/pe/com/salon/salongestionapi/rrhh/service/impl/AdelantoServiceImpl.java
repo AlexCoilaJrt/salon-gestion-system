@@ -109,6 +109,54 @@ public class AdelantoServiceImpl implements AdelantoService {
         return mapToResponse(guardado);
     }
 
+    @Override
+    @Transactional
+    public AdelantoResponse actualizarAdelanto(Long id, AdelantoRequest request) {
+        Adelanto adelanto = adelantoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Adelanto no encontrado con ID: " + id));
+
+        if (request.getMonto() != null) {
+            adelanto.setMonto(request.getMonto());
+        }
+        if (request.getFecha() != null) {
+            adelanto.setFecha(request.getFecha());
+        }
+        if (request.getMetodoPago() != null && !request.getMetodoPago().isBlank()) {
+            adelanto.setMetodoPago(request.getMetodoPago().toUpperCase());
+        }
+        adelanto.setMotivo(request.getMotivo() != null ? request.getMotivo().trim() : null);
+
+        // Si estaba asociado a una salida de caja, actualizar el monto y motivo del egreso
+        if (adelanto.getEgresoId() != null) {
+            egresoRepository.findById(adelanto.getEgresoId()).ifPresent(eg -> {
+                if (request.getMonto() != null) {
+                    eg.setMonto(request.getMonto());
+                }
+                eg.setMotivo("Adelanto a " + (adelanto.getEmpleado() != null ? adelanto.getEmpleado().getNombres() : "") + ": " + (request.getMotivo() != null ? request.getMotivo().trim() : ""));
+                egresoRepository.save(eg);
+            });
+        }
+
+        Adelanto guardado = adelantoRepository.save(adelanto);
+        return mapToResponse(guardado);
+    }
+
+    @Override
+    @Transactional
+    public void eliminarAdelanto(Long id) {
+        Adelanto adelanto = adelantoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Adelanto no encontrado con ID: " + id));
+
+        if (adelanto.getEgresoId() != null) {
+            try {
+                egresoRepository.deleteById(adelanto.getEgresoId());
+            } catch (Exception ignored) {
+            }
+        }
+
+        adelantoRepository.delete(adelanto);
+    }
+
     private AdelantoResponse mapToResponse(Adelanto a) {
         String nombreCompleto = a.getEmpleado() != null 
                 ? (a.getEmpleado().getNombres() + " " + a.getEmpleado().getApellidos()) 

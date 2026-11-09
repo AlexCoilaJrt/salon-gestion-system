@@ -16,9 +16,9 @@
                 (click)="vistaActiva = 'consolidado'">Consolidado</button>
       </div>
       <div class="flex items-center gap-2">
-        <p-calendar [(ngModel)]="fechaInicio" [showIcon]="true" dateFormat="dd/mm/yy"></p-calendar>
+        <p-calendar [(ngModel)]="fechaInicio" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
         <span class="text-gray-500">-</span>
-        <p-calendar [(ngModel)]="fechaFin" [showIcon]="true" dateFormat="dd/mm/yy"></p-calendar>
+        <p-calendar [(ngModel)]="fechaFin" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
         <button pButton icon="pi pi-search" (click)="loadReporte()" class="p-button-outlined p-button-secondary"></button>
       </div>
       <button pButton icon="pi pi-desktop" label="Kiosko" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none shadow-lg shadow-[#bca028]/30" (click)="abrirKiosko()"></button>

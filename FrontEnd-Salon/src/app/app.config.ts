@@ -4,6 +4,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
+import { Translation } from 'primeng/api';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/interceptors/auth.interceptor';
@@ -28,6 +29,41 @@ const MyPreset = definePreset(Aura, {
     }
 });
 
+export const esTranslation: Translation = {
+    dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+    dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+    dayNamesMin: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'],
+    monthNames: [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ],
+    monthNamesShort: [
+        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+    ],
+    today: 'Hoy',
+    clear: 'Limpiar',
+    dateFormat: 'dd/mm/yy',
+    firstDayOfWeek: 1,
+    chooseYear: 'Elegir Año',
+    chooseMonth: 'Elegir Mes',
+    chooseDate: 'Elegir Fecha',
+    prevDecade: 'Década anterior',
+    nextDecade: 'Década siguiente',
+    prevYear: 'Año anterior',
+    nextYear: 'Año siguiente',
+    prevMonth: 'Mes anterior',
+    nextMonth: 'Mes siguiente',
+    prevHour: 'Hora anterior',
+    nextHour: 'Hora siguiente',
+    prevMinute: 'Minuto anterior',
+    nextMinute: 'Minuto siguiente',
+    prevSecond: 'Segundo anterior',
+    nextSecond: 'Segundo siguiente',
+    emptyMessage: 'No se encontraron resultados',
+    emptyFilterMessage: 'No se encontraron resultados'
+};
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }), 
@@ -40,7 +76,8 @@ export const appConfig: ApplicationConfig = {
             options: {
                 darkModeSelector: '.app-dark'
             }
-        }
+        },
+        translation: esTranslation
     })
   ]
 };

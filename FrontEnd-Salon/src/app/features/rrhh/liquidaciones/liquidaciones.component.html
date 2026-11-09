@@ -10,7 +10,7 @@
         <p class="text-sm text-gray-500 dark:text-gray-400 m-0 mt-1">Control de liquidaciones y fondos retenidos</p>
       </div>
       <div class="flex items-center gap-3">
-        <p-calendar [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" placeholder="Rango de Fechas" class="w-64" styleClass="w-full"></p-calendar>
+        <p-calendar [(ngModel)]="rangoFechas" selectionMode="range" [readonlyInput]="true" placeholder="Rango de Fechas" class="w-64" styleClass="w-full" appendTo="body"></p-calendar>
         <button (click)="generarLiquidaciones()"
                 class="px-4 py-2 bg-[#bca028] text-white hover:bg-[#a68c22] rounded-lg text-sm font-medium transition-colors flex items-center gap-2 shadow-sm">
           <i class="pi pi-cog"></i> Pre-Calcular Pagos
@@ -227,7 +227,7 @@
         - S/ {{ totalAdelantosActivos | number:'1.2-2' }}
       </span>
       <span class="text-xs text-red-500/80 block mt-0.5">
-        {{ adelantosEmpleado.length }} adelanto(s) en el periodo
+        {{ adelantosEnPeriodoCount }} adelanto(s) en el periodo
       </span>
     </div>
 
@@ -240,10 +240,18 @@
     </div>
   </div>
 
-  <!-- Formulario de Nuevo Adelanto -->
-  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-5 shadow-sm">
-    <div class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-      <i class="pi pi-plus-circle text-[#bca028]"></i> Registrar Nuevo Adelanto
+  <!-- Formulario de Adelanto (Crear / Editar) -->
+  <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-5 shadow-sm"
+       [ngClass]="{'ring-2 ring-amber-500/50 bg-amber-50/20 dark:bg-amber-950/20': adelantoEnEdicion}">
+    <div class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i [class]="adelantoEnEdicion ? 'pi pi-pencil text-amber-500' : 'pi pi-plus-circle text-[#bca028]'"></i>
+        <span>{{ adelantoEnEdicion ? 'Editar Adelanto (#' + adelantoEnEdicion.id + ')' : 'Registrar Nuevo Adelanto' }}</span>
+      </div>
+      <button *ngIf="adelantoEnEdicion" (click)="cancelarEdicion()" type="button"
+              class="text-xs text-amber-600 dark:text-amber-400 hover:underline font-normal flex items-center gap-1">
+        <i class="pi pi-times"></i> Cancelar edición
+      </button>
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
@@ -255,7 +263,7 @@
 
       <div>
         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Fecha de Entrega *</label>
-        <p-calendar [(ngModel)]="nuevoAdelanto.fecha" [readonlyInput]="true" dateFormat="dd/mm/yy"
+        <p-calendar [(ngModel)]="nuevoAdelanto.fecha" [readonlyInput]="true" dateFormat="dd/mm/yy" appendTo="body"
                     styleClass="w-full" class="w-full"></p-calendar>
       </div>
     </div>
@@ -268,32 +276,54 @@
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Motivo / Observación *</label>
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Motivo / Observación (Opcional)</label>
         <input pInputText type="text" [(ngModel)]="nuevoAdelanto.motivo"
                placeholder="Ej: Adelanto de quincena, pasajes..." class="w-full p-inputtext-sm" />
       </div>
     </div>
 
     <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2" *ngIf="!adelantoEnEdicion">
         <p-checkbox [(ngModel)]="nuevoAdelanto.descontarDeCaja" [binary]="true" inputId="cajaCheck"></p-checkbox>
         <label for="cajaCheck" class="text-xs text-gray-700 dark:text-gray-300 cursor-pointer">
           Registrar salida de dinero en <b>Caja Chica / Efectivo</b> del día
         </label>
       </div>
+      <div class="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1.5" *ngIf="adelantoEnEdicion">
+        <i class="pi pi-info-circle"></i> Editando adelanto existente
+      </div>
 
-      <button (click)="guardarNuevoAdelanto()" [disabled]="guardandoAdelanto"
-              class="px-4 py-2 bg-[#bca028] hover:bg-[#a68c22] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
-        <i [class]="guardandoAdelanto ? 'pi pi-spin pi-spinner' : 'pi pi-check'"></i>
-        {{ guardandoAdelanto ? 'Guardando...' : 'Registrar Adelanto' }}
-      </button>
+      <div class="flex items-center gap-2 ml-auto">
+        <button *ngIf="adelantoEnEdicion" (click)="cancelarEdicion()" type="button"
+                class="px-3 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold rounded-lg transition-colors">
+          Cancelar
+        </button>
+        <button (click)="guardarNuevoAdelanto()" [disabled]="guardandoAdelanto"
+                [ngClass]="adelantoEnEdicion ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-[#bca028] hover:bg-[#a68c22] text-white'"
+                class="px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+          <i [class]="guardandoAdelanto ? 'pi pi-spin pi-spinner' : (adelantoEnEdicion ? 'pi pi-save' : 'pi pi-check')"></i>
+          {{ guardandoAdelanto ? 'Guardando...' : (adelantoEnEdicion ? 'Guardar Cambios' : 'Registrar Adelanto') }}
+        </button>
+      </div>
     </div>
   </div>
 
   <!-- Historial de Adelantos -->
   <div>
-    <div class="text-sm font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-      <i class="pi pi-history text-gray-400"></i> Historial de Adelantos en este Periodo
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+      <div class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <i class="pi pi-history text-gray-400"></i>
+        <span>{{ filtroVerTodosAdelantos ? 'Todos los Adelantos Registrados' : 'Historial de Adelantos en este Periodo' }}</span>
+      </div>
+
+      <button (click)="toggleFiltroAdelantos()" type="button"
+              class="text-xs px-2.5 py-1 rounded-lg font-medium border transition-colors flex items-center gap-1.5"
+              [ngClass]="filtroVerTodosAdelantos 
+                ? 'bg-amber-500/10 text-amber-600 border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400' 
+                : 'bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 hover:border-[#bca028]'">
+        <i [class]="filtroVerTodosAdelantos ? 'pi pi-calendar' : 'pi pi-list'"></i>
+        {{ filtroVerTodosAdelantos ? 'Ver solo de este periodo' : 'Ver todos los adelantos' }}
+      </button>
     </div>
 
     <p-table [value]="adelantosEmpleado" [loading]="loadingAdelantos" styleClass="p-datatable-sm" [paginator]="adelantosEmpleado.length > 5" [rows]="5">
@@ -304,31 +334,46 @@
           <th>Medio</th>
           <th>Motivo</th>
           <th>Registrado Por</th>
-          <th class="text-center" style="width: 80px;">Acción</th>
+          <th class="text-center" style="width: 100px;">Acciones</th>
         </tr>
       </ng-template>
       <ng-template pTemplate="body" let-a>
-        <tr>
-          <td class="text-xs">{{ a.fecha | date:'dd/MM/yyyy' }}</td>
+        <tr [ngClass]="{'bg-amber-50/40 dark:bg-amber-950/30': adelantoEnEdicion?.id === a.id}">
+          <td class="text-xs font-medium">{{ a.fecha | date:'dd/MM/yyyy' }}</td>
           <td class="text-xs font-bold text-red-600 dark:text-red-400">S/ {{ a.monto | number:'1.2-2' }}</td>
           <td class="text-xs">
             <span class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium text-[11px]">
               {{ a.metodoPago }}
             </span>
           </td>
-          <td class="text-xs text-gray-700 dark:text-gray-300">{{ a.motivo }}</td>
+          <td class="text-xs text-gray-700 dark:text-gray-300">{{ a.motivo || '-' }}</td>
           <td class="text-xs text-gray-400">{{ a.usuarioRegistro || 'Admin' }}</td>
           <td class="text-center">
-            <button (click)="anularAdelanto(a)" class="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors" title="Anular Adelanto">
-              <i class="pi pi-trash text-sm"></i>
-            </button>
+            <div class="flex items-center justify-center gap-1">
+              <button (click)="editarAdelanto(a)" class="p-1.5 text-amber-500 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors" title="Editar Adelanto">
+                <i class="pi pi-pencil text-sm"></i>
+              </button>
+              <button (click)="eliminarAdelanto(a)" class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="Eliminar Adelanto">
+                <i class="pi pi-trash text-sm"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </ng-template>
       <ng-template pTemplate="emptymessage">
         <tr>
           <td colspan="6" class="p-4 text-center text-xs text-gray-400">
-            No se han registrado adelantos para este especialista en el periodo actual.
+            <div class="py-2">
+              <p class="mb-2">
+                {{ filtroVerTodosAdelantos 
+                  ? 'No hay ningún adelanto registrado para este especialista en el sistema.' 
+                  : 'No se han registrado adelantos para este especialista en el periodo actual (' + (liquidacionAdelanto?.fechaInicio | date:'dd/MM/yyyy') + ' al ' + (liquidacionAdelanto?.fechaFin | date:'dd/MM/yyyy') + ').' }}
+              </p>
+              <button *ngIf="!filtroVerTodosAdelantos" (click)="toggleFiltroAdelantos()" type="button"
+                      class="text-xs text-[#bca028] hover:underline font-semibold inline-flex items-center gap-1">
+                <i class="pi pi-search"></i> Consultar todos los adelantos históricos
+              </button>
+            </div>
           </td>
         </tr>
       </ng-template>

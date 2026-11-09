@@ -55,6 +55,8 @@ export class LiquidacionesComponent implements OnInit {
   displayModalAdelanto = false;
   loadingAdelantos = false;
   guardandoAdelanto = false;
+  adelantoEnEdicion: AdelantoResponse | null = null;
+  filtroVerTodosAdelantos = false;
   adelantosEmpleado: AdelantoResponse[] = [];
   liquidacionAdelanto: LiquidacionResponse | null = null;
 
@@ -181,20 +183,21 @@ export class LiquidacionesComponent implements OnInit {
   // --- Métodos de Adelantos ---
   abrirModalAdelantos(liq: LiquidacionResponse): void {
     this.liquidacionAdelanto = liq;
-    this.nuevoAdelanto = {
-      monto: null,
-      fecha: new Date(),
-      metodoPago: 'EFECTIVO',
-      motivo: '',
-      descontarDeCaja: false
-    };
+    this.adelantoEnEdicion = null;
+    this.filtroVerTodosAdelantos = false;
+
+    this.resetFormularioAdelanto();
     this.displayModalAdelanto = true;
-    this.cargarAdelantos(liq.empleadoId, liq.fechaInicio, liq.fechaFin);
+    this.recargarAdelantos();
   }
 
-  cargarAdelantos(empleadoId: number, fechaInicio: string, fechaFin: string): void {
+  recargarAdelantos(): void {
+    if (!this.liquidacionAdelanto) return;
     this.loadingAdelantos = true;
-    this.adelantoService.obtenerAdelantos(empleadoId, fechaInicio, fechaFin).subscribe({
+    const pInicio = this.filtroVerTodosAdelantos ? undefined : this.liquidacionAdelanto.fechaInicio;
+    const pFin = this.filtroVerTodosAdelantos ? undefined : this.liquidacionAdelanto.fechaFin;
+
+    this.adelantoService.obtenerAdelantos(this.liquidacionAdelanto.empleadoId, pInicio, pFin).subscribe({
       next: (data) => {
         this.adelantosEmpleado = data;
         this.loadingAdelantos = false;
@@ -206,14 +209,70 @@ export class LiquidacionesComponent implements OnInit {
     });
   }
 
+  toggleFiltroAdelantos(): void {
+    this.filtroVerTodosAdelantos = !this.filtroVerTodosAdelantos;
+    this.recargarAdelantos();
+  }
+
+  editarAdelanto(a: AdelantoResponse): void {
+    this.adelantoEnEdicion = a;
+    let fechaObj = new Date();
+    if (a.fecha) {
+      const partes = a.fecha.split('-');
+      if (partes.length === 3) {
+        fechaObj = new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]), 12, 0, 0);
+      }
+    }
+
+    this.nuevoAdelanto = {
+      monto: a.monto,
+      fecha: fechaObj,
+      metodoPago: a.metodoPago || 'EFECTIVO',
+      motivo: a.motivo || '',
+      descontarDeCaja: false
+    };
+  }
+
+  cancelarEdicion(): void {
+    this.adelantoEnEdicion = null;
+    this.resetFormularioAdelanto();
+  }
+
+  resetFormularioAdelanto(): void {
+    let fechaDefecto = new Date();
+    if (this.liquidacionAdelanto?.fechaInicio && this.liquidacionAdelanto?.fechaFin) {
+      const partesFin = this.liquidacionAdelanto.fechaFin.split('-');
+      const fechaFinLiq = new Date(parseInt(partesFin[0]), parseInt(partesFin[1]) - 1, parseInt(partesFin[2]));
+      const partesIni = this.liquidacionAdelanto.fechaInicio.split('-');
+      const fechaIniLiq = new Date(parseInt(partesIni[0]), parseInt(partesIni[1]) - 1, parseInt(partesIni[2]));
+
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      fechaFinLiq.setHours(0, 0, 0, 0);
+      fechaIniLiq.setHours(0, 0, 0, 0);
+
+      if (hoy >= fechaIniLiq && hoy <= fechaFinLiq) {
+        fechaDefecto = new Date();
+      } else if (hoy > fechaFinLiq) {
+        fechaDefecto = fechaFinLiq;
+      } else {
+        fechaDefecto = fechaIniLiq;
+      }
+    }
+
+    this.nuevoAdelanto = {
+      monto: null,
+      fecha: fechaDefecto,
+      metodoPago: 'EFECTIVO',
+      motivo: '',
+      descontarDeCaja: false
+    };
+  }
+
   guardarNuevoAdelanto(): void {
     if (!this.liquidacionAdelanto) return;
     if (!this.nuevoAdelanto.monto || this.nuevoAdelanto.monto <= 0) {
       this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Ingresa un monto válido para el adelanto.' });
-      return;
-    }
-    if (!this.nuevoAdelanto.motivo.trim()) {
-      this.messageService.add({ severity: 'warn', summary: 'Atención', detail: 'Ingresa el motivo del adelanto.' });
       return;
     }
 
@@ -223,27 +282,67 @@ export class LiquidacionesComponent implements OnInit {
       monto: this.nuevoAdelanto.monto,
       fecha: this.formatDate(this.nuevoAdelanto.fecha || new Date()),
       metodoPago: this.nuevoAdelanto.metodoPago,
-      motivo: this.nuevoAdelanto.motivo.trim(),
+      motivo: this.nuevoAdelanto.motivo?.trim() || '',
       descontarDeCaja: this.nuevoAdelanto.descontarDeCaja
     };
 
-    this.adelantoService.registrarAdelanto(req).subscribe({
+    if (this.adelantoEnEdicion) {
+      this.adelantoService.actualizarAdelanto(this.adelantoEnEdicion.id, req).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Actualizado',
+            detail: `Adelanto de S/ ${req.monto.toFixed(2)} actualizado correctamente.`
+          });
+          this.guardandoAdelanto = false;
+          this.cancelarEdicion();
+          this.recargarAdelantos();
+          this.cargarLiquidaciones();
+        },
+        error: (err) => {
+          this.guardandoAdelanto = false;
+          const msg = err.error?.message || 'Error al actualizar el adelanto.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
+        }
+      });
+    } else {
+      this.adelantoService.registrarAdelanto(req).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Registrado',
+            detail: `Adelanto de S/ ${req.monto.toFixed(2)} registrado correctamente.`
+          });
+          this.guardandoAdelanto = false;
+          this.resetFormularioAdelanto();
+          this.recargarAdelantos();
+          this.cargarLiquidaciones();
+        },
+        error: (err) => {
+          this.guardandoAdelanto = false;
+          const msg = err.error?.message || 'Error al registrar el adelanto.';
+          this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
+        }
+      });
+    }
+  }
+
+  eliminarAdelanto(adelanto: AdelantoResponse): void {
+    if (!confirm(`¿Estás seguro de eliminar el adelanto de S/ ${adelanto.monto.toFixed(2)}? Esta acción reintegrará el saldo y eliminará el egreso si fue registrado en caja.`)) {
+      return;
+    }
+
+    this.adelantoService.eliminarAdelanto(adelanto.id).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Registrado',
-          detail: `Adelanto de S/ ${req.monto.toFixed(2)} registrado correctamente.`
-        });
-        this.guardandoAdelanto = false;
-        this.nuevoAdelanto.monto = null;
-        this.nuevoAdelanto.motivo = '';
-        this.nuevoAdelanto.descontarDeCaja = false;
-        this.cargarAdelantos(this.liquidacionAdelanto!.empleadoId, this.liquidacionAdelanto!.fechaInicio, this.liquidacionAdelanto!.fechaFin);
-        this.cargarLiquidaciones(); // Recarga y actualiza de inmediato la tabla principal
+        this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Adelanto eliminado correctamente.' });
+        if (this.adelantoEnEdicion?.id === adelanto.id) {
+          this.cancelarEdicion();
+        }
+        this.recargarAdelantos();
+        this.cargarLiquidaciones();
       },
       error: (err) => {
-        this.guardandoAdelanto = false;
-        const msg = err.error?.message || 'Error al registrar el adelanto.';
+        const msg = err.error?.message || 'No se pudo eliminar el adelanto.';
         this.messageService.add({ severity: 'error', summary: 'Error', detail: msg });
       }
     });
@@ -257,9 +356,7 @@ export class LiquidacionesComponent implements OnInit {
     this.adelantoService.anularAdelanto(adelanto.id).subscribe({
       next: () => {
         this.messageService.add({ severity: 'info', summary: 'Anulado', detail: 'Adelanto anulado correctamente.' });
-        if (this.liquidacionAdelanto) {
-          this.cargarAdelantos(this.liquidacionAdelanto.empleadoId, this.liquidacionAdelanto.fechaInicio, this.liquidacionAdelanto.fechaFin);
-        }
+        this.recargarAdelantos();
         this.cargarLiquidaciones();
       },
       error: () => {
@@ -268,8 +365,23 @@ export class LiquidacionesComponent implements OnInit {
     });
   }
 
+  get adelantosEnPeriodo(): AdelantoResponse[] {
+    if (!this.liquidacionAdelanto) return [];
+    const inicio = this.liquidacionAdelanto.fechaInicio;
+    const fin = this.liquidacionAdelanto.fechaFin;
+    return this.adelantosEmpleado.filter(a => a.fecha >= inicio && a.fecha <= fin);
+  }
+
+  get adelantosEnPeriodoCount(): number {
+    return this.adelantosEnPeriodo.length;
+  }
+
   get totalAdelantosActivos(): number {
-    return this.adelantosEmpleado.reduce((acc, curr) => acc + (curr.monto || 0), 0);
+    if (!this.liquidacionAdelanto) return 0;
+    if (!this.filtroVerTodosAdelantos) {
+      return this.adelantosEmpleado.reduce((acc, curr) => acc + (curr.monto || 0), 0);
+    }
+    return this.adelantosEnPeriodo.reduce((acc, curr) => acc + (curr.monto || 0), 0);
   }
 
   get saldoRestanteAdelanto(): number {
