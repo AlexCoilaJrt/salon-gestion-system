@@ -10,7 +10,7 @@ public interface FidelizacionService {
     List<CartillaDTO> listarCartillas();
     
     // Core logic
-    boolean procesarPagoServicio(Long clienteId, Long servicioId);
+    boolean procesarPagoServicio(Long clienteId, Long servicioId, Long ticketId);
     
     List<ClienteCartillaDTO> listarCartillasPorCliente(Long clienteId);
     List<ClienteCartillaDTO> listarPremiosDisponibles(Long clienteId);

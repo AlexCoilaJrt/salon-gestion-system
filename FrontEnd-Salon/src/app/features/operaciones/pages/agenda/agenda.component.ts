@@ -89,7 +89,8 @@ export class AgendaComponent implements OnInit {
     nombres: '',
     apellidos: '',
     telefono: '',
-    email: ''
+    email: '',
+    dni: ''
   };
 
   horas = [9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
@@ -123,7 +124,7 @@ export class AgendaComponent implements OnInit {
       productosIds: []
     };
     this.selectedServicioId.set(null);
-    this.formNuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '' };
+    this.formNuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '', dni: '' };
     this.isNuevoCliente.set(false);
     this.editMode.set(false);
     this.citaIdToEdit.set(null);
@@ -192,7 +193,8 @@ export class AgendaComponent implements OnInit {
         nombres: this.formNuevoCliente.nombres.trim(),
         apellidos: this.formNuevoCliente.apellidos.trim(),
         telefono: this.formNuevoCliente.telefono?.trim() || undefined,
-        email: this.formNuevoCliente.email?.trim() || undefined
+        email: this.formNuevoCliente.email?.trim() || undefined,
+        dni: this.formNuevoCliente.dni?.trim() || undefined
       };
       this.agendaService.crearCliente(payloadCliente).subscribe({
         next: (cliente) => {

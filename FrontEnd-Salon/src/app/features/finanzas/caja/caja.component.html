@@ -13,6 +13,14 @@
       </div>
       
       <div *ngIf="sesionActiva" class="flex items-center gap-2.5">
+        <!-- Badge Indicador de Impresora XP-E260L -->
+        <div class="hidden sm:flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800/80 px-2.5 py-1 rounded-xl border border-gray-200 dark:border-gray-700 text-xs text-gray-700 dark:text-gray-300"
+             [title]="'Impresora Térmica: ' + (impresoraConfig?.ip || '192.168.123.100') + ':9100'">
+          <i class="pi pi-print text-[#bca028]"></i>
+          <span class="font-bold">XP-E260L</span>
+          <span class="text-[10px] text-gray-400 font-mono">({{ impresoraConfig?.ip || '192.168.123.100' }})</span>
+        </div>
+
         <div class="flex items-center gap-2 bg-green-500/10 dark:bg-green-900/30 px-3 py-1 rounded-xl border border-green-500/20 text-xs">
           <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
           <span class="text-green-700 dark:text-green-400 font-bold">CAJA ABIERTA</span>
@@ -576,6 +584,10 @@
             <i class="pi pi-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
             <input type="text" [(ngModel)]="nombreCliente" placeholder="Público General" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#1e232b] text-gray-800 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all" />
           </div>
+          <div *ngIf="clienteDni" class="mt-1.5 flex items-center gap-1.5 text-xs text-amber-500 font-semibold pl-1">
+            <i class="pi pi-id-card"></i>
+            <span>DNI / Doc: {{ clienteDni }}</span>
+          </div>
         </div>
 
         <!-- Método de Pago -->
@@ -645,18 +657,48 @@
         <div class="w-full bg-gray-50 dark:bg-[#1e232b] rounded-xl p-3 border border-gray-100 dark:border-gray-800 text-xs flex justify-between items-center text-gray-600 dark:text-gray-300">
             <div class="flex items-center gap-2">
                 <i class="pi pi-user text-gray-400"></i>
-                <span class="font-semibold truncate max-w-[180px] text-left">{{ ticketGenerado?.clienteNombreCompleto || nombreCliente || 'Público General' }}</span>
+                <div class="flex flex-col text-left">
+                  <span class="font-semibold truncate max-w-[180px]">{{ ticketGenerado?.clienteNombreCompleto || nombreCliente || 'Público General' }}</span>
+                  <span *ngIf="ticketGenerado?.clienteDni" class="text-[10px] text-gray-400">DNI: {{ ticketGenerado?.clienteDni }}</span>
+                </div>
             </div>
             <div class="flex items-center gap-1.5 font-bold uppercase bg-amber-100/70 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 px-2.5 py-1 rounded-md text-[11px] border border-amber-200/50 dark:border-amber-700/50">
                 <i class="pi pi-credit-card text-xs"></i>
                 <span>{{ ticketGenerado?.metodoPago || metodoPago }}</span>
             </div>
         </div>
+
+        <!-- Resumen de Especialista Asignado -->
+        <div *ngIf="obtenerEspecialistasTicketResumen()" class="w-full bg-amber-50/60 dark:bg-amber-950/20 rounded-xl px-3 py-2 border border-amber-200/50 dark:border-amber-800/30 text-xs flex items-center justify-between text-amber-900 dark:text-amber-300">
+            <div class="flex items-center gap-2 font-medium">
+                <i class="pi pi-sparkles text-amber-600 dark:text-[#bca028]"></i>
+                <span class="text-gray-500 dark:text-gray-400">Especialista:</span>
+                <strong class="font-bold text-gray-800 dark:text-gray-200">{{ obtenerEspecialistasTicketResumen() }}</strong>
+            </div>
+        </div>
         
         <!-- Botones de Acción -->
-        <div class="flex flex-col w-full gap-2.5 mt-2">
-            <button pButton label="Imprimir Ticket" icon="pi pi-print" class="w-full bg-[#bca028] hover:bg-[#9d841f] text-black font-bold border-none py-3 shadow-md rounded-xl transition-all" (click)="imprimirTicket()"></button>
-            <button pButton label="Nueva Venta" icon="pi pi-refresh" class="w-full p-button-outlined text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold py-3 rounded-xl transition-all" (click)="cerrarVenta()"></button>
+        <div class="flex flex-col w-full gap-2 mt-2">
+            <button pButton 
+                    [label]="imprimiendoRed ? 'Imprimiendo en XP-E260L...' : 'Imprimir Ticket (XP-E260L)'" 
+                    [icon]="imprimiendoRed ? 'pi pi-spin pi-spinner' : 'pi pi-print'" 
+                    class="w-full bg-[#bca028] hover:bg-[#9d841f] text-black font-bold border-none py-3 shadow-md rounded-xl transition-all" 
+                    [disabled]="imprimiendoRed"
+                    (click)="imprimirTicketTermico()"></button>
+            
+            <div class="flex items-center justify-between gap-2 px-1">
+              <button type="button" (click)="imprimirTicket()" 
+                      class="text-[11px] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:underline flex items-center gap-1 font-medium transition-colors">
+                <i class="pi pi-desktop text-[10px]"></i> Imprimir por navegador / PDF
+              </button>
+              <span class="text-[10px] text-gray-400 font-mono">
+                IP: {{ impresoraConfig?.ip || '192.168.123.100' }}
+              </span>
+            </div>
+
+            <button pButton label="Nueva Venta" icon="pi pi-refresh" 
+                    class="w-full p-button-outlined text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 font-semibold py-2.5 rounded-xl transition-all mt-1" 
+                    (click)="cerrarVenta()"></button>
         </div>
     </div>
   </p-dialog>
@@ -1224,6 +1266,10 @@
       <div class="p-field-lbl">CLIENTE:</div>
       <div class="p-field-val">{{ nombreCliente || 'Público General' }}</div>
     </div>
+    <div class="p-field" *ngIf="ticketGenerado?.clienteDni">
+      <div class="p-field-lbl">DNI / DOC:</div>
+      <div class="p-field-val">{{ ticketGenerado?.clienteDni }}</div>
+    </div>
     <div class="p-field">
       <div class="p-field-lbl">MÉTODO PAGO:</div>
       <div class="p-field-val">{{ metodoPago }}</div>
@@ -1242,7 +1288,10 @@
     <tbody>
       <tr *ngFor="let item of ticket; let i = index">
         <td class="tc">{{ item.cantidad }}</td>
-        <td>{{ item.nombre }}</td>
+        <td>
+          <div style="font-weight: 600;">{{ item.nombre }}</div>
+          <div *ngIf="item.categoriaNombre" style="font-size: 10px; color: #777;">Cat: {{ item.categoriaNombre }}</div>
+        </td>
         <td>{{ obtenerNombreEmpleado(item.empleadoId) }}</td>
         <td class="tc">S/ {{ item.subtotal | number:'1.2-2' }}</td>
       </tr>

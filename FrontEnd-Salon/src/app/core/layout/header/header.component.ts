@@ -11,9 +11,12 @@ import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { ToastModule } from 'primeng/toast';
+import { CheckboxModule } from 'primeng/checkbox';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { AuthService } from '../../auth/services/auth.service';
 import { EmpresaService, EmpresaResponse } from '../../services/empresa.service';
 import { ConfiguracionService } from '../../services/configuracion.service';
+import { ImpresoraService, ImpresoraConfig, ImpresoraTestResult } from '../../services/impresora.service';
 import { CatalogoService, Producto } from '../../../features/catalogo/services/catalogo.service';
 import { AgendaService, ClienteResponse } from '../../../features/operaciones/pages/agenda/agenda.service';
 import { RrhhService, Empleado } from '../../../features/rrhh/services/rrhh.service';
@@ -34,7 +37,9 @@ import { LayoutService } from '../../services/layout.service';
     DialogModule,
     ButtonModule,
     OverlayPanelModule,
-    ToastModule
+    ToastModule,
+    CheckboxModule,
+    InputNumberModule
   ],
   providers: [MessageService],
   templateUrl: './header.component.html'
@@ -58,6 +63,7 @@ export class HeaderComponent implements OnInit {
   private catalogoService = inject(CatalogoService);
   private agendaService = inject(AgendaService);
   private rrhhService = inject(RrhhService);
+  private impresoraService = inject(ImpresoraService);
   
   currentUser = signal<any>(null);
   isDarkMode = signal<boolean>(false);
@@ -75,6 +81,23 @@ export class HeaderComponent implements OnInit {
   // Modals state
   displayPerfilModal = signal<boolean>(false);
   displayEmpresaModal = signal<boolean>(false);
+
+  // Modal Impresora Térmica (XP-E260L)
+  displayImpresoraModal = signal<boolean>(false);
+  probandoConexionImpresora = signal<boolean>(false);
+  imprimiendoTicketPrueba = signal<boolean>(false);
+  guardandoConfigImpresora = signal<boolean>(false);
+  resultadoTestImpresora: ImpresoraTestResult | null = null;
+
+  impresoraForm: ImpresoraConfig = {
+    ip: '192.168.123.100',
+    puerto: 9100,
+    autoImprimirAlCobrar: true,
+    autoCorte: true,
+    abrirGaveta: true,
+    mensajePie: '¡Gracias por su preferencia!',
+    anchoPapelMm: 80
+  };
 
   // Modal Tiempo de Sesión
   displaySesionModal = signal<boolean>(false);
@@ -135,6 +158,14 @@ export class HeaderComponent implements OnInit {
         visible: isAdmin,
         command: () => {
           this.abrirModalEmpresa();
+        }
+      },
+      {
+        label: 'Impresora Térmica (XP-E260L)',
+        icon: 'pi pi-print',
+        visible: isAdmin,
+        command: () => {
+          this.abrirModalImpresora();
         }
       },
       {
@@ -410,5 +441,124 @@ export class HeaderComponent implements OnInit {
     }
     const horas = (min / 60).toFixed(min % 60 === 0 ? 0 : 1);
     return `${horas} horas`;
+  }
+
+  // --- Métodos de Impresora Térmica (XP-E260L) ---
+  abrirModalImpresora(): void {
+    this.resultadoTestImpresora = null;
+    this.impresoraService.getConfig().subscribe({
+      next: (config) => {
+        this.impresoraForm = {
+          ip: config.ip || '192.168.123.100',
+          puerto: config.puerto || 9100,
+          autoImprimirAlCobrar: config.autoImprimirAlCobrar ?? true,
+          autoCorte: config.autoCorte ?? true,
+          abrirGaveta: config.abrirGaveta ?? true,
+          mensajePie: config.mensajePie || '¡Gracias por su preferencia!',
+          anchoPapelMm: config.anchoPapelMm || 80
+        };
+        this.displayImpresoraModal.set(true);
+      },
+      error: () => {
+        this.displayImpresoraModal.set(true);
+      }
+    });
+  }
+
+  probarConexionImpresora(): void {
+    this.probandoConexionImpresora.set(true);
+    this.resultadoTestImpresora = null;
+    this.impresoraService.testConexion({
+      ip: this.impresoraForm.ip,
+      puerto: this.impresoraForm.puerto
+    }).subscribe({
+      next: (res) => {
+        this.resultadoTestImpresora = res;
+        this.probandoConexionImpresora.set(false);
+        if (res.conectado) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Impresora Conectada',
+            detail: res.mensaje
+          });
+        } else {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Sin Conexión con Impresora',
+            detail: res.mensaje
+          });
+        }
+      },
+      error: (err) => {
+        this.probandoConexionImpresora.set(false);
+        this.resultadoTestImpresora = {
+          conectado: false,
+          ip: this.impresoraForm.ip,
+          puerto: this.impresoraForm.puerto,
+          mensaje: 'Error de comunicación con el backend para probar la conexión.'
+        };
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo contactar al servicio de verificación.'
+        });
+      }
+    });
+  }
+
+  probarImpresionTicket(): void {
+    this.imprimiendoTicketPrueba.set(true);
+    this.impresoraService.imprimirTicketPrueba({
+      ip: this.impresoraForm.ip,
+      puerto: this.impresoraForm.puerto
+    }).subscribe({
+      next: (res) => {
+        this.imprimiendoTicketPrueba.set(false);
+        if (res.conectado) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Ticket Enviado',
+            detail: 'Se envió el ticket de prueba a la impresora XP-E260L.'
+          });
+        } else {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Fallo al Imprimir',
+            detail: res.mensaje
+          });
+        }
+      },
+      error: (err) => {
+        this.imprimiendoTicketPrueba.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo enviar el ticket de prueba a la impresora.'
+        });
+      }
+    });
+  }
+
+  guardarConfigImpresora(): void {
+    this.guardandoConfigImpresora.set(true);
+    this.impresoraService.saveConfig(this.impresoraForm).subscribe({
+      next: () => {
+        this.guardandoConfigImpresora.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Configuración Guardada',
+          detail: 'Parámetros de la impresora térmica actualizados correctamente.'
+        });
+        this.displayImpresoraModal.set(false);
+      },
+      error: () => {
+        this.guardandoConfigImpresora.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo guardar la configuración de la impresora.'
+        });
+      }
+    });
   }
 }

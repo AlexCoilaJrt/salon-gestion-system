@@ -397,3 +397,158 @@
   </ng-template>
 </p-dialog>
 
+<!-- Modal: Configuración de Impresora Térmica (XP-E260L) -->
+<p-dialog [(visible)]="displayImpresoraModal" 
+          [modal]="true" 
+          [style]="{width: '580px', maxWidth: '95vw'}" 
+          [draggable]="false" 
+          [resizable]="false"
+          header="Configuración de Impresora Térmica de Tickets">
+
+  <div class="flex flex-col gap-4 py-2">
+    <!-- Header informativo de la impresora -->
+    <div class="flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20">
+      <div class="w-12 h-12 rounded-xl bg-[#bca028] text-white flex items-center justify-center text-xl shrink-0 shadow-md">
+        <i class="pi pi-print"></i>
+      </div>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-bold text-gray-900 dark:text-white">Xprinter XP-E260L</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-[#bca028]">80 mm LAN / Red</span>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 m-0 mt-0.5">
+          Impresión directa por socket TCP/IP (puerto 9100) sin cuadros de diálogo.
+        </p>
+      </div>
+    </div>
+
+    <!-- Campos de Conexión de Red -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="sm:col-span-2">
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+          Dirección IP de la Impresora *
+        </label>
+        <div class="relative">
+          <i class="pi pi-globe absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input pInputText type="text" [(ngModel)]="impresoraForm.ip" 
+                 placeholder="Ej: 192.168.123.100" 
+                 class="w-full !pl-8 text-sm font-mono font-bold" />
+        </div>
+        <span class="text-[10px] text-gray-400 block mt-1">IP de fábrica: 192.168.123.100</span>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+          Puerto RAW *
+        </label>
+        <div class="relative">
+          <i class="pi pi-server absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input pInputText type="number" [(ngModel)]="impresoraForm.puerto" 
+                 placeholder="9100" 
+                 class="w-full !pl-8 text-sm font-mono font-bold" />
+        </div>
+        <span class="text-[10px] text-gray-400 block mt-1">Estándar: 9100</span>
+      </div>
+    </div>
+
+    <!-- Acciones de Diagnóstico: Probar Conexión y Ticket de Prueba -->
+    <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 flex flex-col gap-2.5">
+      <span class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+        Diagnóstico y Pruebas en Vivo
+      </span>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" 
+                (click)="probarConexionImpresora()" 
+                [disabled]="probandoConexionImpresora()"
+                class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
+          <i [class]="probandoConexionImpresora() ? 'pi pi-spin pi-spinner' : 'pi pi-wifi'"></i>
+          {{ probandoConexionImpresora() ? 'Probando conexión...' : 'Probar Conexión' }}
+        </button>
+
+        <button type="button" 
+                (click)="probarImpresionTicket()" 
+                [disabled]="imprimiendoTicketPrueba()"
+                class="px-3.5 py-2 bg-[#bca028] hover:bg-[#9d841f] text-black font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
+          <i [class]="imprimiendoTicketPrueba() ? 'pi pi-spin pi-spinner' : 'pi pi-print'"></i>
+          {{ imprimiendoTicketPrueba() ? 'Imprimiendo...' : 'Imprimir Ticket de Prueba' }}
+        </button>
+      </div>
+
+      <!-- Resultado del Test -->
+      <div *ngIf="resultadoTestImpresora" 
+           class="p-2.5 rounded-lg text-xs flex items-center gap-2 border mt-1"
+           [ngClass]="resultadoTestImpresora.conectado 
+             ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+             : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'">
+        <i [class]="resultadoTestImpresora.conectado ? 'pi pi-check-circle text-base text-emerald-500' : 'pi pi-exclamation-triangle text-base text-red-500'"></i>
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold">{{ resultadoTestImpresora.conectado ? '¡Impresora en línea y lista!' : 'Impresora no accesible' }}</span>
+          <span class="text-[11px] opacity-90">{{ resultadoTestImpresora.mensaje }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opciones de Operación -->
+    <div class="space-y-2.5 pt-1">
+      <span class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">
+        Opciones de Venta
+      </span>
+
+      <div class="flex items-center gap-2 cursor-pointer">
+        <p-checkbox [(ngModel)]="impresoraForm.autoImprimirAlCobrar" [binary]="true" inputId="chkAutoPrint"></p-checkbox>
+        <label for="chkAutoPrint" class="text-xs text-gray-800 dark:text-gray-200 font-medium cursor-pointer">
+          <b>Imprimir automáticamente</b> el ticket físico al registrar el pago en Caja
+        </label>
+      </div>
+
+      <div class="flex items-center gap-2 cursor-pointer">
+        <p-checkbox [(ngModel)]="impresoraForm.autoCorte" [binary]="true" inputId="chkAutoCut"></p-checkbox>
+        <label for="chkAutoCut" class="text-xs text-gray-800 dark:text-gray-200 font-medium cursor-pointer">
+          <b>Corte automático de papel</b> al finalizar cada impresión
+        </label>
+      </div>
+
+      <div class="flex items-center gap-2 cursor-pointer">
+        <p-checkbox [(ngModel)]="impresoraForm.abrirGaveta" [binary]="true" inputId="chkDrawer"></p-checkbox>
+        <label for="chkDrawer" class="text-xs text-gray-800 dark:text-gray-200 font-medium cursor-pointer">
+          <b>Abrir cajón / gaveta de dinero</b> automáticamente al cobrar (vía puerto RJ-11)
+        </label>
+      </div>
+    </div>
+
+    <!-- Mensaje de pie de página -->
+    <div>
+      <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+        Mensaje al Pie del Ticket
+      </label>
+      <input pInputText type="text" [(ngModel)]="impresoraForm.mensajePie" 
+             placeholder="Ej: ¡Gracias por su preferencia!" 
+             class="w-full text-xs" />
+    </div>
+
+    <!-- Tarjeta de Ayuda de Red Subred -->
+    <div class="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/40 rounded-xl flex items-start gap-2.5 text-xs text-amber-800 dark:text-amber-200">
+      <i class="pi pi-info-circle text-sm mt-0.5 shrink-0 text-[#bca028]"></i>
+      <div class="flex flex-col gap-1 leading-relaxed">
+        <span><strong>💡 Nota de Red Local:</strong> Tu PC actual está en la red <code>192.168.100.x</code>.</span>
+        <span>Si la impresora tiene la IP de fábrica <code>192.168.123.100</code>, para comunicarse deben estar en el mismo rango de red (por ejemplo cambiando la IP de la impresora a <code>192.168.100.200</code> con la herramienta de Xprinter o agregando la subred en Windows).</span>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2.5 pt-2 border-t border-gray-100 dark:border-gray-800">
+      <p-button label="Cerrar" 
+                icon="pi pi-times" 
+                styleClass="p-button-text text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" 
+                (onClick)="displayImpresoraModal.set(false)">
+      </p-button>
+      <p-button label="Guardar Configuración" 
+                icon="pi pi-check" 
+                [loading]="guardandoConfigImpresora()" 
+                (onClick)="guardarConfigImpresora()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+

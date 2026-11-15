@@ -16,6 +16,9 @@ public class ClienteRequest {
     @Size(max = 60, message = "Los apellidos no pueden superar los 60 caracteres")
     private String apellidos;
 
+    @Size(max = 20, message = "El DNI/documento no puede superar los 20 caracteres")
+    private String dni;
+
     @Size(max = 20, message = "El teléfono no puede superar los 20 caracteres")
     private String telefono;
 

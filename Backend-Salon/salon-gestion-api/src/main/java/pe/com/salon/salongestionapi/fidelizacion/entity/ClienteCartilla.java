@@ -39,4 +39,7 @@ public class ClienteCartilla {
 
     @Column(nullable = false)
     private Boolean canjeada; // True when the client redeems the reward
+
+    @Column(name = "ticket_completado_id")
+    private Long ticketCompletadoId; // ID del ticket que completó la cartilla y emitió el vale
 }

@@ -111,7 +111,7 @@ export class PosComponent implements OnInit {
 
   // Registro Rápido de Cliente
   showNuevoClienteDialog = signal(false);
-  nuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '' };
+  nuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '', dni: '' };
 
   ngOnInit() {
     this.loadData();
@@ -328,7 +328,7 @@ export class PosComponent implements OnInit {
   }
 
   abrirNuevoClienteDialog() {
-    this.nuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '' };
+    this.nuevoCliente = { nombres: '', apellidos: '', telefono: '', email: '', dni: '' };
     this.showNuevoClienteDialog.set(true);
   }
 
@@ -359,7 +359,8 @@ export class PosComponent implements OnInit {
       nombres: this.nuevoCliente.nombres.trim(),
       apellidos: this.nuevoCliente.apellidos.trim(),
       telefono: this.nuevoCliente.telefono?.trim() || undefined,
-      email: this.nuevoCliente.email?.trim() || undefined
+      email: this.nuevoCliente.email?.trim() || undefined,
+      dni: this.nuevoCliente.dni?.trim() || undefined
     };
     this.agendaService.crearCliente(payload).subscribe({
       next: (res) => {

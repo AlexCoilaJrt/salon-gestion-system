@@ -33,4 +33,15 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.activo = true AND t.estado = pe.com.salon.salongestionapi.operaciones.entity.EstadoTicket.PAGADO AND t.fechaEmision >= :inicio AND t.fechaEmision <= :fin")
     long countVentasByFechaEmisionBetween(@Param("inicio") LocalDateTime inicio, @Param("fin") LocalDateTime fin);
+
+    @Query("SELECT DISTINCT t FROM Ticket t " +
+           "LEFT JOIN FETCH t.detalles d " +
+           "LEFT JOIN FETCH d.empleado " +
+           "LEFT JOIN FETCH d.servicio s " +
+           "LEFT JOIN FETCH s.categoria " +
+           "LEFT JOIN FETCH d.producto p " +
+           "LEFT JOIN FETCH p.categoria " +
+           "LEFT JOIN FETCH t.cliente " +
+           "WHERE t.id = :id")
+    java.util.Optional<Ticket> findByIdWithDetalles(@Param("id") Long id);
 }

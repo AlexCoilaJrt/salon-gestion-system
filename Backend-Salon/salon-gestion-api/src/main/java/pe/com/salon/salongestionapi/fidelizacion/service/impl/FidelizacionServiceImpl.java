@@ -55,7 +55,7 @@ public class FidelizacionServiceImpl implements FidelizacionService {
 
     @Override
     @Transactional
-    public boolean procesarPagoServicio(Long clienteId, Long servicioId) {
+    public boolean procesarPagoServicio(Long clienteId, Long servicioId, Long ticketId) {
         if (clienteId == null || servicioId == null) return false;
 
         // Check if there is an active loyalty program for this service
@@ -83,11 +83,41 @@ public class FidelizacionServiceImpl implements FidelizacionService {
             
             if (progress.getSellosActuales() >= cartillaActiva.getMetaSellos()) {
                 progress.setCompletada(true);
+                progress.setCanjeada(true); // Se marca como canjeada/emitida para que no salga en tickets posteriores
+                progress.setTicketCompletadoId(ticketId);
+                clienteCartillaRepository.save(progress);
+
+                // Reiniciar automáticamente una nueva cartilla desde 0 sellos para este cliente
+                ClienteCartilla nuevaCartilla = ClienteCartilla.builder()
+                        .cliente(cliente)
+                        .cartillaFidelizacion(cartillaActiva)
+                        .sellosActuales(0)
+                        .completada(false)
+                        .canjeada(false)
+                        .fechaUltimaActualizacion(LocalDateTime.now())
+                        .build();
+                clienteCartillaRepository.save(nuevaCartilla);
+                return true;
             }
             clienteCartillaRepository.save(progress);
             return true;
+        } else {
+            // Si por alguna razón anterior ya estaba completada (legacy):
+            progress.setCanjeada(true);
+            progress.setTicketCompletadoId(ticketId);
+            clienteCartillaRepository.save(progress);
+
+            ClienteCartilla nuevaCartilla = ClienteCartilla.builder()
+                    .cliente(cliente)
+                    .cartillaFidelizacion(cartillaActiva)
+                    .sellosActuales(1)
+                    .completada(false)
+                    .canjeada(false)
+                    .fechaUltimaActualizacion(LocalDateTime.now())
+                    .build();
+            clienteCartillaRepository.save(nuevaCartilla);
+            return true;
         }
-        return false;
     }
 
     @Override

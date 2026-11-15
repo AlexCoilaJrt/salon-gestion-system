@@ -25,6 +25,9 @@ public class Cliente {
     private String apellidos;
 
     @Column(length = 20)
+    private String dni;
+
+    @Column(length = 20)
     private String telefono;
 
     @Column(length = 100)

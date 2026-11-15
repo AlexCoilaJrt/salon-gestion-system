@@ -14,6 +14,7 @@ import { ConfirmationService } from 'primeng/api';
 import { TooltipModule } from 'primeng/tooltip';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
+import { ImpresoraService } from '../../../core/services/impresora.service';
 
 @Component({
   selector: 'app-facturacion',
@@ -28,6 +29,7 @@ import { InputIconModule } from 'primeng/inputicon';
 })
 export class FacturacionComponent implements OnInit {
   private ticketService = inject(TicketService);
+  private impresoraService = inject(ImpresoraService);
   private messageService = inject(MessageService);
   private confirmationService = inject(ConfirmationService);
 
@@ -96,9 +98,31 @@ export class FacturacionComponent implements OnInit {
     });
   }
 
+  imprimiendoRed = false;
+
   imprimirTicket() {
     if (!this.ticketSeleccionado) return;
-    window.print();
+    this.imprimiendoRed = true;
+    this.impresoraService.imprimirTicketVenta(this.ticketSeleccionado.id).subscribe({
+      next: () => {
+        this.imprimiendoRed = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Ticket Impreso',
+          detail: 'Comprobante enviado a la impresora térmica XP-E260L.'
+        });
+      },
+      error: (err) => {
+        this.imprimiendoRed = false;
+        console.warn('Fallo impresión por red térmico, abriendo ventana del navegador:', err);
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Impresora Térmica No Disponible',
+          detail: 'Abriendo impresión del navegador como respaldo.'
+        });
+        window.print();
+      }
+    });
   }
 
   getEspecialistas(ticket: TicketResponse): string[] {

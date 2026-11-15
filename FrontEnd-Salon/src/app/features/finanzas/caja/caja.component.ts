@@ -21,6 +21,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { RrhhService, Empleado } from '../../rrhh/services/rrhh.service';
 import { EmpresaService, EmpresaResponse } from '../../../core/services/empresa.service';
 import { AuthService } from '../../../core/auth/services/auth.service';
+import { ImpresoraService, ImpresoraConfig } from '../../../core/services/impresora.service';
 
 export interface VentaItem {
   id: number;
@@ -28,6 +29,7 @@ export interface VentaItem {
   precio: number;
   tipo: 'producto' | 'servicio';
   imagen?: string;
+  categoriaNombre?: string;
 }
 
 export interface TicketItem extends VentaItem {
@@ -68,6 +70,10 @@ export class CajaComponent implements OnInit {
   private confirmationService = inject(ConfirmationService);
   private empresaService = inject(EmpresaService);
   private authService = inject(AuthService);
+  private impresoraService = inject(ImpresoraService);
+
+  impresoraConfig: ImpresoraConfig | null = null;
+  imprimiendoRed: boolean = false;
 
   get isAdmin(): boolean {
     const user = this.authService.getCurrentUser();
@@ -261,6 +267,7 @@ export class CajaComponent implements OnInit {
   vuelto: number = 0;
   referenciaPago: string = '';
   nombreCliente: string = '';
+  clienteDni: string = '';
 
   // Dialogo de Éxito / Ticket
   ticketGeneradoDialog: boolean = false;
@@ -271,6 +278,14 @@ export class CajaComponent implements OnInit {
     this.verificarCaja();
     this.cargarEmpleados();
     this.cargarEmpresa();
+    this.cargarConfiguracionImpresora();
+  }
+
+  cargarConfiguracionImpresora() {
+    this.impresoraService.getConfig().subscribe({
+      next: (cfg) => this.impresoraConfig = cfg,
+      error: () => {}
+    });
   }
 
   cargarEmpresa() {
@@ -441,6 +456,7 @@ export class CajaComponent implements OnInit {
     // No reseteamos nombreCliente por si viene de la orden
     if (!this.ticketPendienteId) {
       this.nombreCliente = '';
+      this.clienteDni = '';
     }
     this.servicioSelloId = null;
     this.serviciosSellosSeleccionados = this.serviciosEnTicket.map(s => s.id);
@@ -456,6 +472,7 @@ export class CajaComponent implements OnInit {
     this.metodoPago = 'Efectivo';
     this.referenciaPago = '';
     this.nombreCliente = ticketPendiente.clienteNombreCompleto;
+    this.clienteDni = ticketPendiente.clienteDni || '';
     this.servicioSelloId = null;
     
     // Cargar los detalles al ticket actual para validar empleados
@@ -463,6 +480,7 @@ export class CajaComponent implements OnInit {
       detalleId: d.id,
       id: d.servicioId || d.productoId,
       nombre: d.servicioNombre || d.productoNombre,
+      categoriaNombre: d.categoriaNombre,
       precio: d.precioUnitario,
       tipo: d.servicioId ? 'servicio' : 'producto',
       cantidad: d.cantidad,
@@ -594,6 +612,9 @@ export class CajaComponent implements OnInit {
           this.cobroDialog = false;
           this.ticketGeneradoDialog = true;
           this.cargarTicketsPendientes();
+          if (this.impresoraConfig?.autoImprimirAlCobrar) {
+            this.imprimirTicketTermico(res.id);
+          }
         },
         error: (err) => {
           this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al procesar el pago.' });
@@ -607,6 +628,9 @@ export class CajaComponent implements OnInit {
           this.messageService.add({ severity: 'success', summary: 'Venta Completada', detail: 'El pago se procesó correctamente.' });
           this.cobroDialog = false;
           this.ticketGeneradoDialog = true;
+          if (this.impresoraConfig?.autoImprimirAlCobrar) {
+            this.imprimirTicketTermico(res.id);
+          }
         },
         error: (err) => {
           this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'Error al procesar la venta.' });
@@ -802,6 +826,36 @@ export class CajaComponent implements OnInit {
     }, 100);
   }
 
+  imprimirTicketTermico(ticketIdOpt?: number) {
+    const id = ticketIdOpt || this.ticketGenerado?.id || this.ticketGeneradoId || this.ticketPendienteId;
+    if (!id) {
+      this.imprimirTicket();
+      return;
+    }
+
+    this.imprimiendoRed = true;
+    this.impresoraService.imprimirTicketVenta(id).subscribe({
+      next: () => {
+        this.imprimiendoRed = false;
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Ticket Impreso',
+          detail: 'Comprobante enviado a la impresora térmica XP-E260L.'
+        });
+      },
+      error: (err) => {
+        this.imprimiendoRed = false;
+        console.warn('Fallo impresión por red térmica, abriendo ventana del navegador:', err);
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Impresora Térmica No Disponible',
+          detail: 'Abriendo impresión del navegador como respaldo.'
+        });
+        this.imprimirTicket();
+      }
+    });
+  }
+
   cerrarVenta() {
     this.ticketGeneradoDialog = false;
     this.vaciarTicket();
@@ -811,5 +865,27 @@ export class CajaComponent implements OnInit {
     if (!empleadoId) return 'No Asignado';
     const emp = this.empleados.find(e => e.id === empleadoId);
     return emp ? emp.nombres + ' ' + emp.apellidos : 'Desconocido';
+  }
+
+  obtenerEspecialistasTicketResumen(): string {
+    const nombres: string[] = [];
+    if (this.ticketGenerado?.detalles) {
+      for (const d of this.ticketGenerado.detalles) {
+        if (d.empleadoNombreCompleto && !nombres.includes(d.empleadoNombreCompleto)) {
+          nombres.push(d.empleadoNombreCompleto);
+        }
+      }
+    }
+    if (nombres.length === 0 && this.ticket) {
+      for (const item of this.ticket) {
+        if (item.empleadoId) {
+          const empNom = this.obtenerNombreEmpleado(item.empleadoId);
+          if (empNom && empNom !== 'No Asignado' && empNom !== 'Desconocido' && !nombres.includes(empNom)) {
+            nombres.push(empNom);
+          }
+        }
+      }
+    }
+    return nombres.join(', ');
   }
 }

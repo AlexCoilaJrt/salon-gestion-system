@@ -12,6 +12,7 @@ public class TicketDetalleResponse {
 
     private Long servicioId;
     private String servicioNombre;
+    private String categoriaNombre;
 
     private Long productoId;
     private String productoNombre;

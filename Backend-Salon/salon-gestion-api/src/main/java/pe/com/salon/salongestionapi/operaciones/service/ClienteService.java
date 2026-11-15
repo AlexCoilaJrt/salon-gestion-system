@@ -33,6 +33,7 @@ public class ClienteService {
         Cliente cliente = new Cliente();
         cliente.setNombres(request.getNombres());
         cliente.setApellidos(request.getApellidos());
+        cliente.setDni(request.getDni());
         cliente.setTelefono(request.getTelefono());
         cliente.setEmail(request.getEmail());
         cliente.setEstado(true);
@@ -47,6 +48,7 @@ public class ClienteService {
 
         cliente.setNombres(request.getNombres());
         cliente.setApellidos(request.getApellidos());
+        cliente.setDni(request.getDni());
         cliente.setTelefono(request.getTelefono());
         cliente.setEmail(request.getEmail());
 
@@ -67,6 +69,7 @@ public class ClienteService {
         response.setId(cliente.getId());
         response.setNombres(cliente.getNombres());
         response.setApellidos(cliente.getApellidos());
+        response.setDni(cliente.getDni());
         response.setTelefono(cliente.getTelefono());
         response.setEmail(cliente.getEmail());
         response.setFechaNacimiento(cliente.getFechaNacimiento());

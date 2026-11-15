@@ -23,6 +23,8 @@ export interface TicketResponse {
   total: number;
   clienteId?: number;
   clienteNombreCompleto?: string;
+  clienteDni?: string;
+  clienteTelefono?: string;
   sesionCajaId: number;
   activo: boolean;
   detalles: TicketDetalleResponse[];

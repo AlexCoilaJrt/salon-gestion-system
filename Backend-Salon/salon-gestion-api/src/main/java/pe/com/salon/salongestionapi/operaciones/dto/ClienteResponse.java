@@ -7,6 +7,7 @@ public class ClienteResponse {
     private Long id;
     private String nombres;
     private String apellidos;
+    private String dni;
     private String telefono;
     private String email;
     private java.time.LocalDate fechaNacimiento;

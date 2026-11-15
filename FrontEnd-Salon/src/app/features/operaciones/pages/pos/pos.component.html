@@ -290,6 +290,10 @@
       <input type="text" pInputText [(ngModel)]="nuevoCliente.apellidos" class="w-full text-sm" placeholder="Ej: Gomez">
     </div>
     <div>
+      <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">DNI / Documento (Opcional)</label>
+      <input type="text" pInputText [(ngModel)]="nuevoCliente.dni" class="w-full text-sm" placeholder="Ej: 71234567">
+    </div>
+    <div>
       <label class="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1">Teléfono (Opcional)</label>
       <input type="text" pInputText [(ngModel)]="nuevoCliente.telefono" class="w-full text-sm" placeholder="Ej: 999 888 777">
     </div>
@@ -335,6 +339,7 @@
     <!-- Info -->
     <div class="mb-4 text-xs">
       <div class="flex justify-between mb-1"><span>Cliente:</span> <span>{{ lastTicket()?.clienteNombreCompleto || 'Público General' }}</span></div>
+      <div class="flex justify-between mb-1" *ngIf="lastTicket()?.clienteDni"><span>DNI / DOC:</span> <span>{{ lastTicket()?.clienteDni }}</span></div>
       <div class="flex justify-between mb-1"><span>Método Pago:</span> <span>{{ lastTicket()?.metodoPago }}</span></div>
       <div class="flex justify-between"><span>Cajero(a):</span> <span>admin</span></div>
     </div>

@@ -38,6 +38,7 @@ export interface ClienteResponse {
   nombreCompleto: string;
   email: string;
   telefono: string;
+  dni?: string;
 }
 
 export interface ClienteRequest {
@@ -45,6 +46,7 @@ export interface ClienteRequest {
   apellidos: string;
   telefono?: string;
   email?: string;
+  dni?: string;
 }
 
 @Injectable({

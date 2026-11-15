@@ -18,6 +18,7 @@ import pe.com.salon.salongestionapi.operaciones.entity.TicketDetalle;
 import pe.com.salon.salongestionapi.operaciones.repository.ClienteRepository;
 import pe.com.salon.salongestionapi.operaciones.repository.SesionCajaRepository;
 import pe.com.salon.salongestionapi.operaciones.repository.TicketRepository;
+import pe.com.salon.salongestionapi.operaciones.repository.TicketDetalleRepository;
 import pe.com.salon.salongestionapi.rrhh.entity.Empleado;
 import pe.com.salon.salongestionapi.rrhh.repository.EmpleadoRepository;
 import pe.com.salon.salongestionapi.shared.exception.ResourceNotFoundException;
@@ -39,6 +40,7 @@ public class TicketService {
     private static final ZoneId ZONE_PERU = ZoneId.of("America/Lima");
 
     private final TicketRepository ticketRepository;
+    private final TicketDetalleRepository ticketDetalleRepository;
     private final SesionCajaRepository sesionCajaRepository;
     private final ClienteRepository clienteRepository;
     private final ServicioRepository servicioRepository;
@@ -224,7 +226,7 @@ public class TicketService {
             clienteRepository.save(cliente);
 
             // Procesar Cartillas de Fidelización (Sellos para los servicios seleccionados o todos)
-            procesarSellosFidelizacion(cliente, guardado.getDetalles(), request);
+            procesarSellosFidelizacion(cliente, guardado.getDetalles(), guardado.getId(), request.getServiciosSellosIds(), request.getServicioSelloId());
 
             // Procesar canje de premios en bloque (al confirmar el ticket)
             if (request.getPremiosFidelizacionIds() != null && !request.getPremiosFidelizacionIds().isEmpty()) {
@@ -284,6 +286,12 @@ public class TicketService {
                         .findFirst()
                         .orElse(null);
             }
+            if (matchedReq == null && request.getDetalles() != null && detalle.getServicio() != null) {
+                matchedReq = request.getDetalles().stream()
+                        .filter(r -> r.getServicioId() != null && detalle.getServicio().getId().equals(r.getServicioId()))
+                        .findFirst()
+                        .orElse(null);
+            }
             if (matchedReq == null && request.getDetalles() != null && i < request.getDetalles().size()) {
                 matchedReq = request.getDetalles().get(i);
             }
@@ -293,6 +301,7 @@ public class TicketService {
                 Empleado empleado = empleadoRepository.findById(empId)
                         .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + empId));
                 detalle.setEmpleado(empleado);
+                ticketDetalleRepository.save(detalle);
             }
         }
 
@@ -307,7 +316,7 @@ public class TicketService {
             clienteRepository.save(cliente);
 
             // Procesar Cartillas de Fidelización (Sellos para los servicios seleccionados o todos)
-            procesarSellosFidelizacion(cliente, guardado.getDetalles(), request);
+            procesarSellosFidelizacion(cliente, guardado.getDetalles(), guardado.getId(), request.getServiciosSellosIds(), request.getServicioSelloId());
 
             if (request.getPremiosFidelizacionIds() != null && !request.getPremiosFidelizacionIds().isEmpty()) {
                 for (Long cartillaId : request.getPremiosFidelizacionIds()) {
@@ -416,6 +425,8 @@ public class TicketService {
         if (ticket.getCliente() != null) {
             res.setClienteId(ticket.getCliente().getId());
             res.setClienteNombreCompleto(ticket.getCliente().getNombres() + " " + ticket.getCliente().getApellidos());
+            res.setClienteDni(ticket.getCliente().getDni());
+            res.setClienteTelefono(ticket.getCliente().getTelefono());
         } else {
             res.setClienteNombreCompleto(ticket.getNombreClienteNoRegistrado() != null && !ticket.getNombreClienteNoRegistrado().isBlank() ? ticket.getNombreClienteNoRegistrado() : "Público General");
         }
@@ -434,10 +445,16 @@ public class TicketService {
             if (d.getServicio() != null) {
                 dRes.setServicioId(d.getServicio().getId());
                 dRes.setServicioNombre(d.getServicio().getNombre());
+                if (d.getServicio().getCategoria() != null) {
+                    dRes.setCategoriaNombre(d.getServicio().getCategoria().getNombre());
+                }
             }
             if (d.getProducto() != null) {
                 dRes.setProductoId(d.getProducto().getId());
                 dRes.setProductoNombre(d.getProducto().getNombre());
+                if (d.getProducto().getCategoria() != null) {
+                    dRes.setCategoriaNombre(d.getProducto().getCategoria().getNombre());
+                }
             }
             if (d.getEmpleado() != null) {
                 dRes.setEmpleadoId(d.getEmpleado().getId());
@@ -455,22 +472,19 @@ public class TicketService {
         return res;
     }
 
-    private void procesarSellosFidelizacion(Cliente cliente, List<TicketDetalle> detalles, TicketRequest request) {
+    private void procesarSellosFidelizacion(Cliente cliente, List<TicketDetalle> detalles, Long ticketId, List<Long> serviciosSellosIds, Long servicioPrioridadId) {
         if (cliente == null || cliente.getId().equals(1L)) return;
 
-        List<Long> serviciosSellosIds = request.getServiciosSellosIds();
-        
         // Si el frontend envía la lista explícita de servicios seleccionados (puede ser todos o dinámico uno a uno)
         if (serviciosSellosIds != null) {
             Set<Long> serviciosUnicos = new HashSet<>(serviciosSellosIds);
             for (Long sId : serviciosUnicos) {
-                fidelizacionService.procesarPagoServicio(cliente.getId(), sId);
+                fidelizacionService.procesarPagoServicio(cliente.getId(), sId, ticketId);
             }
             return;
         }
 
         // Modo legacy: Si solo vino servicioSelloId o fallback al más caro (1 solo sello)
-        Long servicioPrioridadId = request.getServicioSelloId();
         List<TicketDetalle> detallesFiltrados = detalles.stream()
             .filter(d -> d.getServicio() != null)
             .collect(Collectors.toList());
@@ -486,7 +500,7 @@ public class TicketService {
         }
 
         for (TicketDetalle d : detallesFiltrados) {
-            boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId());
+            boolean selloAgregado = fidelizacionService.procesarPagoServicio(cliente.getId(), d.getServicio().getId(), ticketId);
             if (selloAgregado) {
                 break;
             }
