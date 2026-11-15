@@ -119,7 +119,7 @@ public class SecurityConfig {
                 writeRule(auth, new String[]{"/api/operaciones/caja/**"}, CAJA);
                 writeRule(auth, new String[]{"/api/operaciones/egresos/**", "/api/finanzas/gastos/**"}, EGRESOS, CAJA);
                 writeRule(auth, new String[]{"/api/fidelizacion/**"}, SERVICIOS, POS, CAJA);
-                writeRule(auth, new String[]{"/api/rrhh/asistencias/**"}, ASISTENCIA);
+                writeRule(auth, new String[]{"/api/rrhh/asistencias/**", "/api/rrhh/biometrico/**"}, ASISTENCIA);
                 writeRule(auth, new String[]{"/api/rrhh/empleados/**"}, EMPLEADOS);
                 writeRule(auth, new String[]{"/api/rrhh/especialidades/**"}, ESPECIALIDADES);
                 writeRule(auth, new String[]{"/api/rrhh/turnos/**"}, TURNOS);

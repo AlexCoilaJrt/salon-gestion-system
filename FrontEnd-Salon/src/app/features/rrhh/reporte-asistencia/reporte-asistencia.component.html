@@ -21,6 +21,7 @@
         <p-calendar [(ngModel)]="fechaFin" [showIcon]="true" dateFormat="dd/mm/yy" appendTo="body"></p-calendar>
         <button pButton icon="pi pi-search" (click)="loadReporte()" class="p-button-outlined p-button-secondary"></button>
       </div>
+      <button pButton icon="pi pi-id-card" label="SenseFace 3A" class="p-button-outlined border-sky-500 text-sky-500 hover:bg-sky-50 dark:hover:bg-sky-950/20 font-bold" (click)="abrirModalBiometrico()"></button>
       <button pButton icon="pi pi-desktop" label="Kiosko" class="p-button-primary bg-[#bca028] hover:bg-[#d9bd72] border-none shadow-lg shadow-[#bca028]/30" (click)="abrirKiosko()"></button>
     </div>
   </div>
@@ -90,3 +91,6 @@
   </p-table>
 
 </div>
+
+
+<app-biometrico-modal [(visible)]="displayBiometricoModal"></app-biometrico-modal>

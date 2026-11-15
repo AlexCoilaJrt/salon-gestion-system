@@ -32,6 +32,15 @@ public class ConfiguracionService {
     public static final String IMPRESORA_TICKET_MENSAJE_PIE   = "IMPRESORA_TICKET_MENSAJE_PIE";
     public static final String IMPRESORA_TICKET_ANCHO_MM      = "IMPRESORA_TICKET_ANCHO_MM";
 
+    // Configuración de Terminal Biométrico (ZKTeco SenseFace 3A)
+    public static final String BIOMETRICO_IP                = "BIOMETRICO_IP";
+    public static final String BIOMETRICO_PUERTO            = "BIOMETRICO_PUERTO";
+    public static final String BIOMETRICO_COMM_KEY          = "BIOMETRICO_COMM_KEY";
+    public static final String BIOMETRICO_NOMBRE            = "BIOMETRICO_NOMBRE";
+    public static final String BIOMETRICO_AUTO_SYNC         = "BIOMETRICO_AUTO_SYNC";
+    public static final String BIOMETRICO_INTERVALO_MINUTOS = "BIOMETRICO_INTERVALO_MINUTOS";
+    public static final String BIOMETRICO_ACTIVO            = "BIOMETRICO_ACTIVO";
+
     /**
      * Al levantar la aplicación por primera vez, inserta los valores por defecto
      * si la tabla está vacía. Esto evita que el sistema arranque sin configuración.
@@ -64,6 +73,22 @@ public class ConfiguracionService {
                 "Mensaje de pie de página impreso en el ticket");
         insertar(IMPRESORA_TICKET_ANCHO_MM, "80",
                 "Ancho de papel de la impresora en milímetros (80 o 58)");
+
+        // Defaults para Terminal Biométrico (ZKTeco SenseFace 3A)
+        insertar(BIOMETRICO_IP, "192.168.1.201",
+                "Dirección IP del terminal biométrico ZKTeco SenseFace 3A");
+        insertar(BIOMETRICO_PUERTO, "4370",
+                "Puerto de comunicación ZKTeco (por defecto 4370)");
+        insertar(BIOMETRICO_COMM_KEY, "0",
+                "Clave de comunicación (CommKey) configurada en el terminal ZKTeco (0 por defecto)");
+        insertar(BIOMETRICO_NOMBRE, "ZKTeco SenseFace 3A",
+                "Nombre descriptivo del terminal biométrico de asistencia");
+        insertar(BIOMETRICO_AUTO_SYNC, "true",
+                "Sincronizar automáticamente las marcaciones del biométrico con la base de datos (true/false)");
+        insertar(BIOMETRICO_INTERVALO_MINUTOS, "15",
+                "Intervalo en minutos para la sincronización automática de asistencias");
+        insertar(BIOMETRICO_ACTIVO, "true",
+                "Indica si el terminal biométrico está habilitado para uso en el sistema (true/false)");
 
         // Timeout de sesión por defecto: 24 horas (1440 minutos)
         configuracionRepository.findById(SESSION_TIMEOUT_MINUTES).ifPresentOrElse(config -> {

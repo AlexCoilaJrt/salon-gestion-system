@@ -28,6 +28,14 @@
   <!-- Acciones y Perfil (Derecha) -->
   <div class="flex items-center gap-1.5 sm:gap-2.5 md:gap-4 shrink-0">
     
+    <!-- Acceso Rápido Terminal Biométrico SenseFace 3A -->
+    <button (click)="displayBiometricoModal.set(true)" 
+            title="Terminal Biométrico ZKTeco SenseFace 3A"
+            class="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f4f7fa] dark:bg-[#2d2d2d] hover:bg-[#eef2f6] dark:hover:bg-[#3d3d3d] text-gray-700 dark:text-gray-200 border border-gray-200/50 dark:border-gray-700/50 transition-colors text-xs font-semibold shrink-0 cursor-pointer">
+      <i class="pi pi-id-card text-sky-500 text-sm"></i>
+      <span class="text-[11px] font-bold">SenseFace 3A</span>
+    </button>
+
     <!-- Botón Modo Oscuro / Claro -->
     <button (click)="toggleDarkMode()" 
             [title]="isDarkMode() ? 'Modo Claro' : 'Modo Oscuro'"
@@ -552,3 +560,6 @@
   </ng-template>
 </p-dialog>
 
+
+
+<app-biometrico-modal [(visible)]="displayBiometricoModal"></app-biometrico-modal>

@@ -1,0 +1,183 @@
+<p-dialog [(visible)]="visible" 
+          [modal]="true" 
+          [style]="{width: '620px', maxWidth: '96vw'}" 
+          [draggable]="false" 
+          [resizable]="false"
+          (onHide)="onHide()"
+          header="Terminal Biométrico ZKTeco SenseFace 3A">
+
+  <div class="flex flex-col gap-4 py-1">
+    <!-- Header visual del Dispositivo -->
+    <div class="flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-sky-500/10 via-sky-500/5 to-transparent border border-sky-500/20">
+      <div class="w-12 h-12 rounded-xl bg-sky-600 text-white flex items-center justify-center text-xl shrink-0 shadow-md">
+        <i class="pi pi-id-card"></i>
+      </div>
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-sm font-bold text-gray-900 dark:text-white">ZKTeco SenseFace 3A</span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-500/20 text-sky-600 dark:text-sky-400">
+            Visible Light Facial & Control Acceso (2.8")
+          </span>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 m-0 mt-0.5">
+          Terminal de seguridad en red para auditoría de asistencia de personal vía protocolo ZK (Puerto 4370).
+        </p>
+      </div>
+    </div>
+
+    <!-- Campos de Conexión de Red -->
+    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+      <div class="sm:col-span-6">
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+          Dirección IP del Terminal *
+        </label>
+        <div class="relative">
+          <i class="pi pi-globe absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input pInputText type="text" [(ngModel)]="configForm.ip" 
+                 placeholder="Ej: 192.168.1.201" 
+                 class="w-full !pl-8 text-sm font-mono font-bold" />
+        </div>
+        <span class="text-[10px] text-gray-400 block mt-1">IP de fábrica ZK: 192.168.1.201</span>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+          Puerto ZK *
+        </label>
+        <div class="relative">
+          <i class="pi pi-server absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input pInputText type="number" [(ngModel)]="configForm.puerto" 
+                 placeholder="4370" 
+                 class="w-full !pl-8 text-sm font-mono font-bold" />
+        </div>
+        <span class="text-[10px] text-gray-400 block mt-1">Estándar: 4370</span>
+      </div>
+
+      <div class="sm:col-span-3">
+        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+          CommKey
+        </label>
+        <div class="relative">
+          <i class="pi pi-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+          <input pInputText type="text" [(ngModel)]="configForm.commKey" 
+                 placeholder="0" 
+                 class="w-full !pl-8 text-sm font-mono font-bold" />
+        </div>
+        <span class="text-[10px] text-gray-400 block mt-1">Defecto: 0</span>
+      </div>
+    </div>
+
+    <!-- Nombre del dispositivo -->
+    <div>
+      <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+        Nombre del Dispositivo / Ubicación
+      </label>
+      <input pInputText type="text" [(ngModel)]="configForm.nombreDispositivo" 
+             placeholder="Ej: SenseFace 3A - Puerta Principal / Recepción" 
+             class="w-full text-xs" />
+    </div>
+
+    <!-- Acciones de Diagnóstico y Sincronización -->
+    <div class="p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 flex flex-col gap-2.5">
+      <span class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+        Diagnóstico y Pruebas en Vivo
+      </span>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" 
+                (click)="probarConexion()" 
+                [disabled]="probandoConexion"
+                class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
+          <i [class]="probandoConexion ? 'pi pi-spin pi-spinner' : 'pi pi-wifi'"></i>
+          {{ probandoConexion ? 'Verificando...' : 'Probar Conexión (Ping)' }}
+        </button>
+
+        <button type="button" 
+                (click)="sincronizar()" 
+                [disabled]="sincronizando"
+                class="px-3.5 py-2 bg-[#bca028] hover:bg-[#9d841f] text-black font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50">
+          <i [class]="sincronizando ? 'pi pi-spin pi-spinner' : 'pi pi-sync'"></i>
+          {{ sincronizando ? 'Sincronizando...' : 'Sincronizar Marcaciones Ahora' }}
+        </button>
+      </div>
+
+      <!-- Resultado del Test -->
+      <div *ngIf="resultadoTest" 
+           class="p-2.5 rounded-lg text-xs flex items-start gap-2 border mt-1"
+           [ngClass]="resultadoTest.conectado 
+             ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+             : 'bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-800'">
+        <i [class]="resultadoTest.conectado ? 'pi pi-check-circle text-base text-emerald-500 mt-0.5' : 'pi pi-exclamation-triangle text-base text-amber-500 mt-0.5'"></i>
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold">{{ resultadoTest.conectado ? '¡Terminal Biométrico en línea!' : 'Sin conexión con el terminal' }}</span>
+          <span class="text-[11px] opacity-90 leading-relaxed">{{ resultadoTest.mensaje }}</span>
+          <span *ngIf="resultadoTest.detallesTecnicos" class="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
+            {{ resultadoTest.detallesTecnicos }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Resultado de Sincronización -->
+      <div *ngIf="resultadoSync" 
+           class="p-2.5 rounded-lg text-xs flex items-start gap-2 border mt-1"
+           [ngClass]="resultadoSync.exito 
+             ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800' 
+             : 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'">
+        <i [class]="resultadoSync.exito ? 'pi pi-info-circle text-base text-blue-500 mt-0.5' : 'pi pi-times-circle text-base text-red-500 mt-0.5'"></i>
+        <div class="flex flex-col min-w-0">
+          <span class="font-bold">{{ resultadoSync.exito ? 'Sincronización Completada' : 'Error al Sincronizar' }}</span>
+          <span class="text-[11px] opacity-90 leading-relaxed">{{ resultadoSync.mensaje }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Opciones de Automatización -->
+    <div class="space-y-2.5 pt-1">
+      <span class="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider block">
+        Automatización de Asistencia
+      </span>
+
+      <div class="flex items-center gap-2 cursor-pointer">
+        <p-checkbox [(ngModel)]="configForm.autoSincronizar" [binary]="true" inputId="chkAutoSync"></p-checkbox>
+        <label for="chkAutoSync" class="text-xs text-gray-800 dark:text-gray-200 font-medium cursor-pointer">
+          <b>Sincronizar automáticamente</b> las marcaciones faciales en segundo plano cada 15 minutos
+        </label>
+      </div>
+
+      <div class="flex items-center gap-2 cursor-pointer">
+        <p-checkbox [(ngModel)]="configForm.activo" [binary]="true" inputId="chkActivo"></p-checkbox>
+        <label for="chkActivo" class="text-xs text-gray-800 dark:text-gray-200 font-medium cursor-pointer">
+          <b>Terminal activo</b> para registro y auditoría de asistencia en el salón
+        </label>
+      </div>
+    </div>
+
+    <!-- Tarjeta de Ayuda Técnica ZKTeco -->
+    <div class="p-3 bg-sky-50 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-800/40 rounded-xl flex items-start gap-2.5 text-xs text-sky-900 dark:text-sky-200">
+      <i class="pi pi-info-circle text-sm mt-0.5 shrink-0 text-sky-600 dark:text-sky-400"></i>
+      <div class="flex flex-col gap-1 leading-relaxed text-[11px]">
+        <span><strong>💡 Pasos para conectar tu SenseFace 3A cuando lo instales:</strong></span>
+        <ul class="list-disc pl-4 space-y-0.5 m-0">
+          <li>Conecta el cable de red Ethernet RJ-45 del terminal al mismo switch/router del salón (o configúrale la red Wi-Fi).</li>
+          <li>En la pantalla táctil de 2.8" del equipo, ve a <strong>Menú > Comunicaciones > Red</strong> para ver su IP asignada.</li>
+          <li>Registra a cada especialista en el terminal asignándole como <strong>User ID su número de DNI</strong>.</li>
+          <li>¡Listo! Al marcar con su rostro, el sistema reconocerá su DNI y registrará la asistencia con su turno correspondiente.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2.5 pt-2 border-t border-gray-100 dark:border-gray-800">
+      <p-button label="Cerrar" 
+                icon="pi pi-times" 
+                styleClass="p-button-text text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800" 
+                (onClick)="cerrar()">
+      </p-button>
+      <p-button label="Guardar Configuración" 
+                icon="pi pi-check" 
+                [loading]="guardandoConfig" 
+                (onClick)="guardarConfig()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>

@@ -6,11 +6,12 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { CalendarModule } from 'primeng/calendar';
+import { BiometricoModalComponent } from '../biometrico-modal/biometrico-modal.component';
 
 @Component({
   selector: 'app-reporte-asistencia',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, CalendarModule],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, CalendarModule, BiometricoModalComponent],
   templateUrl: './reporte-asistencia.component.html'
 })
 export class ReporteAsistenciaComponent implements OnInit {
@@ -20,6 +21,7 @@ export class ReporteAsistenciaComponent implements OnInit {
   consolidado: any[] = [];
   vistaActiva: 'detallado' | 'consolidado' = 'detallado';
   loading: boolean = false;
+  displayBiometricoModal: boolean = false;
   
   fechaInicio: Date = new Date();
   fechaFin: Date = new Date();
@@ -76,6 +78,10 @@ export class ReporteAsistenciaComponent implements OnInit {
     });
 
     this.consolidado = Array.from(mapa.values());
+  }
+
+  abrirModalBiometrico() {
+    this.displayBiometricoModal = true;
   }
 
   abrirKiosko() {

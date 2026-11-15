@@ -17,6 +17,7 @@ import { AuthService } from '../../auth/services/auth.service';
 import { EmpresaService, EmpresaResponse } from '../../services/empresa.service';
 import { ConfiguracionService } from '../../services/configuracion.service';
 import { ImpresoraService, ImpresoraConfig, ImpresoraTestResult } from '../../services/impresora.service';
+import { BiometricoModalComponent } from '../../../features/rrhh/biometrico-modal/biometrico-modal.component';
 import { CatalogoService, Producto } from '../../../features/catalogo/services/catalogo.service';
 import { AgendaService, ClienteResponse } from '../../../features/operaciones/pages/agenda/agenda.service';
 import { RrhhService, Empleado } from '../../../features/rrhh/services/rrhh.service';
@@ -39,7 +40,8 @@ import { LayoutService } from '../../services/layout.service';
     OverlayPanelModule,
     ToastModule,
     CheckboxModule,
-    InputNumberModule
+    InputNumberModule,
+    BiometricoModalComponent
   ],
   providers: [MessageService],
   templateUrl: './header.component.html'
@@ -84,6 +86,7 @@ export class HeaderComponent implements OnInit {
 
   // Modal Impresora Térmica (XP-E260L)
   displayImpresoraModal = signal<boolean>(false);
+  displayBiometricoModal = signal<boolean>(false);
   probandoConexionImpresora = signal<boolean>(false);
   imprimiendoTicketPrueba = signal<boolean>(false);
   guardandoConfigImpresora = signal<boolean>(false);
@@ -166,6 +169,14 @@ export class HeaderComponent implements OnInit {
         visible: isAdmin,
         command: () => {
           this.abrirModalImpresora();
+        }
+      },
+      {
+        label: 'Biométrico Asistencia (SenseFace 3A)',
+        icon: 'pi pi-id-card',
+        visible: isAdmin,
+        command: () => {
+          this.displayBiometricoModal.set(true);
         }
       },
       {
