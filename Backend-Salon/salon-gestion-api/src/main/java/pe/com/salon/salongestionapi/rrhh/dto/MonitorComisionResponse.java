@@ -19,6 +19,7 @@ public class MonitorComisionResponse {
     
     private BigDecimal ventasHoy;
     private BigDecimal comisionesGanadasHoy;
+    private String tipoRemuneracion;
     
     private List<DetalleServicio> detallesServicios;
 

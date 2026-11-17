@@ -31,6 +31,7 @@
           <th style="min-width: 100px">DNI</th>
           <th style="min-width: 130px">Turno Asignado</th>
           <th style="min-width: 160px">Especialidades</th>
+          <th style="min-width: 140px">Remuneración</th>
           <th style="min-width: 120px">Disponibilidad</th>
           <th style="min-width: 90px">Estado</th>
           <th style="min-width: 90px" class="text-center">Acciones</th>
@@ -60,6 +61,17 @@
                 SIN ESPECIALIDADES
               </span>
             </div>
+          </td>
+          <td>
+            <span *ngIf="empleado.tipoRemuneracion === 'SOLO_FIJO'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-[#bca028] border border-amber-500/30">
+              Fijo: S/ {{ (empleado.sueldoFijo || 0) | number:'1.2-2' }}
+            </span>
+            <span *ngIf="empleado.tipoRemuneracion === 'HIBRIDO'" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+              Híbrido (S/ {{ (empleado.sueldoFijo || 0) | number:'1.2-2' }} + Com.)
+            </span>
+            <span *ngIf="empleado.tipoRemuneracion === 'SOLO_COMISION' || !empleado.tipoRemuneracion" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+              Solo Comisión
+            </span>
           </td>
           <td>
              <p-tag [severity]="empleado.disponibilidad === 'DISPONIBLE' ? 'success' : (empleado.disponibilidad === 'EN_ATENCION' ? 'warning' : 'danger')" 
@@ -143,6 +155,31 @@
         <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Especialidades <span class="text-red-500">*</span></label>
         <p-multiSelect [options]="especialidades" formControlName="especialidadIds" optionLabel="nombre" optionValue="id" placeholder="Selecciona..." [filter]="false" [showHeader]="false" styleClass="w-full border-none bg-[#f4f7fa] dark:bg-[#2d2d2d] dark:text-white"></p-multiSelect>
         <small class="text-red-500" *ngIf="empleadoForm.get('especialidadIds')?.invalid && empleadoForm.get('especialidadIds')?.touched">Seleccione al menos una especialidad.</small>
+      </div>
+
+      <!-- Tipo de Remuneración / Ganancia -->
+      <div class="flex flex-col gap-2 md:col-span-2 p-3.5 bg-gray-50/80 dark:bg-[#252525]/80 rounded-xl border border-gray-200 dark:border-gray-700">
+        <label class="text-sm font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+          <i class="pi pi-wallet text-[#bca028]"></i> Modalidad de Ganancia / Remuneración <span class="text-red-500">*</span>
+        </label>
+        <p-dropdown [options]="tiposRemuneracion" formControlName="tipoRemuneracion" optionLabel="label" optionValue="value"
+                    styleClass="w-full border-none bg-white dark:bg-[#1e1e1e] dark:text-white shadow-sm">
+        </p-dropdown>
+
+        <!-- Campo Sueldo Fijo si aplica -->
+        <div *ngIf="empleadoForm.get('tipoRemuneracion')?.value === 'SOLO_FIJO' || empleadoForm.get('tipoRemuneracion')?.value === 'HIBRIDO'"
+             class="flex flex-col gap-1.5 mt-2">
+          <label class="text-xs font-semibold text-gray-700 dark:text-gray-300">
+            {{ empleadoForm.get('tipoRemuneracion')?.value === 'HIBRIDO' ? 'Sueldo Base Mensual Garantizado (S/)' : 'Sueldo Fijo Mensual (S/)' }} <span class="text-red-500">*</span>
+          </label>
+          <input type="number" pInputText formControlName="sueldoFijo" min="0" step="0.01" placeholder="Ej: 1200.00"
+                 class="w-full bg-white dark:bg-[#1e1e1e] dark:text-white border-none focus:ring-2 focus:ring-[#bca028] text-sm shadow-sm" />
+          <small class="text-gray-500 dark:text-gray-400 text-[11px]">
+            {{ empleadoForm.get('tipoRemuneracion')?.value === 'HIBRIDO' 
+              ? 'El especialista recibirá este sueldo base fijo cada mes y además acumulará comisiones por cada servicio/producto vendido.' 
+              : 'El especialista recibirá este sueldo fijo mensual y sus servicios individuales no generarán comisión extra por servicio.' }}
+          </small>
+        </div>
       </div>
     </div>
 

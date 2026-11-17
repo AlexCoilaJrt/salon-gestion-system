@@ -18,6 +18,7 @@ public class EmpleadoResponse {
     private java.util.List<Long> especialidadIds;
     private Long turnoId;
     private String turnoNombre;
+    private String tipoRemuneracion;
     private java.math.BigDecimal sueldoFijo;
     private Boolean estado;
 }

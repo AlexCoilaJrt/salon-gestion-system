@@ -263,11 +263,17 @@
 
           <!-- Comisión Base / Tipo Pago -->
           <td>
-            <span *ngIf="rowData.isRoot" class="text-gray-600 dark:text-gray-300">
-              <span *ngIf="rowData.basePorcentaje > 0">{{ rowData.basePorcentaje }}%</span>
-              <span *ngIf="rowData.baseMontoFijo > 0" [class.ml-2]="rowData.basePorcentaje > 0">S/ {{ rowData.baseMontoFijo }}</span>
-              <span *ngIf="rowData.basePorcentaje == 0 && rowData.baseMontoFijo == 0">-</span>
-            </span>
+            <div *ngIf="rowData.isRoot" class="flex flex-col gap-1 items-start">
+              <span *ngIf="rowData.tipoRemuneracion === 'SOLO_FIJO'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/15 text-[#bca028] border border-amber-500/30">
+                Sueldo Fijo: S/ {{ (rowData.baseMontoFijo || 0) | number:'1.2-2' }}
+              </span>
+              <span *ngIf="rowData.tipoRemuneracion === 'HIBRIDO'" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                Híbrido (S/ {{ (rowData.baseMontoFijo || 0) | number:'1.2-2' }} + Com.)
+              </span>
+              <span *ngIf="rowData.tipoRemuneracion === 'SOLO_COMISION' || (!rowData.tipoRemuneracion && rowData.baseMontoFijo == 0)" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30">
+                Solo Comisión <span *ngIf="rowData.basePorcentaje > 0">({{ rowData.basePorcentaje }}%)</span>
+              </span>
+            </div>
             <span *ngIf="!rowData.isRoot">
               <p-tag [value]="rowData.tipoPago" [severity]="rowData.tipoPago === 'Sueldo Fijo' ? 'secondary' : 'info'"></p-tag>
             </span>
@@ -289,10 +295,16 @@
 
           <!-- Comisión / Fórmula % -->
           <td [ngClass]="{'bg-amber-50/30 dark:bg-amber-900/10': rowData.isRoot}">
-            <span *ngIf="rowData.isRoot" class="font-bold text-[#bca028] text-base">
-              <span *ngIf="rowData.totalComisionPorcentaje > 0">{{ rowData.totalComisionPorcentaje }}%</span>
-              <span *ngIf="rowData.totalComisionMontoFijo > 0" [class.ml-2]="rowData.totalComisionPorcentaje > 0">+ S/ {{ rowData.totalComisionMontoFijo }}</span>
-              <span *ngIf="rowData.totalComisionPorcentaje == 0 && rowData.totalComisionMontoFijo == 0">0</span>
+            <span *ngIf="rowData.isRoot" class="font-bold text-[#bca028] text-sm">
+              <span *ngIf="rowData.tipoRemuneracion === 'SOLO_FIJO'">Sueldo Fijo</span>
+              <span *ngIf="rowData.tipoRemuneracion === 'HIBRIDO'">
+                S/ {{ (rowData.baseMontoFijo || 0) | number:'1.2-2' }} + Com.
+              </span>
+              <span *ngIf="rowData.tipoRemuneracion === 'SOLO_COMISION' || !rowData.tipoRemuneracion">
+                <span *ngIf="rowData.totalComisionPorcentaje > 0">{{ rowData.totalComisionPorcentaje }}%</span>
+                <span *ngIf="rowData.totalComisionMontoFijo > 0" [class.ml-2]="rowData.totalComisionPorcentaje > 0">+ S/ {{ rowData.totalComisionMontoFijo }}</span>
+                <span *ngIf="rowData.totalComisionPorcentaje == 0 && rowData.totalComisionMontoFijo == 0">0%</span>
+              </span>
             </span>
             <span *ngIf="!rowData.isRoot" class="text-gray-500 text-xs">
               <span *ngIf="rowData.tipoPago === 'Sueldo Fijo'">0%</span>

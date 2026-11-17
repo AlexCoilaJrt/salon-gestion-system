@@ -47,6 +47,7 @@ export interface MonitorComision {
   totalComisionMontoFijo: number;
   ventasHoy?: number;
   comisionesGanadasHoy?: number;
+  tipoRemuneracion?: string;
   detallesServicios?: DetalleServicio[];
 }
 

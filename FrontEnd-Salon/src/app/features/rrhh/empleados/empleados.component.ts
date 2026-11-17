@@ -50,6 +50,11 @@ export class EmpleadosComponent implements OnInit {
   empleadoForm: FormGroup;
   isEditMode = false;
   selectedEmpleadoId: number | null = null;
+  tiposRemuneracion = [
+    { label: 'Solo Comisiones (% por servicio)', value: 'SOLO_COMISION' },
+    { label: 'Solo Sueldo Fijo Mensual', value: 'SOLO_FIJO' },
+    { label: 'Híbrido (Sueldo Fijo Base + Comisiones)', value: 'HIBRIDO' }
+  ];
 
   constructor() {
     this.empleadoForm = this.fb.group({
@@ -62,6 +67,8 @@ export class EmpleadosComponent implements OnInit {
       fechaIngreso: [this.today, Validators.required],
       especialidadIds: [[], Validators.required],
       turnoId: [null, Validators.required],
+      tipoRemuneracion: ['SOLO_COMISION', Validators.required],
+      sueldoFijo: [null],
       estado: [true]
     });
   }
@@ -119,7 +126,7 @@ export class EmpleadosComponent implements OnInit {
   openNew() {
     this.isEditMode = false;
     this.selectedEmpleadoId = null;
-    this.empleadoForm.reset({ estado: true, especialidadIds: [], turnoId: null, fechaIngreso: this.today });
+    this.empleadoForm.reset({ estado: true, especialidadIds: [], turnoId: null, fechaIngreso: this.today, tipoRemuneracion: 'SOLO_COMISION', sueldoFijo: null });
     this.displayDialog = true;
   }
 
@@ -136,6 +143,8 @@ export class EmpleadosComponent implements OnInit {
       fechaIngreso: empleado.fechaIngreso || this.today,
       especialidadIds: empleado.especialidadIds || [],
       turnoId: empleado.turnoId || null,
+      tipoRemuneracion: empleado.tipoRemuneracion || 'SOLO_COMISION',
+      sueldoFijo: empleado.sueldoFijo || null,
       estado: empleado.estado
     });
     this.displayDialog = true;

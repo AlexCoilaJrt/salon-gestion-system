@@ -134,18 +134,10 @@ public class MotorComisionService {
         // Validar si el Empleado es estrictamente de Sueldo Fijo
         if (empleadoId != null) {
             pe.com.salon.salongestionapi.rrhh.entity.Empleado emp = empleadoRepository.findById(empleadoId).orElse(null);
-            if (emp != null && emp.getEspecialidades() != null && !emp.getEspecialidades().isEmpty()) {
-                boolean tienePorcentaje = false;
-                boolean tieneFijo = false;
-                for (pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp : emp.getEspecialidades()) {
-                    if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
-                        tieneFijo = true;
-                    } else if ("PORCENTAJE".equalsIgnoreCase(esp.getTipoPago()) || "Porcentaje de Comisión".equalsIgnoreCase(esp.getTipoPago())) {
-                        tienePorcentaje = true;
-                    }
-                }
-                if (tieneFijo && !tienePorcentaje) {
-                    return BigDecimal.ZERO; // Si el empleado solo tiene especialidades FIJAS, no gana comisión por servicios.
+            if (emp != null) {
+                String tipoRem = emp.getTipoRemuneracionEfectivo();
+                if ("SOLO_FIJO".equalsIgnoreCase(tipoRem)) {
+                    return BigDecimal.ZERO; // Si el empleado es estrictamente de Solo Sueldo Fijo, no comisiona por servicios.
                 }
             }
         }

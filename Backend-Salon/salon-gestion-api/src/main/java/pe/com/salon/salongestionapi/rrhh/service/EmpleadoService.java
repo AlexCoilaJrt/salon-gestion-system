@@ -73,7 +73,10 @@ public class EmpleadoService {
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         empleado.setFechaIngreso(request.getFechaIngreso());
-        empleado.setSueldoFijo(request.getSueldoFijo());
+        String tipoRem = (request.getTipoRemuneracion() != null && !request.getTipoRemuneracion().isBlank())
+                ? request.getTipoRemuneracion().trim().toUpperCase() : "SOLO_COMISION";
+        empleado.setTipoRemuneracion(tipoRem);
+        empleado.setSueldoFijo("SOLO_COMISION".equalsIgnoreCase(tipoRem) ? java.math.BigDecimal.ZERO : request.getSueldoFijo());
         empleado.setDisponibilidad(pe.com.salon.salongestionapi.rrhh.entity.EstadoDisponibilidad.AUSENTE);
         empleado.setEstado(request.getEstado() != null ? request.getEstado() : true);
 
@@ -122,7 +125,13 @@ public class EmpleadoService {
         empleado.setTelefono(request.getTelefono());
         empleado.setFechaNacimiento(request.getFechaNacimiento());
         empleado.setFechaIngreso(request.getFechaIngreso());
-        empleado.setSueldoFijo(request.getSueldoFijo());
+        if (request.getTipoRemuneracion() != null && !request.getTipoRemuneracion().isBlank()) {
+            String tipoRem = request.getTipoRemuneracion().trim().toUpperCase();
+            empleado.setTipoRemuneracion(tipoRem);
+            empleado.setSueldoFijo("SOLO_COMISION".equalsIgnoreCase(tipoRem) ? java.math.BigDecimal.ZERO : request.getSueldoFijo());
+        } else if (request.getSueldoFijo() != null) {
+            empleado.setSueldoFijo(request.getSueldoFijo());
+        }
         if (request.getEstado() != null) {
             empleado.setEstado(request.getEstado());
         }
@@ -168,7 +177,8 @@ public class EmpleadoService {
         response.setTelefono(empleado.getTelefono());
         response.setFechaNacimiento(empleado.getFechaNacimiento());
         response.setFechaIngreso(empleado.getFechaIngreso());
-        response.setSueldoFijo(empleado.getSueldoFijo());
+        response.setSueldoFijo(empleado.getSueldoFijoEfectivo());
+        response.setTipoRemuneracion(empleado.getTipoRemuneracionEfectivo());
         response.setEdad(empleado.getEdad());
         response.setDisponibilidad(empleado.getDisponibilidad().name());
         response.setEstado(empleado.getEstado());

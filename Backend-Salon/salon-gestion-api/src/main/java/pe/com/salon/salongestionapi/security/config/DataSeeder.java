@@ -79,6 +79,13 @@ public class DataSeeder implements CommandLineRunner {
             } catch (Exception ex) {
                 log.warn("No se pudo inicializar orden en servicios: {}", ex.getMessage());
             }
+            try {
+                jdbcTemplate.execute("ALTER TABLE empleado ADD COLUMN IF NOT EXISTS tipo_remuneracion VARCHAR(30) DEFAULT 'SOLO_COMISION';");
+                jdbcTemplate.execute("UPDATE empleado SET tipo_remuneracion = 'SOLO_FIJO' WHERE sueldo_fijo > 0 AND (tipo_remuneracion IS NULL OR tipo_remuneracion = 'SOLO_COMISION');");
+                log.info("Migración de tipo_remuneracion en empleado ejecutada correctamente.");
+            } catch (Exception ex) {
+                log.warn("No se pudo migrar tipo_remuneracion en empleado: {}", ex.getMessage());
+            }
             log.info("Migración de logo_url a TEXT ejecutada correctamente.");
         } catch (Exception e) {
             log.warn("No se pudo alterar/agregar columnas o ya existían: {}", e.getMessage());

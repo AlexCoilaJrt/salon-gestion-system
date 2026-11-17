@@ -300,6 +300,7 @@ export class MonitorComisionesComponent implements OnInit {
           asistenciaActiva: monitor.asistenciaActiva,
           basePorcentaje: monitor.basePorcentaje,
           baseMontoFijo: monitor.baseMontoFijo,
+          tipoRemuneracion: monitor.tipoRemuneracion,
           incentivosAplicados: monitor.incentivosAplicados,
           totalComisionPorcentaje: monitor.totalComisionPorcentaje,
           totalComisionMontoFijo: monitor.totalComisionMontoFijo,

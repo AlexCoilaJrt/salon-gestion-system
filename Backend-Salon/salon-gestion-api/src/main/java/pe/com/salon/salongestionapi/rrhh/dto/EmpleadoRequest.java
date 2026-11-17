@@ -42,5 +42,7 @@ public class EmpleadoRequest {
 
     private Boolean estado;
 
+    private String tipoRemuneracion; // "SOLO_COMISION", "SOLO_FIJO", "HIBRIDO"
+
     private java.math.BigDecimal sueldoFijo;
 }

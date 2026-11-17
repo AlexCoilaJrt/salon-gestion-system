@@ -34,6 +34,7 @@ export interface Empleado {
   telefono?: string;
   fechaNacimiento?: string; // yyyy-MM-dd
   fechaIngreso?: string; // yyyy-MM-dd
+  tipoRemuneracion?: string; // 'SOLO_COMISION' | 'SOLO_FIJO' | 'HIBRIDO'
   sueldoFijo?: number;
   disponibilidad?: string;
   estado?: boolean;
