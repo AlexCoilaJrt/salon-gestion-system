@@ -31,7 +31,7 @@ public class ZktecoAdmsController {
             HttpServletRequest request) {
         String ipRemota = request.getRemoteAddr();
         biometricoService.registrarLatidoPush(sn, ipRemota);
-        log.info("Handshake ADMS recibido de ZKTeco SenseFace 3A [SN={}, IP={}]", sn, ipRemota);
+        log.info(">>> [ZKTECO ADMS] Handshake exitoso con SenseFace 3A [SN={}, IP={}]", sn, ipRemota);
 
         String respuesta = "GET OPTION FROM: " + sn + "\n" +
                 "ATTLOGStamp=None\n" +
@@ -60,6 +60,8 @@ public class ZktecoAdmsController {
         String ipRemota = request.getRemoteAddr();
         biometricoService.registrarLatidoPush(sn, ipRemota);
 
+        log.info(">>> [ZKTECO ADMS] Payload recibido de SN={} (IP={}, tabla={}):\n{}", sn, ipRemota, table, body != null ? body.trim() : "<vacio>");
+
         int procesados = 0;
         if (body != null && !body.isBlank() && ("ATTLOG".equalsIgnoreCase(table) || "rtlog".equalsIgnoreCase(table))) {
             procesados = biometricoService.procesarPayloadPushAttLog(sn, ipRemota, body);
@@ -87,6 +89,7 @@ public class ZktecoAdmsController {
     @PostMapping(value = "/devicecmd", produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> deviceCmd(
             @RequestParam(value = "SN", required = false, defaultValue = "ZKTECO") String sn,
+            @RequestBody(required = false) String body,
             HttpServletRequest request) {
         biometricoService.registrarLatidoPush(sn, request.getRemoteAddr());
         return ResponseEntity.ok("OK");
