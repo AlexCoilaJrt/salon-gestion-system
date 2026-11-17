@@ -308,7 +308,7 @@ export class MonitorComisionesComponent implements OnInit {
           isRoot: true
         },
         children: children,
-        expanded: children.length > 0
+        expanded: false
       };
     });
   }
