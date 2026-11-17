@@ -505,7 +505,7 @@
 
 <!-- MODAL TICKET ENVIADO A CAJA -->
 <p-dialog header="✅ Orden Enviada a Caja" [(visible)]="ticketGenerado" [modal]="true"
-  [style]="{width:'420px'}" [closable]="false">
+  [style]="{width:'440px', maxWidth:'95vw'}" [draggable]="false" [resizable]="false" [closable]="true">
   <div *ngIf="ticketGenerado()" class="ticket-modal-body">
     <div class="tm-salon">SPA DIANA</div>
     <div class="tm-order-badge">
@@ -517,12 +517,12 @@
       </div>
     </div>
     <div class="tm-info">
-      <div><strong>Fecha:</strong> {{ ticketGenerado().fechaEmision | date:'dd/MM/yyyy HH:mm' }}</div>
-      <div><strong>Cliente:</strong> {{ ticketGenerado().clienteNombreCompleto }}</div>
-      <div *ngIf="especialistaDisplay()"><strong>Especialista:</strong> {{ especialistaDisplay() }}</div>
-      <div *ngIf="mesaSillon()"><strong>Mesa / Sillón:</strong> {{ mesaSillon() }}</div>
-      <div><strong>Conteo Servicios:</strong> <span class="tm-badge-pending">{{ totalServiciosCantidad() }} servicio(s)</span></div>
-      <div><strong>Estado:</strong> <span class="tm-badge-pending">PENDIENTE DE PAGO</span></div>
+      <div class="tm-info-row"><span>Fecha:</span> <strong>{{ ticketGenerado().fechaEmision | date:'dd/MM/yyyy HH:mm' }}</strong></div>
+      <div class="tm-info-row"><span>Cliente:</span> <strong>{{ ticketGenerado().clienteNombreCompleto }}</strong></div>
+      <div class="tm-info-row" *ngIf="especialistaDisplay()"><span>Especialista:</span> <strong>{{ especialistaDisplay() }}</strong></div>
+      <div class="tm-info-row" *ngIf="mesaSillon()"><span>Mesa / Sillón:</span> <strong>{{ mesaSillon() }}</strong></div>
+      <div class="tm-info-row"><span>Conteo Servicios:</span> <span class="tm-badge-count">{{ totalServiciosCantidad() }} servicio(s)</span></div>
+      <div class="tm-info-row"><span>Estado:</span> <span class="tm-badge-pending">PENDIENTE DE PAGO</span></div>
     </div>
     <div class="tm-items">
       <div class="tm-items-hdr"><span>Cant.</span><span>Servicio</span></div>
@@ -531,18 +531,30 @@
         <span>{{ det.servicioNombre || det.productoNombre }}</span>
       </div>
     </div>
-    <div class="tm-aviso"><i class="pi pi-print mr-2"></i>Imprime el ticket térmico para que el especialista lleve el conteo de sus servicios realizados.</div>
+    <div class="tm-aviso">
+      <i class="pi pi-print mr-2"></i>
+      <span>Imprime el ticket térmico para que el especialista lleve el conteo de sus servicios realizados.</span>
+    </div>
   </div>
   <ng-template pTemplate="footer">
-    <div class="flex flex-wrap gap-2 justify-content-end">
-      <button pButton
-              [label]="imprimiendoTermica() ? 'Imprimiendo...' : 'Ticket Especialista (Térmica)'"
-              [icon]="imprimiendoTermica() ? 'pi pi-spin pi-spinner' : 'pi pi-receipt'"
+    <div class="tm-footer-actions">
+      <button type="button"
+              class="tm-btn-primary"
               [disabled]="imprimiendoTermica()"
-              (click)="imprimirTicketEspecialistaTermica(ticketGenerado().id)"
-              class="tm-btn-print"></button>
-      <button pButton label="Hoja A5" icon="pi pi-print" class="p-button-outlined p-button-sm" (click)="imprimirTicket()"></button>
-      <button pButton label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarModal()"></button>
+              (click)="imprimirTicketEspecialistaTermica(ticketGenerado().id)">
+        <i [class]="imprimiendoTermica() ? 'pi pi-spin pi-spinner' : 'pi pi-receipt'"></i>
+        <span>{{ imprimiendoTermica() ? 'Imprimiendo Ticket...' : 'Imprimir Ticket Especialista (Térmica)' }}</span>
+      </button>
+      <div class="tm-footer-secondary-row">
+        <button type="button" class="tm-btn-secondary" (click)="imprimirTicket()">
+          <i class="pi pi-print"></i>
+          <span>Imprimir Hoja A5</span>
+        </button>
+        <button type="button" class="tm-btn-close" (click)="cerrarModal()">
+          <i class="pi pi-times"></i>
+          <span>Cerrar</span>
+        </button>
+      </div>
     </div>
   </ng-template>
 </p-dialog>
