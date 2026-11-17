@@ -16,6 +16,7 @@
                     <th style="min-width: 160px">Nombre del Turno</th>
                     <th style="min-width: 120px">Hora Entrada</th>
                     <th style="min-width: 120px">Hora Salida</th>
+                    <th style="min-width: 150px">Horario Refrigerio</th>
                     <th style="min-width: 130px">Tolerancia (Min)</th>
                     <th style="min-width: 90px">Estado</th>
                     <th style="min-width: 90px" class="text-center">Acciones</th>
@@ -26,6 +27,12 @@
                     <td class="font-bold text-gray-800 dark:text-gray-200">{{turno.nombre}}</td>
                     <td class="text-green-600 dark:text-green-400 font-medium">{{ '1970-01-01T' + turno.horaEntrada | date:'shortTime' }}</td>
                     <td class="text-red-600 dark:text-red-400 font-medium">{{ '1970-01-01T' + turno.horaSalida | date:'shortTime' }}</td>
+                    <td class="text-amber-600 dark:text-amber-400 font-medium text-xs">
+                        <span *ngIf="turno.horaInicioRefrigerio && turno.horaFinRefrigerio">
+                            {{ '1970-01-01T' + turno.horaInicioRefrigerio | date:'shortTime' }} - {{ '1970-01-01T' + turno.horaFinRefrigerio | date:'shortTime' }}
+                        </span>
+                        <span *ngIf="!turno.horaInicioRefrigerio || !turno.horaFinRefrigerio" class="text-gray-400 italic">Sin refrigerio fijo</span>
+                    </td>
                     <td class="text-gray-600 dark:text-gray-400">{{turno.toleranciaMinutos}} min</td>
                     <td>
                         <p-tag [severity]="turno.estado ? 'success' : 'danger'" [value]="turno.estado ? 'Activo' : 'Inactivo'"></p-tag>
@@ -58,6 +65,18 @@
                 <div class="flex flex-col gap-2 w-full sm:w-1/2">
                     <label class="font-semibold text-gray-700 dark:text-gray-300">Hora Salida</label>
                     <p-calendar formControlName="horaSalida" [timeOnly]="true" hourFormat="12" inputId="timeonly2" styleClass="w-full" class="w-full"></p-calendar>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4 p-3 rounded-lg bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-800/40">
+                <div class="flex flex-col gap-2 w-full sm:w-1/2">
+                    <label class="font-semibold text-xs text-amber-800 dark:text-amber-300">Inicio Refrigerio (Opcional)</label>
+                    <p-calendar formControlName="horaInicioRefrigerio" [timeOnly]="true" hourFormat="12" [showClear]="true" inputId="timeonlyRef1" placeholder="Ej. 01:00 PM" styleClass="w-full" class="w-full"></p-calendar>
+                </div>
+                
+                <div class="flex flex-col gap-2 w-full sm:w-1/2">
+                    <label class="font-semibold text-xs text-amber-800 dark:text-amber-300">Fin Refrigerio (Opcional)</label>
+                    <p-calendar formControlName="horaFinRefrigerio" [timeOnly]="true" hourFormat="12" [showClear]="true" inputId="timeonlyRef2" placeholder="Ej. 02:00 PM" styleClass="w-full" class="w-full"></p-calendar>
                 </div>
             </div>
 

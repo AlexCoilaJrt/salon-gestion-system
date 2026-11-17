@@ -74,12 +74,20 @@
             </span>
           </td>
           <td>
-             <p-tag [severity]="empleado.disponibilidad === 'DISPONIBLE' ? 'success' : (empleado.disponibilidad === 'EN_ATENCION' ? 'warning' : 'danger')" 
-                    [value]="empleado.disponibilidad">
+             <p-tag [severity]="empleado.disponibilidad === 'DISPONIBLE' ? 'success' : (empleado.disponibilidad === 'EN_ATENCION' ? 'warning' : (empleado.disponibilidad === 'EN_DESCANSO' ? 'info' : 'danger'))" 
+                    [value]="empleado.disponibilidad === 'EN_DESCANSO' ? 'EN REFRIGERIO' : (empleado.disponibilidad === 'EN_ATENCION' ? 'EN ATENCIÓN' : empleado.disponibilidad)">
              </p-tag>
           </td>
           <td>
-            <p-tag [severity]="empleado.estado ? 'success' : 'danger'" [value]="empleado.estado ? 'Activo' : 'Inactivo'"></p-tag>
+            <ng-container *ngIf="!empleado.estado">
+              <p-tag severity="danger" value="Inactivo"></p-tag>
+            </ng-container>
+            <ng-container *ngIf="empleado.estado">
+              <p-tag *ngIf="empleado.estadoHorario === 'EN_TURNO' || !empleado.estadoHorario" severity="success" value="En Turno"></p-tag>
+              <p-tag *ngIf="empleado.estadoHorario === 'EN_REFRIGERIO'" severity="info" value="En Refrigerio"></p-tag>
+              <p-tag *ngIf="empleado.estadoHorario === 'FUERA_DE_TURNO'" severity="warning" value="Fuera de Turno"></p-tag>
+              <p-tag *ngIf="empleado.estadoHorario === 'SIN_TURNO'" severity="danger" value="Sin Turno"></p-tag>
+            </ng-container>
           </td>
           <td class="text-center">
             <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-sm text-gray-600 hover:text-[#bca028]" (click)="openEdit(empleado)"></button>

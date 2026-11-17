@@ -40,8 +40,12 @@ public class TurnoController {
         turno.setNombre(request.getNombre());
         turno.setHoraEntrada(request.getHoraEntrada());
         turno.setHoraSalida(request.getHoraSalida());
+        turno.setHoraInicioRefrigerio(request.getHoraInicioRefrigerio());
+        turno.setHoraFinRefrigerio(request.getHoraFinRefrigerio());
         turno.setToleranciaMinutos(request.getToleranciaMinutos());
-        turno.setEstado(request.getEstado());
+        if (request.getEstado() != null) {
+            turno.setEstado(request.getEstado());
+        }
         
         return ResponseEntity.ok(turnoRepository.save(turno));
     }

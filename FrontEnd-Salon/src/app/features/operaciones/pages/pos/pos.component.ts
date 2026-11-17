@@ -124,7 +124,16 @@ export class PosComponent implements OnInit {
     });
     // Cargar Empleados
     this.rrhhService.getEmpleados().subscribe(res => {
-      this.empleados.set(res.filter(e => e.estado !== false));
+      this.empleados.set(res.filter(e => e.estado !== false).map(e => {
+        const estadoTxt = e.estadoHorario === 'EN_REFRIGERIO' ? ' (En Refrigerio)'
+          : e.estadoHorario === 'FUERA_DE_TURNO' ? ' (Fuera de Turno)'
+          : e.estadoHorario === 'SIN_TURNO' ? ' (Sin Turno)' : '';
+        return {
+          ...e,
+          nombres: `${e.nombres}${estadoTxt}`,
+          noHabilitado: e.habilitadoParaAtencion === false
+        };
+      }));
     });
 
     // Cargar Servicios y Productos

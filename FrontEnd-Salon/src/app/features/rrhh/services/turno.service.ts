@@ -7,6 +7,8 @@ export interface Turno {
   nombre: string;
   horaEntrada: string;
   horaSalida: string;
+  horaInicioRefrigerio?: string | null;
+  horaFinRefrigerio?: string | null;
   toleranciaMinutos: number;
   estado: boolean;
 }

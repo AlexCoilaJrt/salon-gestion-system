@@ -299,10 +299,16 @@ export class CajaComponent implements OnInit {
     this.rrhhService.getEmpleados().subscribe(res => {
       this.empleados = res
         .filter(e => e.estado !== false)
-        .map(e => ({
-          ...e,
-          nombreCompleto: `${e.nombres} ${e.apellidos || ''}`.trim()
-        }));
+        .map(e => {
+          const estadoTxt = e.estadoHorario === 'EN_REFRIGERIO' ? ' [En Refrigerio]'
+            : e.estadoHorario === 'FUERA_DE_TURNO' ? ' [Fuera de Turno]'
+            : e.estadoHorario === 'SIN_TURNO' ? ' [Sin Turno]' : '';
+          return {
+            ...e,
+            noHabilitado: e.habilitadoParaAtencion === false,
+            nombreCompleto: `${e.nombres} ${e.apellidos || ''}`.trim() + estadoTxt
+          };
+        });
     });
   }
 

@@ -21,6 +21,23 @@ public class AsistenciaScheduler {
 
     private final EmpleadoRepository empleadoRepository;
     private final AsistenciaRepository asistenciaRepository;
+    private final pe.com.salon.salongestionapi.rrhh.service.EmpleadoService empleadoService;
+
+    /**
+     * Sincroniza cada minuto el estado de disponibilidad de los empleados
+     * según su horario de turno y hora de refrigerio.
+     */
+    @Scheduled(fixedRate = 60000)
+    public void sincronizarDisponibilidadPorHorarios() {
+        try {
+            List<Empleado> todos = empleadoRepository.findAll();
+            for (Empleado emp : todos) {
+                empleadoService.evaluarDisponibilidadEfectiva(emp);
+            }
+        } catch (Exception e) {
+            log.debug("Aviso al sincronizar disponibilidad por horarios: {}", e.getMessage());
+        }
+    }
 
     /**
      * Se ejecuta todos los días a las 23:59:00

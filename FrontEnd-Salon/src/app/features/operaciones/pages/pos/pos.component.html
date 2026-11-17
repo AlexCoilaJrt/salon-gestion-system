@@ -206,7 +206,7 @@
                 <p-overlayPanel #opEmpleado styleClass="w-64 p-2 shadow-xl rounded-xl border border-gray-100 dark:border-gray-800">
                   <ng-template pTemplate="content">
                     <h4 class="font-bold text-xs mb-2">Asignar Especialista</h4>
-                    <p-dropdown [options]="empleados()" [ngModel]="c.empleadoId" (ngModelChange)="updateCartItemEmpleado(c, $event); opEmpleado.hide()" optionLabel="nombres" optionValue="id" [filter]="true" filterBy="nombres" placeholder="Seleccione especialista" styleClass="w-full text-sm" panelStyleClass="text-sm" appendTo="body">
+                    <p-dropdown [options]="empleados()" [ngModel]="c.empleadoId" (ngModelChange)="updateCartItemEmpleado(c, $event); opEmpleado.hide()" optionLabel="nombres" optionValue="id" optionDisabled="noHabilitado" [filter]="true" filterBy="nombres" placeholder="Seleccione especialista" styleClass="w-full text-sm" panelStyleClass="text-sm" appendTo="body">
                     </p-dropdown>
                   </ng-template>
                 </p-overlayPanel>

@@ -34,6 +34,8 @@ export class TurnosComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.maxLength(100)]],
       horaEntrada: ['', Validators.required],
       horaSalida: ['', Validators.required],
+      horaInicioRefrigerio: [null],
+      horaFinRefrigerio: [null],
       toleranciaMinutos: [0, [Validators.required, Validators.min(0)]]
     });
   }
@@ -78,6 +80,8 @@ export class TurnosComponent implements OnInit {
       nombre: turno.nombre,
       horaEntrada: parseTime(turno.horaEntrada),
       horaSalida: parseTime(turno.horaSalida),
+      horaInicioRefrigerio: turno.horaInicioRefrigerio ? parseTime(turno.horaInicioRefrigerio) : null,
+      horaFinRefrigerio: turno.horaFinRefrigerio ? parseTime(turno.horaFinRefrigerio) : null,
       toleranciaMinutos: turno.toleranciaMinutos
     });
     this.displayDialog = true;
@@ -90,15 +94,18 @@ export class TurnosComponent implements OnInit {
     }
 
     const formValue = this.turnoForm.value;
-    const formatTime = (d: Date) => {
+    const formatTime = (d: Date | null | undefined) => {
+      if (!d) return null;
       const pad = (n: number) => n.toString().padStart(2, '0');
       return `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
     };
 
     const turnoData: Turno = {
       nombre: formValue.nombre,
-      horaEntrada: formatTime(formValue.horaEntrada),
-      horaSalida: formatTime(formValue.horaSalida),
+      horaEntrada: formatTime(formValue.horaEntrada)!,
+      horaSalida: formatTime(formValue.horaSalida)!,
+      horaInicioRefrigerio: formatTime(formValue.horaInicioRefrigerio),
+      horaFinRefrigerio: formatTime(formValue.horaFinRefrigerio),
       toleranciaMinutos: formValue.toleranciaMinutos,
       estado: true
     };

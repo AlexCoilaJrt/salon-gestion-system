@@ -46,6 +46,7 @@ public class TicketService {
     private final ServicioRepository servicioRepository;
     private final ProductoRepository productoRepository;
     private final EmpleadoRepository empleadoRepository;
+    private final pe.com.salon.salongestionapi.rrhh.service.EmpleadoService empleadoService;
     private final FidelizacionService fidelizacionService;
     private final pe.com.salon.salongestionapi.finanzas.service.ComisionTicketService comisionTicketService;
 
@@ -106,10 +107,11 @@ public class TicketService {
                 throw new RuntimeException("Cada detalle debe tener un servicioId o un productoId");
             }
 
-            // El empleado puede ser null en esta etapa
+            // El empleado puede ser null en esta etapa, pero si se asigna se valida su turno y estado activo
             if (detReq.getEmpleadoId() != null) {
                 Empleado empleado = empleadoRepository.findById(detReq.getEmpleadoId())
                         .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + detReq.getEmpleadoId()));
+                empleadoService.validarEmpleadoHabilitadoParaTicket(empleado);
                 detalle.setEmpleado(empleado);
             }
 
@@ -203,6 +205,7 @@ public class TicketService {
             if (detReq.getEmpleadoId() != null) {
                 Empleado empleado = empleadoRepository.findById(detReq.getEmpleadoId())
                         .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + detReq.getEmpleadoId()));
+                empleadoService.validarEmpleadoHabilitadoParaTicket(empleado);
                 detalle.setEmpleado(empleado);
             }
 
@@ -304,6 +307,7 @@ public class TicketService {
                 Long empId = matchedReq.getEmpleadoId();
                 Empleado empleado = empleadoRepository.findById(empId)
                         .orElseThrow(() -> new ResourceNotFoundException("Empleado no encontrado con id: " + empId));
+                empleadoService.validarEmpleadoHabilitadoParaTicket(empleado);
                 detalle.setEmpleado(empleado);
                 ticketDetalleRepository.save(detalle);
             }

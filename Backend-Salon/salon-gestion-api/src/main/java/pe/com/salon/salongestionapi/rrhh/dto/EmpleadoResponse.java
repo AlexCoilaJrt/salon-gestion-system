@@ -21,4 +21,7 @@ public class EmpleadoResponse {
     private String tipoRemuneracion;
     private java.math.BigDecimal sueldoFijo;
     private Boolean estado;
+    private String estadoHorario; // EN_TURNO, EN_REFRIGERIO, FUERA_DE_TURNO, SIN_TURNO, INACTIVO
+    private Boolean habilitadoParaAtencion;
+    private String motivoNoDisponible;
 }

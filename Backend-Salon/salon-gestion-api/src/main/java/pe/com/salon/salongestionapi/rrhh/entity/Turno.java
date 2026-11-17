@@ -29,6 +29,12 @@ public class Turno {
     @Column(name = "hora_salida", nullable = false)
     private LocalTime horaSalida;
 
+    @Column(name = "hora_inicio_refrigerio")
+    private LocalTime horaInicioRefrigerio;
+
+    @Column(name = "hora_fin_refrigerio")
+    private LocalTime horaFinRefrigerio;
+
     // Minutos de gracia antes de marcar tardanza
     @Column(name = "tolerancia_minutos")
     private Integer toleranciaMinutos = 0; 

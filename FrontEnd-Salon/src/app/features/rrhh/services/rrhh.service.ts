@@ -44,6 +44,10 @@ export interface Empleado {
   especialidadIds?: number[]; // Para el Request
   turnoId?: number;
   turnoNombre?: string;
+  estadoHorario?: string; // 'EN_TURNO' | 'EN_REFRIGERIO' | 'FUERA_DE_TURNO' | 'SIN_TURNO' | 'INACTIVO'
+  habilitadoParaAtencion?: boolean;
+  motivoNoDisponible?: string;
+  noHabilitado?: boolean;
 }
 
 @Injectable({

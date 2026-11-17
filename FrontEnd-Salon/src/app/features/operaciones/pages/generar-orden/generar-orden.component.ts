@@ -169,10 +169,16 @@ export class GenerarOrdenComponent implements OnInit {
     this.agendaService.obtenerClientes().subscribe(res => this.clientes.set(res));
     this.rrhhService.getEmpleados().subscribe({
       next: (emps) => {
-        const activos = (emps || []).filter(e => e.estado !== false).map(e => ({
-          ...e,
-          labelCompleto: `${e.nombres} ${e.apellidos || ''}`.trim()
-        }));
+        const activos = (emps || []).filter(e => e.estado !== false).map(e => {
+          const estadoTxt = e.estadoHorario === 'EN_REFRIGERIO' ? ' [En Refrigerio]'
+            : e.estadoHorario === 'FUERA_DE_TURNO' ? ' [Fuera de Turno]'
+            : e.estadoHorario === 'SIN_TURNO' ? ' [Sin Turno]' : '';
+          return {
+            ...e,
+            noHabilitado: e.habilitadoParaAtencion === false,
+            labelCompleto: `${e.nombres} ${e.apellidos || ''}`.trim() + estadoTxt
+          };
+        });
         this.empleados.set(activos);
       },
       error: () => {}
@@ -559,6 +565,15 @@ ${cartilla.tieneSubCategorias ? buildSubTables() :
     const sel = this.seleccionados();
     if (sel.length === 0) {
       this.messageService.add({ severity: 'warn', summary: 'Sin servicios', detail: 'Selecciona al menos un servicio.' });
+      return;
+    }
+    const empSel = this.selectedEmpleado();
+    if (empSel && empSel.habilitadoParaAtencion === false) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Especialista no disponible',
+        detail: empSel.motivoNoDisponible || 'El especialista seleccionado no se encuentra en su horario de turno activo.'
+      });
       return;
     }
     this.isProcessing.set(true);
