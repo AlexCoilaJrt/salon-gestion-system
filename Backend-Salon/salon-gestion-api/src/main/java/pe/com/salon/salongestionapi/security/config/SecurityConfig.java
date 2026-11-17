@@ -95,6 +95,8 @@ public class SecurityConfig {
                 auth.requestMatchers("/api/auth/login", "/api/v1/empresa/activa").permitAll();
                 // Kiosko de asistencia: pantalla pública (/kiosko) donde el personal marca con su DNI
                 auth.requestMatchers(HttpMethod.POST, "/api/rrhh/asistencias/kiosko").permitAll();
+                // Protocolo PUSH (ADMS / iClock) para el terminal biométrico ZKTeco SenseFace 3A
+                auth.requestMatchers("/iclock/**").permitAll();
                 auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll();
 
                 // Alta de usuarios: sólo quien puede administrar usuarios/roles
