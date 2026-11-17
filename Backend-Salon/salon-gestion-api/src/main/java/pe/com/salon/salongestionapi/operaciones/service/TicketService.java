@@ -47,6 +47,7 @@ public class TicketService {
     private final ProductoRepository productoRepository;
     private final EmpleadoRepository empleadoRepository;
     private final FidelizacionService fidelizacionService;
+    private final pe.com.salon.salongestionapi.finanzas.service.ComisionTicketService comisionTicketService;
 
     // Puntos que se otorgan por cada sol gastado (GAP 6: Fidelización)
     private static final int PUNTOS_POR_SOL = 1;
@@ -218,6 +219,9 @@ public class TicketService {
         ticket.setTotal(totalVenta);
         Ticket guardado = ticketRepository.save(ticket);
 
+        // Congelar la comision de cada linea al momento del cobro
+        comisionTicketService.congelarComision(guardado.getDetalles(), guardado.getFechaEmision());
+
         // 6. GAP 6: Actualizar puntos de fidelización y fecha de última visita (Sólo si hay cliente)
         if (cliente != null && !cliente.getId().equals(1L)) {
             int puntosGanados = totalVenta.intValue() * PUNTOS_POR_SOL;
@@ -306,6 +310,9 @@ public class TicketService {
         }
 
         Ticket guardado = ticketRepository.save(ticket);
+
+        // Congelar la comision de cada linea al momento del cobro
+        comisionTicketService.congelarComision(guardado.getDetalles(), guardado.getFechaEmision());
         
         // Lógica de fidelización al confirmar el pago
         Cliente cliente = guardado.getCliente();

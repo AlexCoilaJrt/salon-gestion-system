@@ -50,4 +50,13 @@ public class TicketDetalle {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "empleado_id")
     private Empleado empleado;
+
+    // Comision CONGELADA al momento del cobro: un cambio posterior de porcentajes,
+    // modalidad de pago o incentivos NO altera lo ganado en ventas ya cobradas.
+    // null = ticket anterior a esta funcion (se calcula con las reglas vigentes).
+    @Column(name = "comision_porcentaje", precision = 7, scale = 2)
+    private BigDecimal comisionPorcentaje;
+
+    @Column(name = "comision_monto", precision = 10, scale = 2)
+    private BigDecimal comisionMonto;
 }

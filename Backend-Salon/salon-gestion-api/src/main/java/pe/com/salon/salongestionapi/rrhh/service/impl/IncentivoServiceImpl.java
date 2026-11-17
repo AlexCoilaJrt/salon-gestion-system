@@ -379,6 +379,11 @@ public class IncentivoServiceImpl implements IncentivoService {
                 gananciaFinalLinea = gananciaFinalLinea.add(totalMonto.subtract(baseMonto));
             }
 
+            // Comision congelada al cobrar: tiene prioridad sobre las reglas vigentes
+            if (detalle.getComisionMonto() != null) {
+                gananciaFinalLinea = detalle.getComisionMonto();
+            }
+
             comisionGanadaTotal = comisionGanadaTotal.add(gananciaFinalLinea);
 
             MonitorComisionResponse.DetalleServicio ds = new MonitorComisionResponse.DetalleServicio();
@@ -387,8 +392,7 @@ public class IncentivoServiceImpl implements IncentivoService {
             ds.setServicioNombre(servicioNombre);
             ds.setCategoriaNombre(categoriaNombre);
             ds.setEspecialidadAplicada(especialidadAplicada);
-            boolean esSoloFijo = "SOLO_FIJO".equalsIgnoreCase(tipoRem);
-            ds.setTipoPago(esSoloFijo || gananciaFinalLinea.compareTo(BigDecimal.ZERO) == 0 ? "Sueldo Fijo" : "Comisión");
+            ds.setTipoPago(gananciaFinalLinea.compareTo(BigDecimal.ZERO) == 0 ? "Sueldo Fijo" : "Comisión");
             ds.setPorcentajeAplicado(BigDecimal.ZERO);
             if (detalle.getSubtotal().compareTo(BigDecimal.ZERO) > 0) {
                 ds.setPorcentajeAplicado(gananciaFinalLinea.multiply(new BigDecimal("100"))
@@ -607,6 +611,10 @@ public class IncentivoServiceImpl implements IncentivoService {
             linea.setCantidad(detalle.getCantidad());
             linea.setPrecioUnitario(detalle.getPrecioUnitario());
             linea.setSubtotal(detalle.getSubtotal());
+            // Comision congelada al cobrar: tiene prioridad sobre las reglas vigentes
+            if (detalle.getComisionMonto() != null) {
+                gananciaLinea = detalle.getComisionMonto();
+            }
             linea.setComision(gananciaLinea);
             lineas.add(linea);
         }
