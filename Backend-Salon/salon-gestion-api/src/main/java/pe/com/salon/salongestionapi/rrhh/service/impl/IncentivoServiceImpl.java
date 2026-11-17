@@ -404,19 +404,9 @@ public class IncentivoServiceImpl implements IncentivoService {
         }
 
         // Calcular ganancia del periodo para el especialista (fila principal)
-        LocalDate fInicio = inicioRango.toLocalDate();
-        long diasEnPeriodo = java.time.temporal.ChronoUnit.DAYS.between(fInicio, fFin) + 1;
-        int diasEnMes = fFin.lengthOfMonth();
-
-        BigDecimal montoFijoPeriodo = BigDecimal.ZERO;
-        if (baseMonto.compareTo(BigDecimal.ZERO) > 0) {
-            if (diasEnPeriodo >= 28) {
-                montoFijoPeriodo = baseMonto;
-            } else {
-                montoFijoPeriodo = baseMonto.multiply(new BigDecimal(diasEnPeriodo))
-                        .divide(new BigDecimal(diasEnMes), 2, java.math.RoundingMode.HALF_UP);
-            }
-        }
+        // Sueldo proporcional con la misma formula que Liquidaciones: sueldo / 30 x dias
+        BigDecimal montoFijoPeriodo = calcularSueldoProporcional(
+                baseMonto, inicioRango.toLocalDate(), fFin, empleado.getFechaIngreso());
 
         BigDecimal gananciaTotal;
         if ("SOLO_FIJO".equalsIgnoreCase(tipoRem)) {
@@ -464,6 +454,35 @@ public class IncentivoServiceImpl implements IncentivoService {
                 fechaFin.atTime(23, 59, 59), incentivosActivos);
     }
 
+    /**
+     * Sueldo fijo proporcional segun la practica laboral peruana: todos los meses valen 30 dias.
+     * Sueldo proporcional = (sueldo mensual / 30) x dias del periodo.
+     * Un mes calendario completo paga el sueldo integro (aunque tenga 28, 29 o 31 dias).
+     * Si el empleado ingreso dentro del periodo, solo cuenta desde su fecha de ingreso.
+     */
+    private BigDecimal calcularSueldoProporcional(BigDecimal sueldoMensual, LocalDate inicio, LocalDate fin,
+            LocalDate fechaIngreso) {
+        if (sueldoMensual == null || sueldoMensual.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        LocalDate desde = (fechaIngreso != null && fechaIngreso.isAfter(inicio)) ? fechaIngreso : inicio;
+        if (desde.isAfter(fin)) {
+            return BigDecimal.ZERO;
+        }
+        long diasComerciales = 0;
+        LocalDate cursor = desde;
+        while (!cursor.isAfter(fin)) {
+            LocalDate finMes = cursor.withDayOfMonth(cursor.lengthOfMonth());
+            LocalDate tramoFin = finMes.isBefore(fin) ? finMes : fin;
+            long dias = java.time.temporal.ChronoUnit.DAYS.between(cursor, tramoFin) + 1;
+            boolean mesCompleto = cursor.getDayOfMonth() == 1 && tramoFin.equals(finMes);
+            diasComerciales += mesCompleto ? 30 : Math.min(dias, 30);
+            cursor = tramoFin.plusDays(1);
+        }
+        return sueldoMensual.multiply(new BigDecimal(diasComerciales))
+                .divide(new BigDecimal(30), 2, java.math.RoundingMode.HALF_UP);
+    }
+
     private pe.com.salon.salongestionapi.rrhh.dto.LiquidacionResponse calcularLiquidacion(Empleado empleado,
             LocalDate fechaInicio, LocalDate fechaFin,
             LocalDateTime inicioPeriodo, LocalDateTime finPeriodo,
@@ -478,22 +497,10 @@ public class IncentivoServiceImpl implements IncentivoService {
                 ? BigDecimal.ZERO : empleado.getSueldoFijoEfectivo();
 
         LocalDate fechaIngreso = empleado.getFechaIngreso();
-        BigDecimal sueldoFijoProporcional = sueldoFijo;
-        long diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
-
-        if (fechaIngreso != null) {
-            if (fechaIngreso.isAfter(fechaFin)) {
-                diasTrabajados = 0;
-                sueldoFijoProporcional = BigDecimal.ZERO;
-            } else if (fechaIngreso.isAfter(fechaInicio)) {
-                diasTrabajados = java.time.temporal.ChronoUnit.DAYS.between(fechaIngreso, fechaFin) + 1;
-                long diasEnPeriodo = java.time.temporal.ChronoUnit.DAYS.between(fechaInicio, fechaFin) + 1;
-                if (diasEnPeriodo > 0 && sueldoFijo.compareTo(BigDecimal.ZERO) > 0) {
-                    sueldoFijoProporcional = sueldoFijo.multiply(new BigDecimal(diasTrabajados))
-                            .divide(new BigDecimal(diasEnPeriodo), 2, java.math.RoundingMode.HALF_UP);
-                }
-            }
-        }
+        BigDecimal sueldoFijoProporcional = calcularSueldoProporcional(sueldoFijo, fechaInicio, fechaFin, fechaIngreso);
+        LocalDate desde = (fechaIngreso != null && fechaIngreso.isAfter(fechaInicio)) ? fechaIngreso : fechaInicio;
+        long diasTrabajados = desde.isAfter(fechaFin) ? 0
+                : java.time.temporal.ChronoUnit.DAYS.between(desde, fechaFin) + 1;
 
         response.setDiasAsistidos((int) diasTrabajados);
         response.setSueldoFijoProporcional(sueldoFijoProporcional);
