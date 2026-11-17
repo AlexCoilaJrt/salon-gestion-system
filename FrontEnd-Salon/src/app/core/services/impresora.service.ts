@@ -47,5 +47,12 @@ export class ImpresoraService {
   imprimirTicketVenta(ticketId: number): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/tickets/${ticketId}/imprimir`, {});
   }
+
+  imprimirOrdenEspecialista(ticketId: number, mesaSillon?: string, especialistaManual?: string): Observable<ImpresoraTestResult> {
+    const params: any = {};
+    if (mesaSillon && mesaSillon.trim()) params.mesaSillon = mesaSillon.trim();
+    if (especialistaManual && especialistaManual.trim()) params.especialistaManual = especialistaManual.trim();
+    return this.http.post<ImpresoraTestResult>(`${this.apiUrl}/ordenes/${ticketId}/imprimir-especialista`, {}, { params });
+  }
 }
 

@@ -15,6 +15,8 @@ import { CatalogoService, Servicio } from '../../../catalogo/services/catalogo.s
 import { TicketService } from '../../../finanzas/services/ticket.service';
 import { AgendaService, ClienteResponse } from '../agenda/agenda.service';
 import { EmpresaService, EmpresaResponse } from '../../../../core/services/empresa.service';
+import { ImpresoraService } from '../../../../core/services/impresora.service';
+import { RrhhService, Empleado } from '../../../rrhh/services/rrhh.service';
 
 export interface CartillaItem {
   servicioId: number;
@@ -55,10 +57,13 @@ export class GenerarOrdenComponent implements OnInit {
   private ticketService   = inject(TicketService);
   private agendaService   = inject(AgendaService);
   private messageService  = inject(MessageService);
-  private empresaService  = inject(EmpresaService);
+  private empresaService   = inject(EmpresaService);
+  private impresoraService = inject(ImpresoraService);
+  private rrhhService      = inject(RrhhService);
 
   // --- Data ---
   clientes  = signal<ClienteResponse[]>([]);
+  empleados = signal<(Empleado & { labelCompleto?: string })[]>([]);
   cartillas = signal<Cartilla[]>([]);
   empresa   = signal<EmpresaResponse | null>(null);
 
@@ -67,6 +72,8 @@ export class GenerarOrdenComponent implements OnInit {
   selectedCliente = signal<ClienteResponse | null>(null);
   nombreClienteManual = signal('');
   mesaSillon = signal('');
+  selectedEmpleado = signal<(Empleado & { labelCompleto?: string }) | null>(null);
+  imprimiendoTermica = signal(false);
   numCopias = signal(1);
   mostrarPrecios = signal(true);
   incluirFilasExtra = signal(true);
@@ -123,6 +130,11 @@ export class GenerarOrdenComponent implements OnInit {
   seleccionados = signal<CartillaItem[]>([]);
 
   subtotal = computed(() => this.seleccionados().reduce((acc, item) => acc + (item.precio * item.cantidad), 0));
+  totalServiciosCantidad = computed(() => this.seleccionados().reduce((acc, item) => acc + (item.cantidad || 1), 0));
+  especialistaDisplay = computed(() => {
+    const emp = this.selectedEmpleado();
+    return emp ? `${emp.nombres} ${emp.apellidos || ''}`.trim() : '';
+  });
 
   clienteDisplay = computed(() => {
     const c = this.selectedCliente();
@@ -150,6 +162,16 @@ export class GenerarOrdenComponent implements OnInit {
 
   ngOnInit(): void {
     this.agendaService.obtenerClientes().subscribe(res => this.clientes.set(res));
+    this.rrhhService.getEmpleados().subscribe({
+      next: (emps) => {
+        const activos = (emps || []).filter(e => e.estado !== false).map(e => ({
+          ...e,
+          labelCompleto: `${e.nombres} ${e.apellidos || ''}`.trim()
+        }));
+        this.empleados.set(activos);
+      },
+      error: () => {}
+    });
     this.cargarCartillas();
 
     // Cargar datos de empresa
@@ -528,31 +550,77 @@ ${cartilla.tieneSubCategorias ? buildSubTables() :
   }
 
   // --- Generar Orden (enviar a caja) ---
-  generarOrden(): void {
+  generarOrden(imprimirTermicaAuto: boolean = false): void {
     const sel = this.seleccionados();
     if (sel.length === 0) {
       this.messageService.add({ severity: 'warn', summary: 'Sin servicios', detail: 'Selecciona al menos un servicio.' });
       return;
     }
     this.isProcessing.set(true);
+    const empId = this.selectedEmpleado()?.id ?? null;
     const request = {
       clienteId: this.selectedCliente()?.id ?? null,
       nombreClienteNoRegistrado: this.selectedCliente() ? null : (this.nombreClienteManual() || 'Público General'),
       detalles: sel.map(s => ({
         servicioId: s.servicioId,
         cantidad: s.cantidad || 1,
-        precioUnitario: s.precio
+        precioUnitario: s.precio,
+        empleadoId: empId
       }))
     };
     this.ticketService.generarOrden(request).subscribe({
       next: res => {
-        this.messageService.add({ severity: 'success', summary: '¡Orden Generada!', detail: `Ticket #${res.id} listo para caja.`, life: 5000 });
+        this.messageService.add({ severity: 'success', summary: '¡Orden Generada!', detail: `Orden #${res.id} enviada a caja.`, life: 5000 });
         this.ticketGenerado.set(res);
         this.isProcessing.set(false);
+        if (imprimirTermicaAuto && res?.id) {
+          this.imprimirTicketEspecialistaTermica(res.id);
+        }
       },
       error: err => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.message || 'No se pudo generar la orden.' });
         this.isProcessing.set(false);
+      }
+    });
+  }
+
+  imprimirTicketEspecialistaTermica(ticketIdParam?: number): void {
+    const id = ticketIdParam ?? this.ticketGenerado()?.id;
+    if (!id) {
+      // Si aún no se envió a caja, primero envía la orden y luego imprime automáticamente
+      this.generarOrden(true);
+      return;
+    }
+    this.imprimiendoTermica.set(true);
+    const mesa = this.mesaSillon();
+    const espNombre = this.especialistaDisplay();
+    this.impresoraService.imprimirOrdenEspecialista(id, mesa, espNombre).subscribe({
+      next: (res) => {
+        this.imprimiendoTermica.set(false);
+        if (res.conectado) {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Impreso en Térmica',
+            detail: res.mensaje || `Ticket de control #${id} impreso para el especialista.`,
+            life: 4500
+          });
+        } else {
+          this.messageService.add({
+            severity: 'warn',
+            summary: 'Impresora no disponible',
+            detail: res.mensaje || 'No se pudo conectar con la mini-impresora térmica.',
+            life: 6000
+          });
+        }
+      },
+      error: (err) => {
+        this.imprimiendoTermica.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error de Impresión',
+          detail: err.error?.message || 'Fallo al enviar orden a la impresora térmica.',
+          life: 5000
+        });
       }
     });
   }

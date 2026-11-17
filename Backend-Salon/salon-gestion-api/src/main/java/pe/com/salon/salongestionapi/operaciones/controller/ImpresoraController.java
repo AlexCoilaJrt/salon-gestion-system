@@ -43,5 +43,13 @@ public class ImpresoraController {
         impresoraTermicaService.imprimirTicketVenta(ticketId);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/ordenes/{ticketId}/imprimir-especialista")
+    public ResponseEntity<ImpresoraTestResultDTO> imprimirOrdenEspecialista(
+            @PathVariable Long ticketId,
+            @RequestParam(required = false) String mesaSillon,
+            @RequestParam(required = false) String especialistaManual) {
+        return ResponseEntity.ok(impresoraTermicaService.imprimirOrdenEspecialista(ticketId, mesaSillon, especialistaManual));
+    }
 }
 

@@ -130,6 +130,204 @@ public class ImpresoraTermicaService {
     }
 
     @Transactional(readOnly = true)
+    public ImpresoraTestResultDTO imprimirOrdenEspecialista(Long ticketId, String mesaSillon, String especialistaManual) {
+        Ticket ticket = ticketRepository.findByIdWithDetalles(ticketId)
+                .orElseGet(() -> ticketRepository.findById(ticketId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Orden no encontrada con ID: " + ticketId)));
+
+        ImpresoraConfigDTO config = getConfiguracion();
+        String ip = normalizarIp(config.getIp());
+        int puerto = config.getPuerto() != null ? config.getPuerto() : 9100;
+
+        Empresa empresa = empresaRepository.findFirstByActivoTrue().orElse(null);
+
+        try {
+            byte[] payload = generarPayloadOrdenEspecialista(ticket, empresa, config, mesaSillon, especialistaManual);
+            enviarSocket(ip, puerto, payload);
+            return ImpresoraTestResultDTO.builder()
+                    .conectado(true)
+                    .ip(ip)
+                    .puerto(puerto)
+                    .mensaje("Ticket de control para especialista impreso correctamente (Orden #" + String.format("%04d", ticket.getId()) + ").")
+                    .build();
+        } catch (Exception e) {
+            log.error("Error al imprimir orden de especialista en {}:{}: {}", ip, puerto, e.getMessage());
+            return ImpresoraTestResultDTO.builder()
+                    .conectado(false)
+                    .ip(ip)
+                    .puerto(puerto)
+                    .mensaje("No se pudo imprimir en la impresora termica (" + ip + ":" + puerto + "): " + e.getMessage())
+                    .build();
+        }
+    }
+
+    private byte[] generarPayloadOrdenEspecialista(Ticket ticket, Empresa empresa, ImpresoraConfigDTO config, String mesaSillon, String especialistaManual) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            int ancho = (config.getAnchoPapelMm() != null && config.getAnchoPapelMm() == 58) ? 32 : 48;
+            String lineaDiv = "-".repeat(ancho);
+            String dobleDiv = "=".repeat(ancho);
+
+            baos.write(ESC_INIT);
+
+            // 1. Cabecera del Salon y Titulo de Control
+            baos.write(ESC_ALIGN_CENTER);
+            baos.write(bytes(dobleDiv + "\n"));
+            baos.write(ESC_BOLD_ON);
+            baos.write(GS_SIZE_DOUBLE);
+            String nombreComercial = empresa != null && empresa.getNombreComercial() != null ? empresa.getNombreComercial() : "SPA DIANA";
+            baos.write(bytes(limpiarTexto(nombreComercial) + "\n"));
+            baos.write(GS_SIZE_NORMAL);
+            baos.write(bytes("CONTROL DE SERVICIOS - ESPECIALISTA\n"));
+            baos.write(ESC_BOLD_OFF);
+            baos.write(bytes(dobleDiv + "\n"));
+
+            // Numero de Orden Grande
+            String nroOrden = String.format("#%04d", ticket.getId());
+            baos.write(ESC_BOLD_ON);
+            baos.write(GS_SIZE_DOUBLE);
+            baos.write(bytes("ORDEN: " + nroOrden + "\n"));
+            baos.write(GS_SIZE_NORMAL);
+            baos.write(ESC_BOLD_OFF);
+            baos.write(bytes(lineaDiv + "\n"));
+
+            // 2. Datos de la Atencion
+            baos.write(ESC_ALIGN_LEFT);
+            String fechaStr = ticket.getFechaEmision() != null
+                    ? ticket.getFechaEmision().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                    : LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            baos.write(bytes("FECHA/HORA:   " + fechaStr + "\n"));
+
+            if (ticket.getCliente() != null && !ticket.getCliente().getId().equals(1L)) {
+                String clienteNombre = ticket.getCliente().getNombres() + " " + (ticket.getCliente().getApellidos() != null ? ticket.getCliente().getApellidos() : "");
+                baos.write(bytes("CLIENTA:      " + limpiarTexto(clienteNombre).trim() + "\n"));
+                if (ticket.getCliente().getDni() != null && !ticket.getCliente().getDni().isBlank()) {
+                    baos.write(bytes("DNI/DOC:      " + ticket.getCliente().getDni().trim() + "\n"));
+                }
+            } else if (ticket.getNombreClienteNoRegistrado() != null && !ticket.getNombreClienteNoRegistrado().isBlank()) {
+                baos.write(bytes("CLIENTA:      " + limpiarTexto(ticket.getNombreClienteNoRegistrado()).trim() + "\n"));
+            } else {
+                baos.write(bytes("CLIENTA:      Publico General\n"));
+            }
+
+            if (mesaSillon != null && !mesaSillon.isBlank()) {
+                baos.write(bytes("MESA/SILLON:  " + limpiarTexto(mesaSillon).trim() + "\n"));
+            }
+
+            // Resolver nombre del especialista
+            List<String> especialistas = new ArrayList<>();
+            if (ticket.getDetalles() != null) {
+                for (TicketDetalle d : ticket.getDetalles()) {
+                    if (d.getEmpleado() != null) {
+                        String empNombre = limpiarTexto(d.getEmpleado().getNombres() +
+                                (d.getEmpleado().getApellidos() != null ? " " + d.getEmpleado().getApellidos() : "")).trim();
+                        if (!empNombre.isEmpty() && !especialistas.contains(empNombre)) {
+                            especialistas.add(empNombre);
+                        }
+                    }
+                }
+            }
+            if (especialistas.isEmpty() && especialistaManual != null && !especialistaManual.isBlank()) {
+                especialistas.add(limpiarTexto(especialistaManual).trim());
+            }
+
+            baos.write(ESC_BOLD_ON);
+            if (!especialistas.isEmpty()) {
+                baos.write(bytes("ESPECIALISTA: " + String.join(", ", especialistas) + "\n"));
+            } else {
+                baos.write(bytes("ESPECIALISTA: ________________________\n"));
+            }
+            baos.write(ESC_BOLD_OFF);
+            baos.write(bytes(lineaDiv + "\n"));
+
+            // 3. Tabla de Servicios para Conteo del Especialista
+            if (ancho == 48) {
+                baos.write(bytes(padRight("CHK CANT", 9) + padRight("SERVICIO A REALIZAR", 29) + padLeft("MONTO", 10) + "\n"));
+            } else {
+                baos.write(bytes(padRight("CHK", 5) + padRight("SERVICIO", 18) + padLeft("MONTO", 9) + "\n"));
+            }
+            baos.write(bytes(lineaDiv + "\n"));
+
+            int totalServiciosCount = 0;
+            BigDecimal totalReferencial = BigDecimal.ZERO;
+
+            if (ticket.getDetalles() != null) {
+                for (TicketDetalle d : ticket.getDetalles()) {
+                    int cant = d.getCantidad() != null ? d.getCantidad() : 1;
+                    totalServiciosCount += cant;
+
+                    String desc = d.getServicio() != null ? d.getServicio().getNombre()
+                            : (d.getProducto() != null ? d.getProducto().getNombre() : "Servicio");
+                    desc = limpiarTexto(desc);
+
+                    BigDecimal subt = d.getSubtotal() != null ? d.getSubtotal() : BigDecimal.ZERO;
+                    totalReferencial = totalReferencial.add(subt);
+                    String subtStr = "S/" + String.format("%.2f", subt);
+
+                    String catNombre = "";
+                    if (d.getServicio() != null && d.getServicio().getCategoria() != null) {
+                        catNombre = limpiarTexto(d.getServicio().getCategoria().getNombre()).trim();
+                    }
+
+                    if (ancho == 48) {
+                        String prefijo = "[ ] " + cant + "x";
+                        baos.write(ESC_BOLD_ON);
+                        baos.write(bytes(padRight(prefijo, 9) + padRight(desc, 29) + padLeft(subtStr, 10) + "\n"));
+                        baos.write(ESC_BOLD_OFF);
+                        if (!catNombre.isEmpty()) {
+                            baos.write(bytes("         Categoria: " + catNombre + "\n"));
+                        }
+                    } else {
+                        String prefijo = "[ ]" + cant;
+                        baos.write(ESC_BOLD_ON);
+                        baos.write(bytes(padRight(prefijo, 5) + padRight(desc, 18) + padLeft(subtStr, 9) + "\n"));
+                        baos.write(ESC_BOLD_OFF);
+                        if (!catNombre.isEmpty()) {
+                            baos.write(bytes("     Cat: " + catNombre + "\n"));
+                        }
+                    }
+                }
+            }
+
+            baos.write(bytes(lineaDiv + "\n"));
+            if (ancho == 48) {
+                baos.write(bytes("[ ] Adicional: _______________________ S/ ______\n"));
+                baos.write(bytes("[ ] Adicional: _______________________ S/ ______\n"));
+            } else {
+                baos.write(bytes("[ ] Adic: _____________ S/ ____\n"));
+                baos.write(bytes("[ ] Adic: _____________ S/ ____\n"));
+            }
+            baos.write(bytes(dobleDiv + "\n"));
+
+            // 4. Resumen de Conteo para el Especialista
+            baos.write(ESC_ALIGN_CENTER);
+            baos.write(ESC_BOLD_ON);
+            baos.write(bytes(">> TOTAL SERVICIOS EN ORDEN: " + totalServiciosCount + " <<\n"));
+            baos.write(ESC_BOLD_OFF);
+            baos.write(bytes("TOTAL REFERENCIAL: S/ " + String.format("%.2f", totalReferencial) + "\n"));
+            baos.write(bytes(lineaDiv + "\n"));
+
+            baos.write(ESC_ALIGN_LEFT);
+            baos.write(bytes("\nFirma / Conformidad: ________________________\n"));
+            baos.write(bytes(lineaDiv + "\n"));
+
+            baos.write(ESC_ALIGN_CENTER);
+            baos.write(bytes("Conserva este ticket como constancia\n"));
+            baos.write(bytes("para tu conteo diario de servicios.\n"));
+            baos.write(bytes(dobleDiv + "\n\n\n\n"));
+
+            // Solo cortar papel (NO abrir gaveta de dinero porque es ticket de trabajo)
+            if (Boolean.TRUE.equals(config.getAutoCorte())) {
+                baos.write(GS_CUT_PARTIAL);
+            }
+
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException("Error al estructurar ticket de especialista: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional(readOnly = true)
     public void imprimirTicketVenta(Long ticketId) {
         Ticket ticket = ticketRepository.findByIdWithDetalles(ticketId)
                 .orElseGet(() -> ticketRepository.findById(ticketId)

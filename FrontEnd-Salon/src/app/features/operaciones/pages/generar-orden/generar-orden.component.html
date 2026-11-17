@@ -135,6 +135,21 @@
       </div>
     </div>
 
+    <!-- Especialista Asignado (Opcional) -->
+    <div class="config-field">
+      <label class="config-label">Especialista (Para su Conteo)</label>
+      <p-dropdown
+        [options]="empleados()"
+        [(ngModel)]="selectedEmpleado"
+        optionLabel="labelCompleto"
+        [showClear]="true"
+        [filter]="true"
+        filterBy="labelCompleto,dni"
+        placeholder="Seleccionar especialista (opcional)..."
+        styleClass="w-full go-dropdown">
+      </p-dropdown>
+    </div>
+
     <!-- Panel Desplegable: Opciones de Formato e Impresión (Replegado por defecto) -->
     <button type="button" class="print-toggle-box" [class.is-open]="mostrarOpcionesImpresion()" (click)="toggleOpcionesImpresion()">
       <div class="print-toggle-left">
@@ -228,9 +243,18 @@
     </div>
 
     <!-- BOTONES DE ACCIÓN -->
-    <button class="btn-send-caja" (click)="generarOrden()" [disabled]="seleccionados().length === 0 || isProcessing()">
+    <button class="btn-send-caja" (click)="generarOrden(false)" [disabled]="seleccionados().length === 0 || isProcessing()">
       <i [class]="isProcessing() ? 'pi pi-spin pi-spinner mr-2' : 'pi pi-send mr-2'"></i>
       {{ isProcessing() ? 'Enviando...' : 'Enviar Orden a Caja' }}
+    </button>
+
+    <button class="btn-print-main"
+            style="border-color: #bca028; color: #f3d467;"
+            (click)="imprimirTicketEspecialistaTermica()"
+            [disabled]="seleccionados().length === 0 || isProcessing() || imprimiendoTermica()"
+            title="Envía la orden a caja (si aún no se envió) e imprime el ticket térmico de conteo para el especialista">
+      <i [class]="imprimiendoTermica() ? 'pi pi-spin pi-spinner mr-2' : 'pi pi-receipt mr-2'"></i>
+      {{ imprimiendoTermica() ? 'Imprimiendo Ticket...' : 'Ticket Especialista (Mini-Impresora)' }}
     </button>
 
     <button class="btn-print-main" (click)="imprimirCartilla()" [disabled]="!cartillaSeleccionada()">
@@ -481,6 +505,9 @@
     <div class="tm-info">
       <div><strong>Fecha:</strong> {{ ticketGenerado().fechaEmision | date:'dd/MM/yyyy HH:mm' }}</div>
       <div><strong>Cliente:</strong> {{ ticketGenerado().clienteNombreCompleto }}</div>
+      <div *ngIf="especialistaDisplay()"><strong>Especialista:</strong> {{ especialistaDisplay() }}</div>
+      <div *ngIf="mesaSillon()"><strong>Mesa / Sillón:</strong> {{ mesaSillon() }}</div>
+      <div><strong>Conteo Servicios:</strong> <span class="tm-badge-pending">{{ totalServiciosCantidad() }} servicio(s)</span></div>
       <div><strong>Estado:</strong> <span class="tm-badge-pending">PENDIENTE DE PAGO</span></div>
     </div>
     <div class="tm-items">
@@ -490,11 +517,17 @@
         <span>{{ det.servicioNombre || det.productoNombre }}</span>
       </div>
     </div>
-    <div class="tm-aviso"><i class="pi pi-arrow-right mr-2"></i>Acércate a caja con este número de orden para realizar el pago.</div>
+    <div class="tm-aviso"><i class="pi pi-print mr-2"></i>Imprime el ticket térmico para que el especialista lleve el conteo de sus servicios realizados.</div>
   </div>
   <ng-template pTemplate="footer">
-    <div class="flex gap-2 justify-content-end">
-      <button pButton label="Imprimir Ticket" icon="pi pi-print" (click)="imprimirTicket()" class="tm-btn-print"></button>
+    <div class="flex flex-wrap gap-2 justify-content-end">
+      <button pButton
+              [label]="imprimiendoTermica() ? 'Imprimiendo...' : 'Ticket Especialista (Térmica)'"
+              [icon]="imprimiendoTermica() ? 'pi pi-spin pi-spinner' : 'pi pi-receipt'"
+              [disabled]="imprimiendoTermica()"
+              (click)="imprimirTicketEspecialistaTermica(ticketGenerado().id)"
+              class="tm-btn-print"></button>
+      <button pButton label="Hoja A5" icon="pi pi-print" class="p-button-outlined p-button-sm" (click)="imprimirTicket()"></button>
       <button pButton label="Cerrar" icon="pi pi-times" class="p-button-text" (click)="cerrarModal()"></button>
     </div>
   </ng-template>
