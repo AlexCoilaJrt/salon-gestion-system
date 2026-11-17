@@ -3,6 +3,7 @@ package pe.com.salon.salongestionapi.finanzas.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pe.com.salon.salongestionapi.operaciones.entity.TicketDetalle;
+import pe.com.salon.salongestionapi.operaciones.repository.TicketDetalleRepository;
 import pe.com.salon.salongestionapi.rrhh.entity.IncentivoComision;
 import pe.com.salon.salongestionapi.rrhh.entity.TipoComision;
 import pe.com.salon.salongestionapi.rrhh.repository.IncentivoComisionRepository;
@@ -23,6 +24,7 @@ public class ComisionTicketService {
 
     private final MotorComisionService motorComisionService;
     private final IncentivoComisionRepository incentivoRepository;
+    private final TicketDetalleRepository ticketDetalleRepository;
 
     /** Calcula y guarda comisionMonto / comisionPorcentaje en cada detalle del ticket. */
     public void congelarComision(List<TicketDetalle> detalles, LocalDateTime fechaVenta) {
@@ -74,5 +76,6 @@ public class ComisionTicketService {
             detalle.setComisionMonto(comision);
             detalle.setComisionPorcentaje(porcentaje);
         }
+        ticketDetalleRepository.saveAll(detalles);
     }
 }
