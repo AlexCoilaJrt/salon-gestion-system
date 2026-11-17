@@ -93,4 +93,5 @@
 </div>
 
 
-<app-biometrico-modal [(visible)]="displayBiometricoModal"></app-biometrico-modal>
+<p-toast></p-toast>
+<app-biometrico-modal [(visible)]="displayBiometricoModal" (visibleChange)="!$event && loadReporte()"></app-biometrico-modal>

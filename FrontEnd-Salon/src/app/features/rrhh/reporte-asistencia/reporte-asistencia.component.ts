@@ -6,12 +6,15 @@ import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { CalendarModule } from 'primeng/calendar';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { BiometricoModalComponent } from '../biometrico-modal/biometrico-modal.component';
 
 @Component({
   selector: 'app-reporte-asistencia',
   standalone: true,
-  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, CalendarModule, BiometricoModalComponent],
+  imports: [CommonModule, FormsModule, TableModule, ButtonModule, TagModule, CalendarModule, ToastModule, BiometricoModalComponent],
+  providers: [MessageService],
   templateUrl: './reporte-asistencia.component.html'
 })
 export class ReporteAsistenciaComponent implements OnInit {
