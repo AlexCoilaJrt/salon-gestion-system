@@ -35,6 +35,7 @@ export class EmpresaService {
       tap(res => {
         if (res.success && res.data) {
           this.empresaSubject.next(res.data);
+          this.actualizarIdentidadNavegador(res.data);
         }
       })
     );
@@ -45,8 +46,20 @@ export class EmpresaService {
       tap(res => {
         if (res.success && res.data) {
           this.empresaSubject.next(res.data);
+          this.actualizarIdentidadNavegador(res.data);
         }
       })
     );
+  }
+
+  private actualizarIdentidadNavegador(empresa: EmpresaResponse): void {
+    if (typeof document === 'undefined') return;
+    if (empresa?.nombreComercial) {
+      document.title = empresa.nombreComercial;
+    }
+    const link = document.getElementById('app-favicon') as HTMLLinkElement | null;
+    if (link) {
+      link.href = (empresa?.logoUrl && empresa.logoUrl.trim()) ? empresa.logoUrl : 'favicon.png?v=2';
+    }
   }
 }
