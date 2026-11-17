@@ -71,6 +71,17 @@ export class EmpleadosComponent implements OnInit {
       sueldoFijo: [null],
       estado: [true]
     });
+
+    this.empleadoForm.get('tipoRemuneracion')!.valueChanges.subscribe(tipo => {
+      const sueldo = this.empleadoForm.get('sueldoFijo')!;
+      if (tipo === 'SOLO_FIJO' || tipo === 'HIBRIDO') {
+        sueldo.setValidators([Validators.required, Validators.min(0.01)]);
+      } else {
+        sueldo.clearValidators();
+        sueldo.setValue(null, { emitEvent: false });
+      }
+      sueldo.updateValueAndValidity({ emitEvent: false });
+    });
   }
 
   ngOnInit(): void {

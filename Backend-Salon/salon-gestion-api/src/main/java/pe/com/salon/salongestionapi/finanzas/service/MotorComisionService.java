@@ -152,9 +152,7 @@ public class MotorComisionService {
         if (especialidadId != null) {
             pe.com.salon.salongestionapi.rrhh.entity.Especialidad esp = especialidadRepository.findById(especialidadId).orElse(null);
             if (esp != null) {
-                if ("FIJO".equalsIgnoreCase(esp.getTipoPago()) || "Sueldo Fijo Mensual".equalsIgnoreCase(esp.getTipoPago())) {
-                    return BigDecimal.ZERO; // Especialidades de sueldo fijo NO ganan comisión
-                }
+                // El tipo de remuneración del empleado (SOLO_FIJO se resolvió arriba) es quien decide si comisiona.
                 if (esp.getPorcentajeComision() != null && esp.getPorcentajeComision().compareTo(BigDecimal.ZERO) > 0) {
                     return esp.getPorcentajeComision();
                 }

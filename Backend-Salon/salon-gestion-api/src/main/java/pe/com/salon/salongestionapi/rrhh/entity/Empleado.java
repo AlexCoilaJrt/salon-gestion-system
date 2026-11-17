@@ -46,7 +46,7 @@ public class Empleado {
     private java.math.BigDecimal sueldoFijo;
 
     @Column(name = "tipo_remuneracion", length = 30)
-    private String tipoRemuneracion = "SOLO_COMISION"; // "SOLO_COMISION", "SOLO_FIJO", "HIBRIDO"
+    private String tipoRemuneracion; // "SOLO_COMISION", "SOLO_FIJO", "HIBRIDO"
 
     @Enumerated(EnumType.STRING)
     @Column(name = "disponibilidad", nullable = false)

@@ -80,7 +80,7 @@ public class DataSeeder implements CommandLineRunner {
                 log.warn("No se pudo inicializar orden en servicios: {}", ex.getMessage());
             }
             try {
-                jdbcTemplate.execute("ALTER TABLE empleado ADD COLUMN IF NOT EXISTS tipo_remuneracion VARCHAR(30) DEFAULT 'SOLO_COMISION';");
+                jdbcTemplate.execute("ALTER TABLE empleado ADD COLUMN IF NOT EXISTS tipo_remuneracion VARCHAR(30);");
                 jdbcTemplate.execute("UPDATE empleado SET tipo_remuneracion = 'SOLO_FIJO' WHERE sueldo_fijo > 0 AND (tipo_remuneracion IS NULL OR tipo_remuneracion = 'SOLO_COMISION');");
                 log.info("Migración de tipo_remuneracion en empleado ejecutada correctamente.");
             } catch (Exception ex) {

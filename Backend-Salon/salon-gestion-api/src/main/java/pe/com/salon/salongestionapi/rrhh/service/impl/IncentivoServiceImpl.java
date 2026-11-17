@@ -409,11 +409,11 @@ public class IncentivoServiceImpl implements IncentivoService {
         int diasEnMes = fFin.lengthOfMonth();
 
         BigDecimal montoFijoPeriodo = BigDecimal.ZERO;
-        if (totalMonto.compareTo(BigDecimal.ZERO) > 0) {
+        if (baseMonto.compareTo(BigDecimal.ZERO) > 0) {
             if (diasEnPeriodo >= 28) {
-                montoFijoPeriodo = totalMonto;
+                montoFijoPeriodo = baseMonto;
             } else {
-                montoFijoPeriodo = totalMonto.multiply(new BigDecimal(diasEnPeriodo))
+                montoFijoPeriodo = baseMonto.multiply(new BigDecimal(diasEnPeriodo))
                         .divide(new BigDecimal(diasEnMes), 2, java.math.RoundingMode.HALF_UP);
             }
         }
