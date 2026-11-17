@@ -74,6 +74,11 @@ export class GenerarOrdenComponent implements OnInit {
   mesaSillon = signal('');
   selectedEmpleado = signal<(Empleado & { labelCompleto?: string }) | null>(null);
   imprimiendoTermica = signal(false);
+
+  // --- Registro Rapido de Nuevo Cliente ---
+  showNuevoClienteDialog = signal(false);
+  guardandoCliente = signal(false);
+  nuevoCliente = { nombres: '', apellidos: '', dni: '', telefono: '', email: '' };
   numCopias = signal(1);
   mostrarPrecios = signal(true);
   incluirFilasExtra = signal(true);
@@ -627,5 +632,95 @@ ${cartilla.tieneSubCategorias ? buildSubTables() :
 
   cerrarModal(): void { this.ticketGenerado.set(null); }
   imprimirTicket(): void { this.imprimirCartilla(); }
+
+  abrirNuevoClienteDialog(): void {
+    this.nuevoCliente = {
+      nombres: this.nombreClienteManual() ? this.nombreClienteManual().trim() : '',
+      apellidos: '',
+      dni: '',
+      telefono: '',
+      email: ''
+    };
+    this.showNuevoClienteDialog.set(true);
+  }
+
+  onNuevoClienteDniInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input) return;
+    const clean = input.value.replace(/\D/g, '').slice(0, 8);
+    input.value = clean;
+    this.nuevoCliente.dni = clean;
+  }
+
+  onNuevoClienteTelefonoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input) return;
+    const clean = input.value.replace(/\D/g, '').slice(0, 9);
+    input.value = clean;
+    this.nuevoCliente.telefono = clean;
+  }
+
+  isEmailInvalido(email?: string): boolean {
+    if (!email || !email.trim()) return false;
+    return !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  }
+
+  guardarNuevoCliente(): void {
+    if (!this.nuevoCliente.nombres?.trim() || !this.nuevoCliente.apellidos?.trim()) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Datos incompletos',
+        detail: 'Los nombres y apellidos del cliente son obligatorios.'
+      });
+      return;
+    }
+    if (this.nuevoCliente.dni && this.nuevoCliente.dni.trim().length > 0 && this.nuevoCliente.dni.trim().length !== 8) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'DNI inválido',
+        detail: 'El DNI debe contener 8 dígitos numéricos.'
+      });
+      return;
+    }
+    if (this.isEmailInvalido(this.nuevoCliente.email)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Correo no válido',
+        detail: 'Verifica el formato del correo electrónico (ej: cliente@gmail.com).'
+      });
+      return;
+    }
+
+    this.guardandoCliente.set(true);
+    const payload = {
+      nombres: this.nuevoCliente.nombres.trim(),
+      apellidos: this.nuevoCliente.apellidos.trim(),
+      dni: this.nuevoCliente.dni?.trim() || undefined,
+      telefono: this.nuevoCliente.telefono?.trim() || undefined,
+      email: this.nuevoCliente.email?.trim() || undefined
+    };
+
+    this.agendaService.crearCliente(payload).subscribe({
+      next: (res) => {
+        this.clientes.update(actuales => [res, ...actuales]);
+        this.selectedCliente.set(res);
+        this.nombreClienteManual.set('');
+        this.showNuevoClienteDialog.set(false);
+        this.guardandoCliente.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Cliente Registrado',
+          detail: `${res.nombreCompleto} fue registrado y seleccionado en la cartilla.`
+        });
+      },
+      error: (err) => {
+        const detail = err.error?.errores
+          ? Object.values(err.error.errores).join('. ')
+          : (err.error?.message || 'No se pudo registrar el cliente.');
+        this.messageService.add({ severity: 'error', summary: 'Error', detail });
+        this.guardandoCliente.set(false);
+      }
+    });
+  }
 
 }
