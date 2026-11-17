@@ -191,7 +191,7 @@ public class BiometricoService {
         return BiometricoConfigDTO.builder()
                 .ip(configuracionRepository.findById(ConfiguracionService.BIOMETRICO_IP)
                         .map(ConfiguracionSistema::getValor)
-                        .orElse("192.168.1.201"))
+                        .orElse("192.168.100.201"))
                 .puerto(Integer.parseInt(configuracionRepository.findById(ConfiguracionService.BIOMETRICO_PUERTO)
                         .map(ConfiguracionSistema::getValor)
                         .orElse("4370")))
@@ -264,8 +264,8 @@ public class BiometricoService {
         // 2. Intentar conexión directa TCP al dispositivo
         long start = System.currentTimeMillis();
         try (Socket socket = new Socket()) {
-            socket.connect(new InetSocketAddress(ip, puerto), 2500);
-            long latencia = System.currentTimeMillis() - start;
+            socket.connect(new InetSocketAddress(ip, puerto), 1200);
+            long latencia = Math.max(1, System.currentTimeMillis() - start);
             log.info("Conexión TCP exitosa a terminal biométrico ZKTeco en {}:{} en {} ms", ip, puerto, latencia);
             return BiometricoTestResultDTO.builder()
                     .conectado(true)
@@ -275,17 +275,36 @@ public class BiometricoService {
                     .mensaje("¡Conexión establecida correctamente con el ZKTeco SenseFace 3A (" + latencia + " ms)!")
                     .detallesTecnicos("Puerto TCP " + puerto + " abierto y respondiendo. Dispositivo listo para sincronización.")
                     .build();
-        } catch (Exception e) {
-            log.warn("Fallo de conexión a terminal biométrico ZKTeco {}:{}: {}", ip, puerto, e.getMessage());
+        } catch (Exception ignored) {
+            // En modo PUSH (ADMS), el SenseFace 3A cierra el puerto TCP 4370 entrante y responde por ICMP Ping + HTTP saliente
+        }
+
+        // 3. Verificar alcanzabilidad en red por ICMP Ping (Modo PUSH ADMS)
+        long pingStart = System.currentTimeMillis();
+        if (hacerPingHost(ip)) {
+            long latenciaPing = Math.max(1, System.currentTimeMillis() - pingStart);
+            // Guardar automáticamente la IP funcional si respondió al ping
+            guardarClave(ConfiguracionService.BIOMETRICO_IP, ip);
+            log.info("Ping exitoso a terminal biométrico ZKTeco SenseFace 3A en {} ({} ms)", ip, latenciaPing);
             return BiometricoTestResultDTO.builder()
-                    .conectado(false)
+                    .conectado(true)
                     .ip(ip)
                     .puerto(puerto)
-                    .latenciaMs(0L)
-                    .mensaje("No se detectó respuesta en " + ip + ":" + puerto + " ni latidos ADMS aún.")
-                    .detallesTecnicos("Para Protocolo PUSH (ADMS): en el SenseFace 3A entra a Red -> Servidor de Nube (ADMS) y pon la IP de esta PC y el Puerto 8080.")
+                    .latenciaMs(latenciaPing)
+                    .mensaje("¡ZKTeco SenseFace 3A detectado en línea en " + ip + " (" + latenciaPing + " ms)!")
+                    .detallesTecnicos("Equipo respondiendo en red (Modo PUSH ADMS). Para envío automático de marcaciones, en el SenseFace 3A configura: Red -> Servidor de Nube (ADMS) -> IP Servidor: 192.168.100.64 | Puerto: 8080.")
                     .build();
         }
+
+        log.warn("Fallo de conexión a terminal biométrico ZKTeco {}:{}", ip, puerto);
+        return BiometricoTestResultDTO.builder()
+                .conectado(false)
+                .ip(ip)
+                .puerto(puerto)
+                .latenciaMs(0L)
+                .mensaje("No se detectó respuesta desde " + ip + ". Verifica que el SenseFace 3A esté encendido y en la misma red.")
+                .detallesTecnicos("Para Protocolo PUSH (ADMS): en el SenseFace 3A entra a Red -> Servidor de Nube (ADMS) y pon Dirección del Servidor: 192.168.100.64 y Puerto: 8080.")
+                .build();
     }
 
     @Transactional
@@ -315,6 +334,26 @@ public class BiometricoService {
                 .build();
     }
 
+    private boolean hacerPingHost(String ip) {
+        try {
+            if (java.net.InetAddress.getByName(ip).isReachable(1500)) {
+                return true;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+            ProcessBuilder pb = isWindows
+                    ? new ProcessBuilder("ping", "-n", "1", "-w", "1500", ip)
+                    : new ProcessBuilder("ping", "-c", "1", "-W", "2", ip);
+            Process proc = pb.start();
+            int exit = proc.waitFor();
+            return exit == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void guardarClave(String clave, String valor) {
         configuracionRepository.findById(clave).ifPresentOrElse(c -> {
             c.setValor(valor);
@@ -325,8 +364,8 @@ public class BiometricoService {
     }
 
     private String normalizarIp(String ip) {
-        if (ip == null) return "192.168.1.201";
+        if (ip == null) return "192.168.100.201";
         String corregida = ip.replaceAll("\\.{2,}", ".").trim();
-        return corregida.isEmpty() ? "192.168.1.201" : corregida;
+        return corregida.isEmpty() ? "192.168.100.201" : corregida;
     }
 }

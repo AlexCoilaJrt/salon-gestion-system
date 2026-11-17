@@ -36,7 +36,7 @@ export class BiometricoModalComponent implements OnInit, OnChanges {
   resultadoSync: BiometricoSincronizacion | null = null;
 
   configForm: BiometricoConfig = {
-    ip: '192.168.1.201',
+    ip: '192.168.100.201',
     puerto: 4370,
     commKey: '0',
     nombreDispositivo: 'ZKTeco SenseFace 3A',
@@ -62,7 +62,7 @@ export class BiometricoModalComponent implements OnInit, OnChanges {
       next: (cfg) => {
         if (cfg) {
           this.configForm = {
-            ip: cfg.ip || '192.168.1.201',
+            ip: cfg.ip || '192.168.100.201',
             puerto: cfg.puerto || 4370,
             commKey: cfg.commKey || '0',
             nombreDispositivo: cfg.nombreDispositivo || 'ZKTeco SenseFace 3A',

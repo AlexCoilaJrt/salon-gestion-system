@@ -34,10 +34,10 @@
         <div class="relative">
           <i class="pi pi-globe absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
           <input pInputText type="text" [(ngModel)]="configForm.ip" 
-                 placeholder="Ej: 192.168.1.201" 
+                 placeholder="Ej: 192.168.100.201" 
                  class="w-full !pl-8 text-sm font-mono font-bold" />
         </div>
-        <span class="text-[10px] text-gray-400 block mt-1">IP de fábrica ZK: 192.168.1.201</span>
+        <span class="text-[10px] text-gray-400 block mt-1">IP de fábrica ZK: 192.168.100.201</span>
       </div>
 
       <div class="sm:col-span-3">
@@ -157,10 +157,10 @@
       <div class="flex flex-col gap-1 leading-relaxed text-[11px]">
         <span><strong>💡 Pasos para conectar tu SenseFace 3A cuando lo instales:</strong></span>
         <ul class="list-disc pl-4 space-y-0.5 m-0">
-          <li>Conecta el cable de red Ethernet RJ-45 del terminal al mismo switch/router del salón (o configúrale la red Wi-Fi).</li>
-          <li>En la pantalla táctil de 2.8" del equipo, ve a <strong>Menú > Comunicaciones > Red</strong> para ver su IP asignada.</li>
-          <li>Registra a cada especialista en el terminal asignándole como <strong>User ID su número de DNI</strong>.</li>
-          <li>¡Listo! Al marcar con su rostro, el sistema reconocerá su DNI y registrará la asistencia con su turno correspondiente.</li>
+          <li><strong>IP del SenseFace 3A:</strong> <code>192.168.100.201</code> (conectado en la misma red local).</li>
+          <li><strong>Configuración PUSH (ADMS) en el reloj:</strong> Ve a <strong>Menú &gt; Red &gt; Servidor de Nube (ADMS)</strong> y coloca: <strong>Dirección del Servidor: <code>192.168.100.64</code></strong> y <strong>Puerto: <code>8080</code></strong> (HTTPS: OFF).</li>
+          <li><strong>Registro de Personal:</strong> En el reloj crea cada usuario poniendo como <strong>ID de Usuario su DNI</strong> (o su ID de empleado) y registra su rostro, huella o tarjeta RFID.</li>
+          <li>¡Listo! Cada marcación llegará automáticamente en tiempo real a <strong>Control de Asistencia</strong>.</li>
         </ul>
       </div>
     </div>
